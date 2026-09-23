@@ -6,8 +6,7 @@ internal enum class ThemeMode(
 ) {
     System(storageValue = "system", displayLabel = "Sistema"),
     Light(storageValue = "light", displayLabel = "Chiaro"),
-    Dark(storageValue = "dark", displayLabel = "Scuro"),
-    ;
+    Dark(storageValue = "dark", displayLabel = "Scuro");
 
     companion object {
         fun fromStorage(value: String?): ThemeMode =
