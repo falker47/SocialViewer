@@ -33,7 +33,7 @@ jobs:
           log-accepted-android-sdk-licenses: false
 
       - name: Install Android SDK Platform 37
-        run: sdkmanager --channel=3 "platforms;android-37" "build-tools;36.0.0"
+        run: sdkmanager --channel=3 "platforms;android-37.0" "build-tools;37.0.0"
 
       - name: Make Gradle wrapper executable
         run: chmod +x gradlew
