@@ -16,8 +16,8 @@ Implemented provider:
 - `ACTION_SEND` text sharing remains an unpromoted technical fallback.
 - Manual entry remains available; the trailing clipboard button pastes, validates, and opens in one tap.
 - First-run onboarding uses two coach marks on the real Home screen and respects the Android navigation-bar safe area.
-- Settings expose actual direct-link state/configuration, TikTok site-data clearing, and app/privacy information.
-- The UI is intentionally light-only for this baseline. Dark mode is the next isolated UI milestone.
+- Settings expose actual direct-link state/configuration, TikTok site-data clearing, app/privacy information, and Appearance.
+- Appearance supports **System / Light / Dark**. System is the default, follows Android's current theme, and the selection is persisted locally.
 
 The TikTok playback path and the light Home/onboarding/Settings flow have been verified on Android device/emulator during the 2026-09-23 MVP pass.
 
@@ -133,12 +133,11 @@ Examples: `feature/dark-mode`, `feature/instagram-provider`.
 
 ## Next milestones
 
-1. Dark mode as a separate polish task, then expose System / Light / Dark selection.
-2. Re-validate current official/public integration options for Instagram, Facebook, and YouTube under the no-backend/no-account product constraints.
-3. Add one second provider incrementally — likely Instagram if feasibility remains good.
-4. Generalize visible TikTok-specific UI only after a second provider exists.
-5. Add Facebook next if the Meta integration can reuse the second-provider work.
-6. Evaluate YouTube separately, including link-routing semantics.
+1. Re-validate current official/public integration options for Instagram, Facebook, and YouTube under the no-backend/no-account product constraints.
+2. Add one second provider incrementally — likely Instagram if feasibility remains good.
+3. Generalize visible TikTok-specific UI only after a second provider exists.
+4. Add Facebook next if the Meta integration can reuse the second-provider work.
+5. Evaluate YouTube separately, including link-routing semantics.
 
 Do not pre-emptively redesign the provider architecture before the second real provider demonstrates a need.
 

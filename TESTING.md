@@ -117,7 +117,21 @@ Share a public TikTok URL as text from another app and choose **Social Viewer**.
 
 Expected: the app starts resolving the URL. This path is supported but intentionally not promoted in the primary UI.
 
-## 10. Negative tests
+## 10. Appearance / dark mode
+
+Open Settings → **Aspetto** and verify:
+
+1. On a fresh install, **Sistema** is selected by default.
+2. With **Sistema**, switch Android between light and dark theme; Social Viewer must follow the system theme.
+3. Select **Chiaro** while Android is dark; the Social Viewer chrome must remain light.
+4. Select **Scuro** while Android is light; the Social Viewer chrome must remain dark.
+5. Fully close and relaunch the app; the selected mode must persist.
+6. In dark mode inspect Home, top bar, URL input, direct-link card, Settings, the clear-site-data dialog, snackbar, Loading, Error, and the chrome above the player. No Social Viewer surface should remain accidentally light.
+7. Verify both coach marks remain readable against the scrim in dark mode. A fresh app-data run with Android dark + default **Sistema** is sufficient.
+8. Open a TikTok and confirm the remote player itself is not recolored; its black player background remains unchanged.
+9. Re-run clipboard paste/open and direct-link configuration to confirm no regression in those flows.
+
+## 11. Negative tests
 
 Confirm clean failure for:
 
@@ -127,7 +141,7 @@ Confirm clean failure for:
 - a TikTok URL without a supported post/photo ID
 - a short TikTok URL that redirects outside TikTok, when a safe fixture is available
 
-## 11. What to capture if something fails
+## 12. What to capture if something fails
 
 Send:
 
