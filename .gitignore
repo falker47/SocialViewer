@@ -8,3 +8,8 @@
 .externalNativeBuild/
 .cxx/
 app/build/
+
+# Signing material / local release credentials
+*.jks
+*.keystore
+keystore.properties

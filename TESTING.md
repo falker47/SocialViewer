@@ -1,14 +1,12 @@
-# Social Viewer — first-device test
+# Social Viewer — device smoke test
 
-## 1. Bootstrap Gradle
+This checklist is the gate for changes that touch UI, intents, WebView behavior, direct-link handling, or providers.
 
-Before the first Android Studio import, double-click `bootstrap-gradle.cmd` on Windows. It downloads the official Gradle 9.6.0 distribution, verifies its SHA-256 checksum, generates the standard wrapper, and copies only the wrapper files into the project.
+Baseline note: TikTok playback plus the light Home/onboarding/Settings flow were verified during the 2026-09-23 MVP pass. Re-run the relevant sections after changes rather than assuming a previous pass covers new code.
 
-After success the root folder will contain `gradlew`, `gradlew.bat`, and `gradle/wrapper/*`.
+## 1. Clone, open and sync
 
-## 2. Open and sync
-
-Open the project root (`social-viewer-mvp`) in Android Studio, not the `app` subfolder.
+Clone `falker47/SocialViewer` and open the repository root (`SocialViewer`) in Android Studio, not the `app` subfolder.
 
 Required toolchain:
 
@@ -17,52 +15,59 @@ Required toolchain:
 - Android SDK Build-Tools 36.0.0 or newer compatible tools
 - Android SDK Platform-Tools
 
-The project uses AGP 9.4.0 and Gradle 9.6.0.
+The project uses AGP 9.4.0 and the committed Gradle 9.6.0 wrapper.
 
 Run **File > Sync Project with Gradle Files** if sync does not start automatically.
 
-## 3. Run unit tests
+The legacy `bootstrap-gradle.*` scripts are not required for a normal clone because the wrapper is already committed.
+
+## 2. Run automated checks
 
 From Android Studio's Terminal on Windows:
 
 `gradlew.bat testDebugUnitTest`
 
+`gradlew.bat assembleDebug`
+
 Expected result: `BUILD SUCCESSFUL`.
 
-## 4. Connect a real Android phone
+The same checks run in GitHub Actions for pushes and pull requests targeting `main`.
 
-Enable Developer options and USB debugging, or pair with Wireless debugging on Android 11+.
+## 3. Launch on Android
 
-Select the physical phone in Android Studio's target-device selector, then run the `app` configuration.
+Use either a physical phone or emulator. For provider/player verification, prefer a real device at least once before merging a provider or WebView change.
 
-Expected first screen: `Social Viewer`, `Apri un contenuto`, a TikTok URL field with a clipboard icon, `Apri`, and the `Apertura diretta` card. On a fresh app-data install, the first coach mark should appear over the manual-open controls.
+Expected Home:
 
-## 5. Onboarding smoke test
+- `Social Viewer`
+- `Apri un contenuto`
+- TikTok URL field with trailing clipboard icon
+- `Apri`
+- `Apertura diretta`
 
-With fresh app data:
+## 4. Fresh-install onboarding
 
-1. Coach mark 1 highlights the manual-open controls and `Avanti` moves to step 2.
-2. Coach mark 2 highlights `Apertura diretta` and clearly mentions WhatsApp/browser links.
-3. `Non ora` completes onboarding without blocking the app and the coach marks do not return on the next launch.
-4. Repeat with fresh app data and choose `Configura apertura diretta`; Android's Open-by-default screen should open.
+Clear app data before this test.
 
-## 6. Manual URL smoke test
+1. Coach mark 1 highlights the manual-open controls.
+2. Its card stays visibly above the Android navigation area in both gesture navigation and classic three-button navigation.
+3. `Avanti` moves to step 2.
+4. Coach mark 2 highlights `Apertura diretta` and explains that a TikTok link tapped in WhatsApp or the browser can open directly in Social Viewer.
+5. `Non ora` completes onboarding without blocking the app.
+6. Relaunch: coach marks must not return.
+7. Repeat with fresh app data and choose `Configura apertura diretta`; Android's **Open by default** screen must open.
 
-Test all three manual paths with one known-public TikTok video URL:
+## 5. Manual URL flows
 
-- put the URL in the clipboard and tap the trailing clipboard icon: it should paste and open immediately;
-- type/paste the URL into the field and tap `Apri`;
-- leave the field empty, put the URL in the clipboard, and tap `Apri`: it should read the clipboard and open immediately.
+With one known-public TikTok URL:
 
-Also confirm an invalid clipboard value remains on Home and shows an inline validation error.
+- clipboard icon → paste + validate + open immediately;
+- populated field + `Apri` → validate + open;
+- empty field + clipboard populated + `Apri` → read clipboard + open.
 
-Expected path:
+Invalid clipboard/input must remain on Home and show inline feedback.
 
-1. short URL resolves if necessary;
-2. loading spinner appears;
-3. TikTok oEmbed is fetched;
-4. the embedded player appears;
-5. video playback starts after the user's play gesture.
+## 6. TikTok playback
 
 Test at least:
 
@@ -70,51 +75,66 @@ Test at least:
 - `https://vm.tiktok.com/...`
 - `https://vt.tiktok.com/...`
 
+Expected path:
+
+1. short link resolves when necessary;
+2. loading surface appears;
+3. TikTok oEmbed confirms public availability/metadata;
+4. the dedicated TikTok `/player/v1/{post_id}` player appears;
+5. playback works after the user's play gesture;
+6. no raw/intermediate TikTok layout flashes before the player is ready.
+
 Do not use a private, removed, login-only, or age-gated item as the first smoke test.
 
-## 7. Share-sheet fallback test
+## 7. Cookie/site-data behavior
 
-From WhatsApp, Chrome, or another app, share a public TikTok URL as text and choose **Social Viewer**.
+1. Make a TikTok cookie/consent choice if prompted.
+2. Open another TikTok: the same choice should not be requested again merely because the previous player was disposed.
+3. Open Settings → **Cancella dati del sito**.
+4. Confirm the warning.
+5. Verify the snackbar `Dati TikTok cancellati`.
+6. The next TikTok playback may legitimately ask for provider consent/preferences again.
 
-Expected: Social Viewer opens directly and starts resolving the URL.
+## 8. Direct-link handling
 
-## 8. Direct-link test
+Inside Social Viewer tap `Configura`.
 
-Inside Social Viewer tap `Configura` in the `Apertura diretta` card or in Settings.
+On Android's **Open by default** screen enable supported-link handling and select the TikTok domains Android offers for the app.
 
-On Android's **Open by default** screen enable **Open supported links**, then enable the TikTok domains Android offers for this app.
+After returning:
 
-Afterwards tap a TikTok link in WhatsApp. On Android 12+ an unverified web domain normally goes to the browser until the user explicitly approves the app for that domain.
+- Social Viewer reads the real Android domain state;
+- `Apertura diretta attiva` appears only when all currently declared TikTok hosts are approved;
+- the first transition to active shows `Apertura diretta attivata`.
 
-Expected after approval: the matching TikTok link opens Social Viewer directly. After returning from Android settings, Social Viewer should show `Apertura diretta attiva` only when Android reports all declared TikTok hosts as approved; the one-time snackbar should say `Apertura diretta attivata`.
+Then tap a TikTok link from WhatsApp or a browser.
 
-## 9. Settings / privacy smoke test
+Expected: Social Viewer opens directly and starts resolving/rendering without first flashing the Home screen.
 
-Open the gear icon on Home. Confirm:
+## 9. Share-sheet fallback
 
-- TikTok shows the actual `Attiva` / `Da configurare` state;
-- `Configura` opens Android settings;
-- `Cancella dati del sito` asks for confirmation;
-- after confirming, a `Dati TikTok cancellati` snackbar appears;
-- the next TikTok playback may ask again for provider cookie preferences.
+Share a public TikTok URL as text from another app and choose **Social Viewer**.
+
+Expected: the app starts resolving the URL. This path is supported but intentionally not promoted in the primary UI.
 
 ## 10. Negative tests
 
-Confirm that these fail cleanly rather than opening arbitrary content:
+Confirm clean failure for:
 
-- `http://www.tiktok.com/...` (HTTP, not HTTPS)
+- `http://www.tiktok.com/...`
 - `https://example.com/...`
 - malformed text with no URL
-- a short TikTok URL that redirects outside TikTok (if such a test fixture is ever available)
+- a TikTok URL without a supported post/photo ID
+- a short TikTok URL that redirects outside TikTok, when a safe fixture is available
 
 ## 11. What to capture if something fails
 
 Send:
 
 - screenshot of the app/error;
-- the exact test URL (only if public);
-- Android version and phone model;
-- Android Studio **Build** error text if build/sync failed;
-- for runtime crashes, Logcat filtered by package `io.github.falker47.socialviewer`.
+- the exact public test URL when relevant;
+- Android version and phone/emulator model;
+- Android Studio **Build** error text for build/sync failures;
+- Logcat filtered by package `io.github.falker47.socialviewer` for runtime crashes.
 
-Do not paste unrelated device/account logs.
+Do not include unrelated device/account logs.
