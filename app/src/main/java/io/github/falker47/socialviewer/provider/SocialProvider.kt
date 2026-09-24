@@ -23,3 +23,15 @@ class ProviderContentUnavailableException(
     val technicalDetail: String,
 ) : IllegalStateException(technicalDetail)
 
+class ProviderPolicyBlockedException(
+    val providerName: String,
+    val userMessage: String,
+    val technicalDetail: String,
+) : IllegalStateException(technicalDetail)
+
+class ProviderConfigurationException(
+    val providerName: String,
+    val userMessage: String,
+    val technicalDetail: String,
+) : IllegalStateException(technicalDetail)
+
