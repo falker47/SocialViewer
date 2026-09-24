@@ -203,3 +203,31 @@ Run this only after CI is green on `feature/threads-provider`.
 14. TikTok regression: open one canonical public TikTok video and one vm/vt short link if convenient; playback must remain unchanged.
 15. Instagram regression: open one public Instagram post and one public Reel; both must remain unchanged.
 16. Record PASS only if Threads permalink + shorthand work, unavailable/privacy/navigation behavior matches the boundary, and TikTok + Instagram regressions pass.
+
+
+## YouTube provider smoke test
+
+Run this only after CI is green on `feature/youtube-provider`.
+
+1. Configure a local YouTube Data API v3 key. Preferred local setup: add `YOUTUBE_API_KEY=<key>` to gitignored `local.properties`. Restrict the key to YouTube Data API v3; for Android restrictions use package `io.github.falker47.socialviewer` and the signing SHA-1.
+2. Sync the branch:
+   ```powershell
+   .\sync-test-branch.ps1 feature/youtube-provider
+   ```
+3. Build/run on a physical Android phone.
+4. Public watch URL: open one known-public `https://www.youtube.com/watch?v=<videoId>`. Expected: Data API preflight succeeds, then the privacy-enhanced player appears and playback starts only after user interaction.
+5. Short URL: test `https://youtu.be/<videoId>`; it must normalize to the same canonical watch URL.
+6. Shorts: test `https://www.youtube.com/shorts/<videoId>`; it must render as one video, never a Shorts feed.
+7. Mobile URL: test `https://m.youtube.com/watch?v=<videoId>`.
+8. Optional live alias: test one public `/live/<videoId>` if available. No live chat or browsing surface should be added.
+9. Tracking parameters: repeat a shared URL containing `si`, `utm_*`, or other harmless query parameters. Video-ID extraction must remain stable.
+10. Made For Kids gate: use a known MFK video. Expected: **Contenuto non supportato** with copy explaining that videos intended for children are not opened in Social Viewer; the YouTube IFrame must not be loaded. **Apri originale** remains available.
+11. Unavailable/private/non-embeddable: confirm clean **Contenuto non disponibile** handling where the Data API exposes the restriction. Do not attempt to bypass login, age, region, Content ID, or uploader embedding restrictions.
+12. Player surface: controls remain native; autoplay is off; provider-native related-video/advertising surfaces are accepted. Social Viewer must not overlay, hide, restyle, or intercept them.
+13. Privacy-enhanced host: confirm player network/rendering uses `youtube-nocookie.com`. Note whether playback works with Social Viewer's existing third-party-cookie block; do not relax the cookie policy unless this fails repeatably.
+14. Referrer/client identity: if the player reports error 153, capture Logcat and the exact URL. The WebView document base URL must provide a Referer; do not work around 153 by disabling identity requirements.
+15. Routing: YouTube is intentionally **manual paste / Android Share only** in this milestone. Do not expect YouTube links to appear under Android Open by default for Social Viewer.
+16. Navigation boundary: YouTube logo/channel/related actions must not turn the app shell into an unrestricted YouTube browser. Provider-native behavior inside the official player is allowed.
+17. Appearance: check System / Light / Dark around the player; the player itself must not be recolored.
+18. Regression: re-run one TikTok canonical item, one Instagram post + Reel, and one Threads permalink or /t/ item. Their provider code and behavior must remain unchanged.
+19. Record PASS only if the Data API preflight, public watch/short/Shorts playback, MFK fail-closed behavior, privacy-enhanced player, and existing-provider regressions all pass.
