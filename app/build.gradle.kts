@@ -1,5 +1,10 @@
 import java.util.Properties
 
+plugins {
+    id("com.android.application")
+    id("org.jetbrains.kotlin.plugin.compose")
+}
+
 val localProperties = Properties().apply {
     val file = rootProject.file("local.properties")
     if (file.exists()) {
@@ -10,11 +15,6 @@ val localProperties = Properties().apply {
 val youtubeApiKey = providers.gradleProperty("YOUTUBE_API_KEY")
     .orElse(providers.environmentVariable("YOUTUBE_API_KEY"))
     .getOrElse(localProperties.getProperty("YOUTUBE_API_KEY", ""))
-
-plugins {
-    id("com.android.application")
-    id("org.jetbrains.kotlin.plugin.compose")
-}
 
 android {
     namespace = "io.github.falker47.socialviewer"
