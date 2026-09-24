@@ -123,7 +123,6 @@ internal fun facebookDocument(providerHtml: String): String {
             </style>
           </head>
           <body>
-            <div id="fb-root"></div>
             <div id="embed">$embedMarkup</div>
             <script async defer crossorigin="anonymous" src="$FACEBOOK_SDK_URL"></script>
           </body>
