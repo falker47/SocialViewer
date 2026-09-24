@@ -28,7 +28,7 @@ object FacebookUrlPolicy {
         path: String?,
     ): String? = canonicalTarget(scheme, host, path)?.canonicalUrl
 
-    fun canonicalTarget(
+    internal fun canonicalTarget(
         scheme: String?,
         host: String?,
         path: String?,
