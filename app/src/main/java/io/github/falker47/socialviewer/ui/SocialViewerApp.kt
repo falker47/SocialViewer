@@ -557,6 +557,29 @@ private fun SettingsScreen(
         }
         Spacer(Modifier.height(10.dp))
         Text(
+            "NON ATTIVO",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 3.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                "Facebook",
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.weight(1f),
+            )
+            Text(
+                "In pausa",
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        Spacer(Modifier.height(10.dp))
+        Text(
             "Android decide quali domini aprono Social Viewer. Le app ufficiali o il browser " +
                 "possono competere per gli stessi link.",
             style = MaterialTheme.typography.bodySmall,
@@ -623,7 +646,7 @@ private fun SettingsScreen(
             text = {
                 Text(
                     "Verranno rimossi cookie e preferenze dei provider. " +
-                        "TikTok o Instagram potrebbero chiederti nuovamente le preferenze sui cookie.",
+                        "I provider potrebbero chiederti nuovamente le preferenze sui cookie.",
                 )
             },
             dismissButton = {
@@ -779,7 +802,7 @@ private fun CoachMarkOverlay(
                     )
                     Spacer(Modifier.height(8.dp))
                     Text(
-                        "Incolla un link pubblico di TikTok o Instagram: Social Viewer lo aprirà subito.",
+                        "Incolla un link pubblico supportato: Social Viewer lo aprirà subito.",
                         style = MaterialTheme.typography.bodyMedium,
                     )
                     Spacer(Modifier.height(18.dp))
@@ -798,8 +821,8 @@ private fun CoachMarkOverlay(
                     )
                     Spacer(Modifier.height(8.dp))
                     Text(
-                        "Dopo la configurazione, tocca un link TikTok o Instagram su WhatsApp " +
-                            "o nel browser: si aprirà in Social Viewer.",
+                        "Dopo la configurazione, tocca un link compatibile su WhatsApp o nel browser: " +
+                            "si aprirà in Social Viewer.",
                         style = MaterialTheme.typography.bodyMedium,
                     )
                     Spacer(Modifier.height(18.dp))

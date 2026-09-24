@@ -178,3 +178,28 @@ Run this only after CI is green on `feature/multi-provider-ui`.
 14. Re-run at least one TikTok video after Instagram/direct-link testing and one Instagram item after TikTok/direct-link testing to catch cross-provider regressions.
 
 Record PASS only if the branch builds, both providers retain playback, the direct-link states match Android's actual settings, and the Instagram unavailable path is clean.
+
+
+## Threads provider smoke test
+
+Run this only after CI is green on `feature/threads-provider`.
+
+1. Sync the branch:
+   ```powershell
+   .\sync-test-branch.ps1 feature/threads-provider
+   ```
+2. Build/run on the physical phone used for the existing provider gates.
+3. Public permalink: open one known-public `https://www.threads.com/@<username>/post/<shortcode>/`. It must render a single Threads post without requiring a Social Viewer account or a Threads login.
+4. Shorthand: open one real public `https://www.threads.com/t/<shortcode>/`. It must render through the same provider path.
+5. Legacy compatibility: if you have a real `threads.net` post or `/t/` URL, open it and confirm it normalizes to the current Threads integration rather than being rejected as an unsupported provider.
+6. Unavailable/private/removed: test one known unavailable item. Expected user-facing result is `Questo contenuto Threads non è disponibile.`; no raw expected HTTP 400/404 detail should be shown.
+7. Cookie/login surface: note whether the official embed shows any provider-controlled consent or login UI. Do not sign in. Rendering of the public test post must not depend on a Threads account.
+8. Repeated viewing/site data: open two public Threads posts in sequence, return Home, then reopen one. Confirm there is no Social Viewer history/feed surface and no unnecessary repeated consent caused by WebView disposal.
+9. Clear site data: Settings → **Cancella dati del sito** → confirm. Reopen Threads; provider preferences may legitimately be requested again.
+10. Direct link: in Android **Open by default**, associate Social Viewer with Threads domains where Android allows it. Tap a real Threads shorthand `/t/` link from another app/browser. It should open directly in Social Viewer. Canonical `/@user/post/...` is intentionally paste/Share-only on this Android baseline.
+11. Settings: TikTok, Instagram and Threads are the active/configurable provider rows. Facebook is shown separately as **In pausa** and is not included in the active-provider count.
+12. Main-frame boundary: tap author/profile or other navigational links inside the Threads embed. Social Viewer must not become a Threads browser; main-frame navigation must stay blocked.
+13. Appearance: exercise **Sistema / Chiaro / Scuro** with a Threads item loaded and inspect Home, Settings, loading/error chrome and player surroundings.
+14. TikTok regression: open one canonical public TikTok video and one vm/vt short link if convenient; playback must remain unchanged.
+15. Instagram regression: open one public Instagram post and one public Reel; both must remain unchanged.
+16. Record PASS only if Threads permalink + shorthand work, unavailable/privacy/navigation behavior matches the boundary, and TikTok + Instagram regressions pass.

@@ -7,8 +7,11 @@ import org.junit.Test
 
 class DirectLinkHandlingTest {
     @Test
-    fun providerHostMappingIncludesTikTokAndInstagram() {
-        assertEquals(listOf("tiktok", "instagram"), DIRECT_LINK_PROVIDERS.map { it.providerId })
+    fun providerHostMappingIncludesTikTokInstagramAndThreads() {
+        assertEquals(
+            listOf("tiktok", "instagram", "threads"),
+            DIRECT_LINK_PROVIDERS.map { it.providerId },
+        )
         assertEquals(
             setOf(
                 "tiktok.com",
@@ -23,6 +26,10 @@ class DirectLinkHandlingTest {
             setOf("instagram.com", "www.instagram.com"),
             DIRECT_LINK_PROVIDERS.first { it.providerId == "instagram" }.hosts,
         )
+        assertEquals(
+            setOf("threads.com", "www.threads.com", "threads.net", "www.threads.net"),
+            DIRECT_LINK_PROVIDERS.first { it.providerId == "threads" }.hosts,
+        )
     }
 
     @Test
@@ -35,7 +42,7 @@ class DirectLinkHandlingTest {
         )
 
         assertTrue(state.allProvidersActive)
-        assertEquals(2, state.activeProviderCount)
+        assertEquals(3, state.activeProviderCount)
         assertTrue(state.providers.all { it.status == DirectLinkProviderStatus.ACTIVE })
     }
 
