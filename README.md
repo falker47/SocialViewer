@@ -9,7 +9,7 @@ Social Viewer is intentionally not a social client: no feed, no Social Viewer ac
 Implemented providers:
 
 - **TikTok** — verified baseline.
-- **Instagram** — public posts and Reels via Meta's official tokenless oEmbed path; manual paste/share is implemented and pending emulator/device smoke verification.
+- **Instagram** — verified public posts and Reels via Meta's official tokenless oEmbed path.
 - Public availability/metadata are checked through TikTok's oEmbed endpoint.
 - Playback uses TikTok's official dedicated `/player/v1/{post_id}` embed player.
 - Canonical TikTok URLs plus `vm.tiktok.com` / `vt.tiktok.com` short links are supported.
@@ -17,10 +17,10 @@ Implemented providers:
 - `ACTION_SEND` text sharing remains an unpromoted technical fallback.
 - Manual entry remains available; the trailing clipboard button pastes, validates, and opens in one tap.
 - First-run onboarding uses two coach marks on the real Home screen and respects the Android navigation-bar safe area.
-- Settings expose actual TikTok direct-link state/configuration, shared provider site-data clearing, app/privacy information, and Appearance.
+- Home and Settings summarize the real Android direct-link state for both TikTok and Instagram; configuration always opens Android's **Open by default** screen.
 - Appearance supports **System / Light / Dark**. System is the default, follows Android's current theme, and the selection is persisted locally.
 
-The TikTok playback path and the Home/onboarding/Settings/theme flow are verified on Android device/emulator. The Instagram provider is implemented on `feature/instagram-provider` and requires the documented emulator/device smoke gate before merge.
+TikTok and Instagram playback are verified on Android device/emulator. The multi-provider shared UI and Instagram direct-link declarations are implemented on `feature/multi-provider-ui` and require the documented smoke gate before merge.
 
 ## Product rule
 
@@ -37,11 +37,13 @@ incoming Android intent / shared text
               v
         ProviderRegistry
               |
-      +-------+--------+
-      |                |
- TikTokProvider   future providers
-      |
-      v
+      +-------+---------+
+      |                 |
+ TikTokProvider   InstagramProvider
+      |                 |
+      +-------+---------+
+              |
+              v
  public provider integration
       |
       v
@@ -73,11 +75,11 @@ The remote social platform/CDN still receives ordinary network metadata required
 
 ## Android direct-link handling
 
-TikTok owns its web domains, so Social Viewer cannot publish TikTok's `assetlinks.json` and cannot become a verified App Link handler for those domains.
+TikTok and Instagram own their web domains, so Social Viewer cannot publish the providers' `assetlinks.json` files and cannot self-verify those domains.
 
-On modern Android versions, the user may need to explicitly allow Social Viewer under **Open by default / supported links**. The Home and Settings UI expose **Apertura diretta** and open that system screen when configuration is needed.
+The manifest declares TikTok web links plus supported Instagram post/Reel paths. On modern Android versions, the user may explicitly associate Social Viewer with those domains under **Open by default / supported links**. First-party apps or the browser may compete for the same domains.
 
-On Android 12+, Social Viewer reads the real user-selected domain state through `DomainVerificationManager`; it does not fake an in-app link-handling toggle.
+On Android 12+, Social Viewer reads the real per-domain user state through `DomainVerificationManager`, summarizes it per provider, and opens the Android system screen for changes. It does not expose a fake in-app toggle. Manual paste and Android Share remain fallbacks.
 
 ## Build
 
@@ -130,17 +132,16 @@ Device/WebView/provider behavior still requires a real Android smoke test before
 - Merge only after the relevant smoke test passes.
 - Truly isolated micro-fixes may go directly to `main` when they are easy to verify and revert.
 
-Examples: `feature/dark-mode`, `feature/instagram-provider`.
+Examples: `feature/dark-mode`, `feature/instagram-provider`, `feature/multi-provider-ui`.
 
 ## Next milestones
 
-1. Complete emulator/device smoke verification for the Instagram provider and merge only after PASS.
-2. Generalize visible TikTok-specific shared UI and direct-link summaries now that two providers exist.
-3. Add Facebook next if the Meta integration can reuse the Instagram provider work.
-4. Consider Threads after Facebook; keep YouTube blocked until its policy/product conflicts are explicitly resolved.
-5. Evaluate YouTube separately, including link-routing semantics.
+1. Complete the manual smoke gate for `feature/multi-provider-ui` and merge only after PASS.
+2. Add Facebook next if the current Meta integration can reuse the Instagram provider work.
+3. Consider Threads after Facebook; keep YouTube blocked until its policy/product conflicts are explicitly resolved.
+4. Evaluate YouTube separately, including link-routing semantics.
 
-Do not pre-emptively redesign the provider architecture before the second real provider demonstrates a need.
+Keep adding and verifying one provider at a time; do not turn the next step into a multi-provider mega-branch.
 
 ## Non-goals
 
