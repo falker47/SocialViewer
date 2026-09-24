@@ -40,11 +40,11 @@ incoming Android intent / shared text
               v
         ProviderRegistry
               |
-      +-------+---------+
-      |           |            |
- TikTokProvider InstagramProvider ThreadsProvider
-      |           |            |
-      +-----------+------------+
+      +-------+---------+---------+
+      |           |           |           |
+ TikTokProvider InstagramProvider ThreadsProvider YouTubeProvider
+      |           |           |           |
+      +-----------+-----------+-----------+
                   |
               v
  public provider integration
@@ -78,11 +78,11 @@ The remote social platform/CDN still receives ordinary network metadata required
 
 ## Android direct-link handling
 
-TikTok, Instagram and Threads own their web domains, so Social Viewer cannot publish the providers' `assetlinks.json` files and cannot self-verify those domains.
+TikTok, Instagram and Threads own their web domains, so Social Viewer cannot publish the providers' `assetlinks.json` files and cannot self-verify those domains. YouTube is intentionally not declared for direct-link handling in its first implementation slice.
 
 The manifest declares TikTok web links, supported Instagram post/Reel paths, and only the safely constrainable Threads shorthand `/t/` paths on `threads.com` and legacy `threads.net`. Canonical Threads `/@user/post/...` permalinks remain available through manual paste/Android Share because the minSdk-26 path matcher cannot express that route narrowly without overclaiming profile/feed surfaces. On modern Android versions, the user may explicitly associate Social Viewer with declared provider domains under **Open by default / supported links**. First-party apps or the browser may compete for the same domains.
 
-On Android 12+, Social Viewer reads the real per-domain user state through `DomainVerificationManager`, summarizes it per provider, and opens the Android system screen for changes. It does not expose a fake in-app toggle. Manual paste and Android Share remain fallbacks.
+On Android 12+, Social Viewer reads the real per-domain user state through `DomainVerificationManager`, summarizes it per provider, and opens the Android system screen for changes. It does not expose a fake in-app toggle. Manual paste and Android Share remain fallbacks; they are the initial YouTube routing modes.
 
 ## YouTube Data API configuration
 
