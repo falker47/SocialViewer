@@ -1,15 +1,18 @@
 package io.github.falker47.socialviewer.ui
 
+import android.app.Activity
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Handler
 import android.os.Looper
+import android.view.View
 import android.webkit.CookieManager
 import android.webkit.WebStorage
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -37,6 +40,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -50,8 +54,11 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -67,6 +74,7 @@ import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
@@ -128,6 +136,8 @@ fun SocialViewerApp(
     val uiPrefs = remember {
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
     }
+    var themeMode by remember { mutableStateOf(readThemeMode(uiPrefs)) }
+    val darkTheme = themeMode.resolveDark(isSystemInDarkTheme())
     var onboardingStep by remember {
         mutableStateOf(
             if (uiPrefs.getBoolean(PREF_ONBOARDING_COMPLETE, false)) null else 1,
@@ -224,7 +234,10 @@ fun SocialViewerApp(
         }
     }
 
-    MaterialTheme {
+    MaterialTheme(
+        colorScheme = if (darkTheme) darkColorScheme() else lightColorScheme(),
+    ) {
+        ApplySystemBars(context = context, darkTheme = darkTheme)
         Box(modifier = Modifier.fillMaxSize()) {
             Scaffold(
                 snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -265,6 +278,11 @@ fun SocialViewerApp(
                 when (screen) {
                     AppScreen.Settings -> SettingsScreen(
                         directLinkActive = directLinkActive,
+                        themeMode = themeMode,
+                        onThemeModeChange = { selectedMode ->
+                            themeMode = selectedMode
+                            writeThemeMode(uiPrefs, selectedMode)
+                        },
                         onConfigureDirectLinks = ::launchDirectLinkSettings,
                         onClearSiteData = {
                             clearTikTokSiteData(context) {
@@ -470,6 +488,8 @@ private fun DirectLinkCard(
 @Composable
 private fun SettingsScreen(
     directLinkActive: Boolean,
+    themeMode: ThemeMode,
+    onThemeModeChange: (ThemeMode) -> Unit,
     onConfigureDirectLinks: () -> Unit,
     onClearSiteData: () -> Unit,
     appVersion: String,
@@ -506,6 +526,22 @@ private fun SettingsScreen(
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
+
+        Spacer(Modifier.height(24.dp))
+        HorizontalDivider()
+        Spacer(Modifier.height(24.dp))
+
+        SettingsSectionTitle("ASPETTO")
+        Spacer(Modifier.height(12.dp))
+        Text("Tema", style = MaterialTheme.typography.titleMedium)
+        Spacer(Modifier.height(6.dp))
+        ThemeMode.entries.forEach { mode ->
+            ThemeModeOption(
+                label = mode.displayLabel,
+                selected = themeMode == mode,
+                onSelect = { onThemeModeChange(mode) },
+            )
+        }
 
         Spacer(Modifier.height(24.dp))
         HorizontalDivider()
@@ -569,6 +605,31 @@ private fun SettingsScreen(
                     Text("Cancella")
                 }
             },
+        )
+    }
+}
+
+@Composable
+private fun ThemeModeOption(
+    label: String,
+    selected: Boolean,
+    onSelect: () -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onSelect)
+            .padding(vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        RadioButton(
+            selected = selected,
+            onClick = onSelect,
+        )
+        Text(
+            label,
+            style = MaterialTheme.typography.bodyLarge,
+            modifier = Modifier.padding(start = 8.dp),
         )
     }
 }
@@ -700,6 +761,29 @@ private fun CoachMarkOverlay(
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun ApplySystemBars(
+    context: Context,
+    darkTheme: Boolean,
+) {
+    val barColor = MaterialTheme.colorScheme.surface.toArgb()
+
+    SideEffect {
+        val window = (context as? Activity)?.window ?: return@SideEffect
+        window.statusBarColor = barColor
+        window.navigationBarColor = barColor
+
+        val lightBarFlags =
+            View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR or View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
+        val currentFlags = window.decorView.systemUiVisibility
+        window.decorView.systemUiVisibility = if (darkTheme) {
+            currentFlags and lightBarFlags.inv()
+        } else {
+            currentFlags or lightBarFlags
         }
     }
 }

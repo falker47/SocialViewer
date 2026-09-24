@@ -17,6 +17,7 @@ Social Viewer has no viewing-history database, account state, analytics store, o
 Minimal local state is allowed only when it materially supports the viewing flow. Today that includes:
 
 - onboarding completion;
+- UI appearance preference (System / Light / Dark, default System);
 - provider first-party cookies/preferences required to preserve the user's TikTok consent choice across videos.
 
 TikTok first-party cookies/preferences are intentionally retained across player disposal and flushed normally. Third-party cookies remain disabled. The user can explicitly remove provider site data through **Cancella dati del sito**.
