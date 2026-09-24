@@ -40,6 +40,14 @@ internal val DIRECT_LINK_PROVIDERS = listOf(
             "www.instagram.com",
         ),
     ),
+    DirectLinkProviderDefinition(
+        providerId = "facebook",
+        displayName = "Facebook",
+        hosts = linkedSetOf(
+            "facebook.com",
+            "www.facebook.com",
+        ),
+    ),
 )
 
 internal data class DirectLinkProviderState(

@@ -23,3 +23,9 @@ class ProviderContentUnavailableException(
     val technicalDetail: String,
 ) : IllegalStateException(technicalDetail)
 
+class ProviderShareLinkResolutionException(
+    val providerName: String,
+    val canonicalHint: String,
+    val technicalDetail: String,
+) : IllegalStateException(technicalDetail)
+
