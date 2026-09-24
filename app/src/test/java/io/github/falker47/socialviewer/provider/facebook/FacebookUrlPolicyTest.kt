@@ -23,6 +23,13 @@ class FacebookUrlPolicyTest {
                 "/reel/3305054673010377/",
             ),
         )
+        assertTrue(
+            FacebookUrlPolicy.supports(
+                "https",
+                "www.facebook.com",
+                "/share/r/1HNwyf2jVo/",
+            ),
+        )
     }
 
     @Test
@@ -31,8 +38,35 @@ class FacebookUrlPolicyTest {
         assertFalse(FacebookUrlPolicy.supports("https", "www.facebook.com", "/stories/123/"))
         assertFalse(FacebookUrlPolicy.supports("https", "www.facebook.com", "/groups/example/posts/123/"))
         assertFalse(FacebookUrlPolicy.supports("https", "www.facebook.com", "/share/p/123/"))
+        assertFalse(FacebookUrlPolicy.supports("https", "www.facebook.com", "/share/v/123/"))
         assertFalse(FacebookUrlPolicy.supports("https", "fakefacebook.com", "/alice/posts/123/"))
         assertFalse(FacebookUrlPolicy.supports("http", "www.facebook.com", "/alice/posts/123/"))
+    }
+
+    @Test
+    fun normalizesOnlyReelShareAliasesForSafeRedirectResolution() {
+        assertEquals(
+            "https://www.facebook.com/share/r/1HNwyf2jVo/",
+            FacebookUrlPolicy.shareReelAliasUrl(
+                "https",
+                "facebook.com",
+                "/share/r/1HNwyf2jVo/",
+            ),
+        )
+        assertNull(
+            FacebookUrlPolicy.canonicalUrl(
+                "https",
+                "www.facebook.com",
+                "/share/r/1HNwyf2jVo/",
+            ),
+        )
+        assertNull(
+            FacebookUrlPolicy.shareReelAliasUrl(
+                "https",
+                "www.facebook.com",
+                "/share/p/1HNwyf2jVo/",
+            ),
+        )
     }
 
     @Test
