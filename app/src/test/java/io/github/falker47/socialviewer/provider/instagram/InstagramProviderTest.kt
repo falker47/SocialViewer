@@ -54,7 +54,7 @@ class InstagramProviderTest {
     ) : UrlConnectionHttpClient() {
         var requestedUrl: String? = null
 
-        override fun get(url: String): Response {
+        override fun get(url: String): UrlConnectionHttpClient.Response {
             requestedUrl = url
             return response
         }
