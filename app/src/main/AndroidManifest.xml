@@ -21,7 +21,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
-            <!-- User-managed deep links. TikTok does not verify our package for these domains. -->
+            <!-- User-managed deep links. Social Viewer cannot verify provider-owned domains. -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -32,6 +32,18 @@
                 <data android:scheme="https" android:host="m.tiktok.com" />
                 <data android:scheme="https" android:host="vm.tiktok.com" />
                 <data android:scheme="https" android:host="vt.tiktok.com" />
+            </intent-filter>
+
+            <!-- Only Instagram content types supported by InstagramProvider are claimed. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="https" android:host="instagram.com" android:pathPrefix="/p/" />
+                <data android:scheme="https" android:host="www.instagram.com" android:pathPrefix="/p/" />
+                <data android:scheme="https" android:host="instagram.com" android:pathPrefix="/reel/" />
+                <data android:scheme="https" android:host="www.instagram.com" android:pathPrefix="/reel/" />
             </intent-filter>
 
             <!-- Fallback: share a public link/text directly to Social Viewer. -->

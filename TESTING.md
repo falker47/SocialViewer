@@ -41,7 +41,7 @@ Expected Home:
 
 - `Social Viewer`
 - `Apri un contenuto`
-- TikTok URL field with trailing clipboard icon
+- provider-generic URL field with trailing clipboard icon
 - `Apri`
 - `Apertura diretta`
 
@@ -52,14 +52,14 @@ Clear app data before this test.
 1. Coach mark 1 highlights the manual-open controls.
 2. Its card stays visibly above the Android navigation area in both gesture navigation and classic three-button navigation.
 3. `Avanti` moves to step 2.
-4. Coach mark 2 highlights `Apertura diretta` and explains that a TikTok link tapped in WhatsApp or the browser can open directly in Social Viewer.
+4. Coach mark 2 highlights `Apertura diretta` and explains that supported TikTok or Instagram links can open directly in Social Viewer after Android configuration.
 5. `Non ora` completes onboarding without blocking the app.
 6. Relaunch: coach marks must not return.
 7. Repeat with fresh app data and choose `Configura apertura diretta`; Android's **Open by default** screen must open.
 
 ## 5. Manual URL flows
 
-With one known-public TikTok URL:
+With one known-public TikTok URL, then repeat with one known-public Instagram post/Reel URL:
 
 - clipboard icon → paste + validate + open immediately;
 - populated field + `Apri` → validate + open;
@@ -92,24 +92,26 @@ Do not use a private, removed, login-only, or age-gated item as the first smoke 
 2. Open another TikTok: the same choice should not be requested again merely because the previous player was disposed.
 3. Open Settings → **Cancella dati del sito**.
 4. Confirm the warning.
-5. Verify the snackbar `Dati TikTok cancellati`.
+5. Verify the snackbar `Dati dei provider cancellati`.
 6. The next TikTok playback may legitimately ask for provider consent/preferences again.
 
 ## 8. Direct-link handling
 
 Inside Social Viewer tap `Configura`.
 
-On Android's **Open by default** screen enable supported-link handling and select the TikTok domains Android offers for the app.
+On Android's **Open by default** screen enable supported-link handling and select the TikTok and Instagram domains Android offers for the app.
 
 After returning:
 
 - Social Viewer reads the real Android domain state;
-- `Apertura diretta attiva` appears only when all currently declared TikTok hosts are approved;
-- the first transition to active shows `Apertura diretta attivata`.
+- Settings shows one compact **Apertura diretta** section with separate TikTok and Instagram state;
+- a provider may show **Parziale** when only some of its declared hosts are selected;
+- `Apertura diretta attiva` appears on Home only when all declared provider hosts are approved;
+- the first transition to fully active shows `Apertura diretta attivata`.
 
-Then tap a TikTok link from WhatsApp or a browser.
+Then tap one supported TikTok link and one supported Instagram post/Reel link from WhatsApp or a browser.
 
-Expected: Social Viewer opens directly and starts resolving/rendering without first flashing the Home screen.
+Expected: when Android is associated with Social Viewer for that domain, Social Viewer opens directly and starts resolving/rendering without first flashing Home. If a first-party app/browser owns the domain instead, change the association in Android rather than treating Social Viewer as a silent default.
 
 ## 9. Share-sheet fallback
 
@@ -153,23 +155,26 @@ Send:
 
 Do not include unrelated device/account logs.
 
-## Instagram provider smoke test
+## Multi-provider UI + direct-link smoke test
 
-Run this only after CI is green on `feature/instagram-provider`.
+Run this only after CI is green on `feature/multi-provider-ui`.
 
-1. Sync the branch with:
+1. Sync the branch:
    ```powershell
-   .\sync-test-branch.ps1 feature/instagram-provider
+   .\sync-test-branch.ps1 feature/multi-provider-ui
    ```
 2. Run the app from Android Studio on an emulator or physical device.
-3. Paste and open one public Instagram image/carousel post URL in the form `https://www.instagram.com/p/{shortcode}/`.
-4. Paste and open one public Instagram Reel URL in the form `https://www.instagram.com/reel/{shortcode}/`.
-5. Confirm the official Instagram embed renders inside Social Viewer and that tapping links inside the embed does not turn the WebView into an Instagram browsing surface.
-6. Try an unavailable/private/restricted Instagram item and confirm Social Viewer reaches its normal unavailable-content error state rather than exposing scraped media.
-7. Re-open a second Instagram item and note whether provider cookie/consent UI repeats unexpectedly.
-8. In Settings, verify that clearing provider site data honestly clears the shared WebView site data and that subsequent provider consent may reappear.
-9. Regression-check one canonical public TikTok video and confirm playback still works.
-10. Direct opening of Instagram links is intentionally out of scope for this branch; test Instagram through manual paste or Android Share. TikTok direct-link behavior must remain unchanged.
+3. Home: confirm the field says `Incolla un link` and shared copy no longer assumes TikTok is the only provider.
+4. Manual playback: open one known-public TikTok item, one public Instagram post and one public Instagram Reel. All must render as before.
+5. Instagram unavailable/private: confirm the user-facing error is `Questo contenuto Instagram non è disponibile.` and does not expose the expected HTTP 400 detail. Unexpected provider failures must still use the generic error title rather than being mislabeled as normal unavailability.
+6. Direct-link settings: open **Impostazioni → Apertura diretta → Configura**. Confirm Android's real **Open by default** screen opens.
+7. Select/approve TikTok and Instagram domains where Android allows it. Return to Social Viewer and confirm the provider breakdown reflects the real state (**Attiva / Parziale / Da configurare**) rather than a fake toggle.
+8. Direct TikTok: tap a supported TikTok link from another app/browser and confirm Social Viewer resolves it directly when Android is associated with Social Viewer for that domain.
+9. Direct Instagram: tap a supported `/p/` or `/reel/` link from another app/browser and confirm Social Viewer resolves it directly when Android is associated with Social Viewer for that domain.
+10. Fallbacks: manual paste still works for both providers; Android Share-to-Social-Viewer still resolves a supported shared link.
+11. Fresh-install onboarding: both coach marks remain the same two-step flow; their copy mentions TikTok + Instagram and the second CTA opens Android's real direct-link settings.
+12. Appearance regression: exercise **Sistema / Chiaro / Scuro** and inspect Home, Settings, onboarding, loading/error chrome and player surroundings.
+13. Site-data regression: **Cancella dati del sito** remains provider-generic and may cause either provider to ask for its preferences again.
+14. Re-run at least one TikTok video after Instagram/direct-link testing and one Instagram item after TikTok/direct-link testing to catch cross-provider regressions.
 
-Record PASS only if steps 3-9 behave as expected. If Instagram rendering requires third-party cookies, treat that as a finding to investigate rather than enabling them broadly without evidence.
-
+Record PASS only if the branch builds, both providers retain playback, the direct-link states match Android's actual settings, and the Instagram unavailable path is clean.
