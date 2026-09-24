@@ -18,21 +18,21 @@ Minimal local state is allowed only when it materially supports the viewing flow
 
 - onboarding completion;
 - UI appearance preference (System / Light / Dark, default System);
-- provider first-party cookies/preferences required to preserve the user's TikTok consent choice across videos.
+- provider first-party cookies/preferences required to preserve provider consent choices across items.
 
-TikTok first-party cookies/preferences are intentionally retained across player disposal and flushed normally. Third-party cookies remain disabled. The user can explicitly remove provider site data through **Cancella dati del sito**.
+Provider first-party cookies/preferences are intentionally retained across WebView disposal and flushed normally. Third-party cookies remain disabled. The user can explicitly remove the shared provider site data through **Cancella dati del sito**.
 
 If favorites/history ever become a feature, they must be explicitly opt-in and modeled separately rather than emerging accidentally from browser storage.
 
 ## AD-004 — WebView is an implementation detail
 
-`SocialContent` carries renderable embed HTML today because TikTok's official dedicated player is embedded in a WebView. A future provider may instead return another renderable representation.
+`SocialContent` carries renderable embed HTML plus a provider document base URL. TikTok uses its official dedicated player; Instagram uses Meta's official tokenless oEmbed markup. Both render through the shared WebView without moving provider retrieval logic into the Android shell.
 
-When the second provider is implemented, evolve the model toward a sealed `RenderableContent` type only if the real second integration requires it. Do not pre-emptively force all future providers through one renderer or redesign the abstraction without evidence.
+The second provider did not require a sealed `RenderableContent` hierarchy: a narrow provider-aware document base URL was sufficient. Keep the current model until a future real provider demonstrates a renderer mismatch that justifies a stronger abstraction.
 
 ## AD-005 — Deep links are user-managed
 
-The app declares TikTok HTTP(S) intent filters, but it does not claim verified App Links for domains it does not own.
+The app currently declares TikTok HTTP(S) intent filters only. Instagram playback is initially available through manual paste/share; Instagram direct-link declarations are deferred to the multi-provider link-handling milestone. Social Viewer does not claim verified App Links for domains it does not own.
 
 On Android 12+, `DomainVerificationManager` is the source of truth for whether the user has approved the declared TikTok hosts. Social Viewer may display that state and open Android's **Open by default** settings, but it must not present a fake silent toggle.
 
