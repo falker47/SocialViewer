@@ -94,7 +94,11 @@ sealed interface ViewerState {
     data object Home : ViewerState
     data class Loading(val url: String) : ViewerState
     data class Ready(val content: SocialContent) : ViewerState
-    data class Error(val message: String, val url: String?) : ViewerState
+    data class Error(
+        val title: String,
+        val message: String,
+        val url: String?,
+    ) : ViewerState
 }
 
 private enum class AppScreen {
@@ -128,7 +132,7 @@ fun SocialViewerApp(
     var screen by remember { mutableStateOf(AppScreen.Viewer) }
     var manualUrl by remember { mutableStateOf(initialIncoming.orEmpty()) }
     var manualError by remember { mutableStateOf<String?>(null) }
-    var directLinkActive by remember { mutableStateOf(isTikTokDirectLinkHandlingActive(context)) }
+    var directLinkState by remember { mutableStateOf(queryDirectLinkHandlingState(context)) }
     var awaitingLinkSettings by remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -214,22 +218,28 @@ fun SocialViewerApp(
             }
             ViewerState.Ready(content)
         } catch (t: Throwable) {
+            val copy = viewerErrorCopyFor(t)
             ViewerState.Error(
-                message = t.message ?: "Impossibile aprire questo contenuto.",
+                title = copy.title,
+                message = copy.message,
                 url = loading.url,
             )
         }
     }
 
     LaunchedEffect(resumeToken) {
-        val wasActive = directLinkActive
-        val isActive = isTikTokDirectLinkHandlingActive(context)
-        directLinkActive = isActive
+        val previousState = directLinkState
+        val refreshedState = queryDirectLinkHandlingState(context)
+        directLinkState = refreshedState
 
         if (awaitingLinkSettings) {
             awaitingLinkSettings = false
-            if (isActive && !wasActive) {
-                snackbarHostState.showSnackbar("Apertura diretta attivata")
+            when {
+                refreshedState.allProvidersActive && !previousState.allProvidersActive ->
+                    snackbarHostState.showSnackbar("Apertura diretta attivata")
+
+                refreshedState.activeProviderCount > previousState.activeProviderCount ->
+                    snackbarHostState.showSnackbar("Apertura diretta aggiornata")
             }
         }
     }
@@ -277,7 +287,7 @@ fun SocialViewerApp(
             ) { padding ->
                 when (screen) {
                     AppScreen.Settings -> SettingsScreen(
-                        directLinkActive = directLinkActive,
+                        directLinkState = directLinkState,
                         themeMode = themeMode,
                         onThemeModeChange = { selectedMode ->
                             themeMode = selectedMode
@@ -299,7 +309,7 @@ fun SocialViewerApp(
                         ViewerState.Home -> HomeScreen(
                             value = manualUrl,
                             error = manualError,
-                            directLinkActive = directLinkActive,
+                            directLinkState = directLinkState,
                             onValueChange = {
                                 manualUrl = it
                                 manualError = null
@@ -324,6 +334,7 @@ fun SocialViewerApp(
                         )
 
                         is ViewerState.Error -> ErrorScreen(
+                            title = current.title,
                             message = current.message,
                             onBack = { state = ViewerState.Home },
                             onOpenOriginal = current.url?.let { url ->
@@ -360,7 +371,7 @@ fun SocialViewerApp(
 private fun HomeScreen(
     value: String,
     error: String?,
-    directLinkActive: Boolean,
+    directLinkState: DirectLinkHandlingState,
     onValueChange: (String) -> Unit,
     onPasteAndOpen: () -> Unit,
     onOpen: () -> Unit,
@@ -389,7 +400,7 @@ private fun HomeScreen(
             OutlinedTextField(
                 value = value,
                 onValueChange = onValueChange,
-                placeholder = { Text("Incolla un link TikTok") },
+                placeholder = { Text("Incolla un link") },
                 singleLine = true,
                 isError = error != null,
                 supportingText = error?.let { message ->
@@ -422,7 +433,7 @@ private fun HomeScreen(
         Spacer(Modifier.height(24.dp))
 
         DirectLinkCard(
-            active = directLinkActive,
+            state = directLinkState,
             onConfigure = onConfigureDirectLinks,
             modifier = Modifier
                 .fillMaxWidth()
@@ -433,46 +444,51 @@ private fun HomeScreen(
 
 @Composable
 private fun DirectLinkCard(
-    active: Boolean,
+    state: DirectLinkHandlingState,
     onConfigure: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val providerNames = state.providers.joinToString(" e ") { it.definition.displayName }
+    val title = when {
+        state.allProvidersActive -> "Apertura diretta attiva"
+        state.anyProviderConfigured -> "Apertura diretta parziale"
+        else -> "Apertura diretta"
+    }
+    val body = when {
+        state.allProvidersActive ->
+            "I link $providerNames supportati possono aprirsi direttamente in Social Viewer."
+
+        state.anyProviderConfigured ->
+            "Alcuni link sono già configurati. Completa l'impostazione in Android."
+
+        else ->
+            "Apri i link $providerNames supportati direttamente in Social Viewer."
+    }
+
     Card(
         modifier = modifier,
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant,
         ),
     ) {
-        if (active) {
-            Column(modifier = Modifier.padding(18.dp)) {
-                Text(
-                    "Apertura diretta attiva",
-                    style = MaterialTheme.typography.titleMedium,
-                )
-                Spacer(Modifier.height(4.dp))
-                Text(
-                    "Ti basterà cliccare sui link per aprirli con Social Viewer.",
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-            }
-        } else {
-            Column(modifier = Modifier.padding(18.dp)) {
-                Text(
-                    "Apertura diretta",
-                    style = MaterialTheme.typography.titleMedium,
-                )
-                Spacer(Modifier.height(6.dp))
-                Text(
-                    "Apri i link TikTok direttamente in Social Viewer.",
-                    style = MaterialTheme.typography.bodyMedium,
-                )
+        Column(modifier = Modifier.padding(18.dp)) {
+            Text(
+                title,
+                style = MaterialTheme.typography.titleMedium,
+            )
+            Spacer(Modifier.height(6.dp))
+            Text(
+                body,
+                style = MaterialTheme.typography.bodyMedium,
+            )
+            if (!state.allProvidersActive) {
                 Spacer(Modifier.height(14.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
-                        "Da configurare",
+                        directLinkSummaryLabel(state),
                         style = MaterialTheme.typography.labelLarge,
                         modifier = Modifier.weight(1f),
                     )
@@ -487,7 +503,7 @@ private fun DirectLinkCard(
 
 @Composable
 private fun SettingsScreen(
-    directLinkActive: Boolean,
+    directLinkState: DirectLinkHandlingState,
     themeMode: ThemeMode,
     onThemeModeChange: (ThemeMode) -> Unit,
     onConfigureDirectLinks: () -> Unit,
@@ -510,9 +526,9 @@ private fun SettingsScreen(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Text("TikTok", style = MaterialTheme.typography.titleMedium)
+                Text("Apertura diretta", style = MaterialTheme.typography.titleMedium)
                 Text(
-                    if (directLinkActive) "Attiva" else "Da configurare",
+                    directLinkSummaryLabel(directLinkState),
                     style = MaterialTheme.typography.bodyMedium,
                 )
             }
@@ -520,9 +536,29 @@ private fun SettingsScreen(
                 Text("Configura")
             }
         }
+        Spacer(Modifier.height(12.dp))
+        directLinkState.providers.forEach { providerState ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 3.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    providerState.definition.displayName,
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.weight(1f),
+                )
+                Text(
+                    directLinkProviderStatusLabel(providerState.status),
+                    style = MaterialTheme.typography.labelLarge,
+                )
+            }
+        }
         Spacer(Modifier.height(10.dp))
         Text(
-            "Android gestisce quali link possono aprirsi automaticamente.",
+            "Android decide quali domini aprono Social Viewer. Le app ufficiali o il browser " +
+                "possono competere per gli stessi link.",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -643,6 +679,26 @@ private fun SettingsSectionTitle(text: String) {
     )
 }
 
+private fun directLinkSummaryLabel(state: DirectLinkHandlingState): String {
+    if (!state.platformStateAvailable) {
+        return "Configura nelle impostazioni Android"
+    }
+
+    val total = state.providers.size
+    return when {
+        state.allProvidersActive -> "Attiva per tutti i provider"
+        state.activeProviderCount == 0 && !state.anyProviderConfigured -> "Da configurare"
+        else -> "${state.activeProviderCount} di $total provider attivi"
+    }
+}
+
+private fun directLinkProviderStatusLabel(status: DirectLinkProviderStatus): String =
+    when (status) {
+        DirectLinkProviderStatus.ACTIVE -> "Attiva"
+        DirectLinkProviderStatus.PARTIAL -> "Parziale"
+        DirectLinkProviderStatus.NEEDS_SETUP -> "Da configurare"
+    }
+
 @Composable
 private fun CoachMarkOverlay(
     step: Int,
@@ -723,7 +779,7 @@ private fun CoachMarkOverlay(
                     )
                     Spacer(Modifier.height(8.dp))
                     Text(
-                        "Incolla un link TikTok pubblico: Social Viewer lo aprirà subito.",
+                        "Incolla un link pubblico di TikTok o Instagram: Social Viewer lo aprirà subito.",
                         style = MaterialTheme.typography.bodyMedium,
                     )
                     Spacer(Modifier.height(18.dp))
@@ -742,8 +798,8 @@ private fun CoachMarkOverlay(
                     )
                     Spacer(Modifier.height(8.dp))
                     Text(
-                        "Ti basta toccare un link TikTok, su WhatsApp o nel browser: " +
-                            "si aprirà direttamente in Social Viewer.",
+                        "Dopo la configurazione, tocca un link TikTok o Instagram su WhatsApp " +
+                            "o nel browser: si aprirà in Social Viewer.",
                         style = MaterialTheme.typography.bodyMedium,
                     )
                     Spacer(Modifier.height(18.dp))
@@ -837,6 +893,7 @@ private fun PlayerScreen(
 
 @Composable
 private fun ErrorScreen(
+    title: String,
     message: String,
     onBack: () -> Unit,
     onOpenOriginal: (() -> Unit)?,
@@ -849,7 +906,7 @@ private fun ErrorScreen(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Text("Contenuto non disponibile", style = MaterialTheme.typography.headlineSmall)
+        Text(title, style = MaterialTheme.typography.headlineSmall)
         Spacer(Modifier.height(8.dp))
         Text(message)
         Spacer(Modifier.height(20.dp))
