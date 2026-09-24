@@ -23,8 +23,17 @@ open class UrlConnectionHttpClient {
         }
     }
 
-    open fun get(url: String): Response {
-        val connection = open(url, followRedirects = true)
+    open fun get(url: String): Response = get(url, emptyMap())
+
+    open fun get(
+        url: String,
+        headers: Map<String, String>,
+    ): Response {
+        val connection = open(
+            url = url,
+            followRedirects = true,
+            headers = headers,
+        )
         return try {
             val code = connection.responseCode
             val stream = if (code in 200..399) connection.inputStream else connection.errorStream
@@ -39,7 +48,11 @@ open class UrlConnectionHttpClient {
         }
     }
 
-    private fun open(url: String, followRedirects: Boolean): HttpURLConnection =
+    private fun open(
+        url: String,
+        followRedirects: Boolean,
+        headers: Map<String, String> = emptyMap(),
+    ): HttpURLConnection =
         (URL(url).openConnection() as HttpURLConnection).apply {
             instanceFollowRedirects = followRedirects
             connectTimeout = 10_000
@@ -47,5 +60,8 @@ open class UrlConnectionHttpClient {
             requestMethod = "GET"
             setRequestProperty("Accept", "application/json,text/html;q=0.9,*/*;q=0.8")
             setRequestProperty("User-Agent", "SocialViewer/0.1 Android")
+            headers.forEach { (name, value) ->
+                setRequestProperty(name, value)
+            }
         }
 }
