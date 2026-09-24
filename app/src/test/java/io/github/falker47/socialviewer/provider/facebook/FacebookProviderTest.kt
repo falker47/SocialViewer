@@ -102,6 +102,63 @@ class FacebookProviderTest {
     }
 
     @Test
+    fun resolvesSharePostAliasBeforeCallingOfficialPostOEmbed() {
+        val http = FakeHttpClient(
+            response = UrlConnectionHttpClient.Response(
+                statusCode = 200,
+                finalUrl = "https://graph.facebook.com/v25.0/oembed_post",
+                body = """{"html":"<div class=\"fb-post\"></div><script src=\"https://connect.facebook.net/en_US/sdk.js\"></script>"}""",
+            ),
+            resolvedUrl = "https://www.facebook.com/alice/posts/pfbid123/?rdid=test",
+        )
+
+        val target = resolveFacebookTarget(
+            scheme = "https",
+            host = "www.facebook.com",
+            path = "/share/p/1GMwhxUrGi/",
+            http = http,
+        )
+        val content = resolveCanonicalFacebook(target, http)
+
+        assertEquals(FacebookContentKind.POST, target.kind)
+        assertEquals(
+            "https://www.facebook.com/alice/posts/pfbid123/",
+            target.canonicalUrl,
+        )
+        assertEquals(
+            "https://www.facebook.com/share/p/1GMwhxUrGi/",
+            http.requestedResolveUrl,
+        )
+        assertTrue(
+            http.requestedUrl.orEmpty()
+                .startsWith("https://graph.facebook.com/v25.0/oembed_post?url="),
+        )
+        assertEquals("facebook", content.providerId)
+    }
+
+    @Test
+    fun rejectsShareAliasThatResolvesToWrongFacebookContentKind() {
+        val error = runCatching {
+            resolveFacebookTarget(
+                scheme = "https",
+                host = "www.facebook.com",
+                path = "/share/p/1GMwhxUrGi/",
+                http = FakeHttpClient(
+                    response = UrlConnectionHttpClient.Response(
+                        statusCode = 200,
+                        finalUrl = "https://graph.facebook.com/v25.0/oembed_post",
+                        body = "{}",
+                    ),
+                    resolvedUrl = "https://www.facebook.com/reel/1254780559682152/",
+                ),
+            )
+        }.exceptionOrNull()
+
+        assertTrue(error is IllegalArgumentException)
+        assertTrue(error?.message.orEmpty().contains("tipo di contenuto atteso"))
+    }
+
+    @Test
     fun rejectsShareReelAliasThatRedirectsOutsideSupportedFacebookReel() {
         val error = runCatching {
             resolveFacebookTarget(
