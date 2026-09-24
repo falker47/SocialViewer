@@ -73,7 +73,7 @@ Social Viewer itself:
 - disables third-party cookies in the embedded WebView;
 - intentionally retains provider first-party consent/preferences across items;
 - exposes **Cancella dati del sito** to remove shared local provider cookies/preferences;
-- uses the Facebook share-link WebView only as an ephemeral URL-identity resolver: no cache/history is retained by that surface, third-party cookies remain disabled, and the WebView is destroyed after each attempt.
+- uses the Facebook share-link WebView only as an ephemeral URL-identity resolver in a dedicated AndroidX WebKit profile: its cookies/storage are isolated from the normal renderer, third-party cookies remain disabled, and the resolver WebView/profile are discarded after each attempt.
 
 The remote social platform/CDN still receives ordinary network metadata required to serve a public embed. This project does **not** claim network anonymity from the provider.
 
@@ -108,6 +108,7 @@ Pinned project versions:
 - Compose compiler plugin `2.2.10`
 - Compose BOM `2026.09.00`
 - Activity Compose `1.13.0`
+- AndroidX WebKit `1.17.1`
 - kotlinx.coroutines `1.11.0`
 
 The standard Gradle Wrapper is committed. After cloning, open the repository root in Android Studio and sync.

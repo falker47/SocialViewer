@@ -26,7 +26,7 @@ Minimal local state is allowed only when it materially supports the viewing flow
 
 Provider first-party cookies/preferences are intentionally retained across the normal embed WebView disposal and flushed normally. Third-party cookies remain disabled. The user can explicitly remove the shared provider site data through **Cancella dati del sito**.
 
-The Facebook share-link resolver is a separate ephemeral WebView surface. It uses no persistent app history/database, uses `LOAD_NO_CACHE`, disables third-party cookies, rejects main-frame navigation outside the small Facebook host allowlist, reads only URL-identity metadata, and destroys the WebView after success/failure/timeout. Its settings do not relax the normal renderer's protections.
+The Facebook share-link resolver is a separate ephemeral WebView surface assigned to a dedicated AndroidX WebKit profile. Resolver cookies/storage are therefore isolated from the normal renderer; first-party cookies may exist only inside that disposable profile while the logged-out page resolves, third-party cookies are disabled, `LOAD_NO_CACHE` is used, main-frame navigation outside the small Facebook host allowlist is rejected, and only URL-identity metadata is read. The WebView is destroyed and the resolver profile is deleted after success/failure/timeout. Devices whose WebView does not support multi-profile isolation fail closed instead of falling back to shared browser state.
 
 If favorites/history ever become a feature, they must be explicitly opt-in and modeled separately rather than emerging accidentally from browser storage.
 
