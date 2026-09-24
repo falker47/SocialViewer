@@ -46,13 +46,14 @@ Facebook post direct-link routing is intentionally not declared in this mileston
 
 ## 4. Facebook public Reel
 
-Use one known-public URL shaped like:
+Test both forms for the same kind of public Reel when available:
 
-`https://www.facebook.com/reel/{reel-id}/`
+- canonical: `https://www.facebook.com/reel/{reel-id}/`;
+- Facebook share alias: `https://www.facebook.com/share/r/{share-code}/`.
 
-Verify manual paste first.
+The `/share/r/` form is the one Facebook commonly produces from Share/Copy link. Social Viewer must resolve that alias to a canonical Facebook `/reel/` URL before using Meta's official video oEmbed endpoint.
 
-Expected: the official Facebook Reel embed renders and playback remains user-initiated where the provider requires it.
+Expected: both forms render the official Facebook Reel embed and playback remains user-initiated where the provider requires it.
 
 Then test the Android direct-link path separately after section 8.
 
@@ -101,7 +102,7 @@ After returning:
 - The state must reflect Android's real **Attiva / Parziale / Da configurare** status.
 - No separate Facebook toggle or custom configuration surface should exist.
 
-Test a public Facebook **Reel** link from WhatsApp or a browser. When Android is associated with Social Viewer for Facebook, it should route directly into resolve/render without first showing Home.
+Test both a canonical Facebook **Reel** link and, especially, a `/share/r/{code}/` link from WhatsApp or a browser. When Android is associated with Social Viewer for Facebook, either supported Reel form should route directly into resolve/render without first showing Home.
 
 Do **not** treat lack of direct routing for `/{owner}/posts/{id}` as a bug in this milestone: those post paths are intentionally not claimed because the minSdk-26 manifest matcher cannot constrain them without overclaiming unrelated Facebook paths. Manual paste and Share are the fallback for posts.
 
@@ -110,7 +111,8 @@ Do **not** treat lack of direct routing for `/{owner}/posts/{id}` as a bug in th
 Verify:
 
 - Facebook public post via manual paste;
-- Facebook public Reel via manual paste;
+- Facebook public Reel via canonical `/reel/` URL;
+- Facebook Reel via real-world `/share/r/{code}/` share URL;
 - Facebook public post or Reel shared as text through Android Share → Social Viewer.
 
 All supported cases should resolve to Facebook through the existing provider boundary.
@@ -171,7 +173,7 @@ Manual input must reject as unsupported:
 - Facebook profile-only URLs;
 - Facebook Stories;
 - Facebook group-post paths;
-- Facebook `/share/...` aliases not explicitly supported;
+- Facebook `/share/p/...` and `/share/v/...` aliases (only `/share/r/` is supported in this milestone);
 - lookalike hosts such as `fakefacebook.com`.
 
 No scraping or redirect guessing should be introduced to make those forms work.
