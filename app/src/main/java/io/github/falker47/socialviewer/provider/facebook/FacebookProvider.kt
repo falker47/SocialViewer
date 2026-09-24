@@ -4,6 +4,7 @@ import android.net.Uri
 import io.github.falker47.socialviewer.domain.SocialContent
 import io.github.falker47.socialviewer.network.UrlConnectionHttpClient
 import io.github.falker47.socialviewer.provider.ProviderContentUnavailableException
+import io.github.falker47.socialviewer.provider.ProviderShareLinkResolutionException
 import io.github.falker47.socialviewer.provider.SocialProvider
 import org.json.JSONObject
 import java.net.URI
@@ -72,10 +73,26 @@ internal fun resolveFacebookTarget(
         scheme = resolvedUri.scheme,
         host = resolvedUri.host,
         path = resolvedUri.path,
-    ) ?: error("Il link Facebook condiviso non ha risolto verso un contenuto supportato")
+    ) ?: throw ProviderShareLinkResolutionException(
+        providerName = "Facebook",
+        canonicalHint = if (shareAlias.expectedKind == FacebookContentKind.REEL) {
+            "facebook.com/reel/…"
+        } else {
+            "facebook.com/<profilo>/posts/…"
+        },
+        technicalDetail = "Facebook non ha esposto un permalink canonico per il link di condivisione",
+    )
 
-    require(target.kind == shareAlias.expectedKind) {
-        "Il link Facebook condiviso non ha risolto verso il tipo di contenuto atteso"
+    if (target.kind != shareAlias.expectedKind) {
+        throw ProviderShareLinkResolutionException(
+            providerName = "Facebook",
+            canonicalHint = if (shareAlias.expectedKind == FacebookContentKind.REEL) {
+                "facebook.com/reel/…"
+            } else {
+                "facebook.com/<profilo>/posts/…"
+            },
+            technicalDetail = "Il link Facebook condiviso ha risolto verso un tipo di contenuto inatteso",
+        )
     }
 
     return target
