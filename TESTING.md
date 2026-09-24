@@ -27,11 +27,12 @@ The same two checks must be green in GitHub Actions on the Facebook PR before th
 
 ## 3. Facebook public post
 
-Use one known-public URL shaped like:
+Test both post forms when available:
 
-`https://www.facebook.com/{owner}/posts/{post-id}/`
+- canonical: `https://www.facebook.com/{owner}/posts/{post-id}/`;
+- Facebook share alias: `https://www.facebook.com/share/p/{share-code}/`.
 
-Open it through manual paste.
+Open both through manual paste. The `/share/p/` form must resolve to a canonical supported Facebook post before the official post oEmbed call.
 
 Expected:
 
@@ -110,7 +111,8 @@ Do **not** treat lack of direct routing for `/{owner}/posts/{id}` as a bug in th
 
 Verify:
 
-- Facebook public post via manual paste;
+- Facebook canonical public post via manual paste;
+- Facebook post via real-world `/share/p/{code}/` share URL;
 - Facebook public Reel via canonical `/reel/` URL;
 - Facebook Reel via real-world `/share/r/{code}/` share URL;
 - Facebook public post or Reel shared as text through Android Share → Social Viewer.
@@ -173,7 +175,7 @@ Manual input must reject as unsupported:
 - Facebook profile-only URLs;
 - Facebook Stories;
 - Facebook group-post paths;
-- Facebook `/share/p/...` and `/share/v/...` aliases (only `/share/r/` is supported in this milestone);
+- Facebook `/share/v/...` aliases (only `/share/p/` and `/share/r/` are supported in this milestone);
 - lookalike hosts such as `fakefacebook.com`.
 
 No scraping or redirect guessing should be introduced to make those forms work.
