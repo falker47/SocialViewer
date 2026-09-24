@@ -32,7 +32,7 @@ Test both post forms when available:
 - canonical: `https://www.facebook.com/{owner}/posts/{post-id}/`;
 - Facebook share alias: `https://www.facebook.com/share/p/{share-code}/`.
 
-Open both through manual paste. The `/share/p/` form must resolve to a canonical supported Facebook post before the official post oEmbed call.
+Open both through manual paste. The `/share/p/` form gets one cheap redirect attempt. If Facebook exposes a canonical public post, it may proceed to the official post oEmbed call. If Facebook withholds the canonical target, Social Viewer must show the dedicated **Link Facebook non risolvibile** explanation rather than a generic technical error.
 
 Expected:
 
@@ -52,9 +52,9 @@ Test both forms for the same kind of public Reel when available:
 - canonical: `https://www.facebook.com/reel/{reel-id}/`;
 - Facebook share alias: `https://www.facebook.com/share/r/{share-code}/`.
 
-The `/share/r/` form is the one Facebook commonly produces from Share/Copy link. Social Viewer must resolve that alias to a canonical Facebook `/reel/` URL before using Meta's official video oEmbed endpoint.
+The `/share/r/` form is commonly produced by Facebook Share/Copy link. Social Viewer gives it one cheap redirect attempt. If Facebook exposes a canonical `/reel/` target, it may use Meta's official video oEmbed endpoint; otherwise it must show the dedicated **Link Facebook non risolvibile** explanation.
 
-Expected: both forms render the official Facebook Reel embed and playback remains user-initiated where the provider requires it.
+Expected for the canonical `/reel/` form: the official Facebook Reel embed renders and playback remains user-initiated where the provider requires it.
 
 Then test the Android direct-link path separately after section 8.
 
@@ -103,7 +103,9 @@ After returning:
 - The state must reflect Android's real **Attiva / Parziale / Da configurare** status.
 - No separate Facebook toggle or custom configuration surface should exist.
 
-Test both a canonical Facebook **Reel** link and, especially, a `/share/r/{code}/` link from WhatsApp or a browser. When Android is associated with Social Viewer for Facebook, either supported Reel form should route directly into resolve/render without first showing Home.
+Test a canonical Facebook **Reel** link from WhatsApp or a browser. When Android is associated with Social Viewer for Facebook, the canonical `/reel/` form should route directly into resolve/render without first showing Home.
+
+Facebook `/share/p/` and `/share/r/` aliases are intentionally **not** claimed for ACTION_VIEW because Meta may withhold their canonical target from logged-out clients. They should therefore remain with the browser/Facebook app unless manually pasted or shared into Social Viewer.
 
 Do **not** treat lack of direct routing for `/{owner}/posts/{id}` as a bug in this milestone: those post paths are intentionally not claimed because the minSdk-26 manifest matcher cannot constrain them without overclaiming unrelated Facebook paths. Manual paste and Share are the fallback for posts.
 
