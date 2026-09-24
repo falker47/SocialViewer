@@ -12,7 +12,7 @@ Implemented providers:
 - **Instagram** — verified public posts and Reels via Meta's official tokenless oEmbed path.
 - **Threads** — verified public post permalinks, shorthand `/t/` URLs, legacy `threads.net` compatibility and `/t/` direct opening via Meta's official tokenless oEmbed path.
 - **Facebook** — **In pausa / unsupported** for the real-world share-link flow. PR #4 remains an unmerged technical record and is not counted as a supported provider.
-- **YouTube / Shorts** — implemented on `feature/youtube-provider` for single public videos through the official privacy-enhanced IFrame player; physical-device verification is pending. Made For Kids videos are deliberately not embedded.
+- **YouTube / Shorts** — verified for public watch URLs, `youtu.be`, Shorts and the narrow `/live/` alias through the official privacy-enhanced IFrame player. Made For Kids videos fail closed before embedding; removed/unavailable content is handled cleanly.
 - Public availability/metadata are checked through TikTok's oEmbed endpoint.
 - Playback uses TikTok's official dedicated `/player/v1/{post_id}` embed player.
 - Canonical TikTok URLs plus `vm.tiktok.com` / `vt.tiktok.com` short links are supported.
@@ -23,7 +23,7 @@ Implemented providers:
 - Home and Settings summarize the real Android direct-link state for TikTok, Instagram and Threads; configuration always opens Android's **Open by default** screen.
 - Appearance supports **System / Light / Dark**. System is the default, follows Android's current theme, and the selection is persisted locally.
 
-TikTok, Instagram and Threads playback plus the shared multi-provider UI are verified on `main`. YouTube is isolated on `feature/youtube-provider` and must not merge until CI plus the documented physical-device smoke gate pass.
+TikTok, Instagram, Threads and YouTube playback plus the shared multi-provider UI are verified on `main`. YouTube completed its physical-device gate, including Made For Kids and unavailable-content handling, and PR #6 was squash-merged.
 
 ## Product rule
 
@@ -155,7 +155,7 @@ Examples: `feature/dark-mode`, `feature/instagram-provider`, `feature/multi-prov
 
 Threads is complete. Facebook remains frozen as **In pausa / unsupported** and PR #4 remains unmerged.
 
-YouTube is now product-cleared under the explicit provider-native-surface compromise and is implemented on `feature/youtube-provider`. Next gate: green CI, configure a restricted local Data API key, then run the physical-device YouTube smoke test before merge.
+YouTube is complete and verified on `main`. Facebook remains the only evaluated provider currently frozen as **In pausa / unsupported**. Any next provider or product milestone should be evaluated separately and continue the one-change-at-a-time workflow.
 
 ## Non-goals
 
