@@ -152,3 +152,24 @@ Send:
 - Logcat filtered by package `io.github.falker47.socialviewer` for runtime crashes.
 
 Do not include unrelated device/account logs.
+
+## Instagram provider smoke test
+
+Run this only after CI is green on `feature/instagram-provider`.
+
+1. Sync the branch with:
+   ```powershell
+   .\sync-test-branch.ps1 feature/instagram-provider
+   ```
+2. Run the app from Android Studio on an emulator or physical device.
+3. Paste and open one public Instagram image/carousel post URL in the form `https://www.instagram.com/p/{shortcode}/`.
+4. Paste and open one public Instagram Reel URL in the form `https://www.instagram.com/reel/{shortcode}/`.
+5. Confirm the official Instagram embed renders inside Social Viewer and that tapping links inside the embed does not turn the WebView into an Instagram browsing surface.
+6. Try an unavailable/private/restricted Instagram item and confirm Social Viewer reaches its normal unavailable-content error state rather than exposing scraped media.
+7. Re-open a second Instagram item and note whether provider cookie/consent UI repeats unexpectedly.
+8. In Settings, verify that clearing provider site data honestly clears the shared WebView site data and that subsequent provider consent may reappear.
+9. Regression-check one canonical public TikTok video and confirm playback still works.
+10. Direct opening of Instagram links is intentionally out of scope for this branch; test Instagram through manual paste or Android Share. TikTok direct-link behavior must remain unchanged.
+
+Record PASS only if steps 3-9 behave as expected. If Instagram rendering requires third-party cookies, treat that as a finding to investigate rather than enabling them broadly without evidence.
+

@@ -3,14 +3,14 @@ package io.github.falker47.socialviewer.network
 import java.net.HttpURLConnection
 import java.net.URL
 
-class UrlConnectionHttpClient {
+open class UrlConnectionHttpClient {
     data class Response(
         val statusCode: Int,
         val finalUrl: String,
         val body: String,
     )
 
-    fun resolveFinalUrl(url: String): String {
+    open fun resolveFinalUrl(url: String): String {
         val connection = open(url, followRedirects = true)
         return try {
             val code = connection.responseCode
@@ -23,7 +23,7 @@ class UrlConnectionHttpClient {
         }
     }
 
-    fun get(url: String): Response {
+    open fun get(url: String): Response {
         val connection = open(url, followRedirects = true)
         return try {
             val code = connection.responseCode

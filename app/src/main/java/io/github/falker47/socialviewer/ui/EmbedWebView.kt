@@ -15,6 +15,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 @Composable
 fun EmbedWebView(
     html: String,
+    baseUrl: String,
     modifier: Modifier = Modifier,
 ) {
     var webView: WebView? = null
@@ -37,8 +38,8 @@ fun EmbedWebView(
 
                 val currentWebView = this
                 CookieManager.getInstance().apply {
-                    // TikTok's own consent choice is allowed to persist locally so the
-                    // user is not asked again for every single shared video.
+                    // Provider consent choices are allowed to persist locally so the user is
+                    // not asked again for every single shared item.
                     setAcceptCookie(true)
                     setAcceptThirdPartyCookies(currentWebView, false)
                 }
@@ -55,10 +56,11 @@ fun EmbedWebView(
             }
         },
         update = { view ->
-            if (view.tag != html.hashCode()) {
-                view.tag = html.hashCode()
+            val documentKey = 31 * baseUrl.hashCode() + html.hashCode()
+            if (view.tag != documentKey) {
+                view.tag = documentKey
                 view.loadDataWithBaseURL(
-                    "https://www.tiktok.com/",
+                    baseUrl,
                     html,
                     "text/html",
                     "UTF-8",
@@ -73,7 +75,7 @@ fun EmbedWebView(
             // Persist provider preferences (including cookie consent) but discard the
             // transient browsing surface itself. We intentionally do not clear cookies,
             // WebStorage, or cache here; clearing them caused TikTok's consent banner to
-            // reappear on every video.
+            // reappear on every item.
             CookieManager.getInstance().flush()
             webView?.apply {
                 stopLoading()

@@ -6,9 +6,10 @@ Social Viewer is intentionally not a social client: no feed, no Social Viewer ac
 
 ## Current baseline — v0.1.1
 
-Implemented provider:
+Implemented providers:
 
-- **TikTok**.
+- **TikTok** — verified baseline.
+- **Instagram** — public posts and Reels via Meta's official tokenless oEmbed path; manual paste/share is implemented and pending emulator/device smoke verification.
 - Public availability/metadata are checked through TikTok's oEmbed endpoint.
 - Playback uses TikTok's official dedicated `/player/v1/{post_id}` embed player.
 - Canonical TikTok URLs plus `vm.tiktok.com` / `vt.tiktok.com` short links are supported.
@@ -16,10 +17,10 @@ Implemented provider:
 - `ACTION_SEND` text sharing remains an unpromoted technical fallback.
 - Manual entry remains available; the trailing clipboard button pastes, validates, and opens in one tap.
 - First-run onboarding uses two coach marks on the real Home screen and respects the Android navigation-bar safe area.
-- Settings expose actual direct-link state/configuration, TikTok site-data clearing, app/privacy information, and Appearance.
+- Settings expose actual TikTok direct-link state/configuration, shared provider site-data clearing, app/privacy information, and Appearance.
 - Appearance supports **System / Light / Dark**. System is the default, follows Android's current theme, and the selection is persisted locally.
 
-The TikTok playback path and the light Home/onboarding/Settings flow have been verified on Android device/emulator during the 2026-09-23 MVP pass.
+The TikTok playback path and the Home/onboarding/Settings/theme flow are verified on Android device/emulator. The Instagram provider is implemented on `feature/instagram-provider` and requires the documented emulator/device smoke gate before merge.
 
 ## Product rule
 
@@ -65,8 +66,8 @@ Social Viewer itself:
 - requests no storage, contacts, location, camera, or microphone permissions;
 - disables cleartext HTTP traffic;
 - disables third-party cookies in the embedded WebView;
-- intentionally retains the provider's first-party consent/preferences so TikTok does not ask again on every video;
-- exposes **Cancella dati del sito** to remove those local provider cookies/preferences.
+- intentionally retains provider first-party consent/preferences across items;
+- exposes **Cancella dati del sito** to remove shared local provider cookies/preferences.
 
 The remote social platform/CDN still receives ordinary network metadata required to serve a public embed. This project does **not** claim network anonymity from the provider.
 
@@ -133,10 +134,10 @@ Examples: `feature/dark-mode`, `feature/instagram-provider`.
 
 ## Next milestones
 
-1. Re-validate current official/public integration options for Instagram, Facebook, and YouTube under the no-backend/no-account product constraints.
-2. Add one second provider incrementally — likely Instagram if feasibility remains good.
-3. Generalize visible TikTok-specific UI only after a second provider exists.
-4. Add Facebook next if the Meta integration can reuse the second-provider work.
+1. Complete emulator/device smoke verification for the Instagram provider and merge only after PASS.
+2. Generalize visible TikTok-specific shared UI and direct-link summaries now that two providers exist.
+3. Add Facebook next if the Meta integration can reuse the Instagram provider work.
+4. Consider Threads after Facebook; keep YouTube blocked until its policy/product conflicts are explicitly resolved.
 5. Evaluate YouTube separately, including link-routing semantics.
 
 Do not pre-emptively redesign the provider architecture before the second real provider demonstrates a need.

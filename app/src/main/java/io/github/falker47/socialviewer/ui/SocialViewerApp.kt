@@ -285,9 +285,9 @@ fun SocialViewerApp(
                         },
                         onConfigureDirectLinks = ::launchDirectLinkSettings,
                         onClearSiteData = {
-                            clearTikTokSiteData(context) {
+                            clearProviderSiteData(context) {
                                 scope.launch {
-                                    snackbarHostState.showSnackbar("Dati TikTok cancellati")
+                                    snackbarHostState.showSnackbar("Dati dei provider cancellati")
                                 }
                             }
                         },
@@ -549,10 +549,10 @@ private fun SettingsScreen(
 
         SettingsSectionTitle("PRIVACY E DATI DEL SITO")
         Spacer(Modifier.height(12.dp))
-        Text("Dati TikTok", style = MaterialTheme.typography.titleMedium)
+        Text("Dati dei provider", style = MaterialTheme.typography.titleMedium)
         Spacer(Modifier.height(4.dp))
         Text(
-            "Cookie e preferenze del player sono conservati localmente.",
+            "Cookie e preferenze dei provider sono conservati localmente.",
             style = MaterialTheme.typography.bodyMedium,
         )
         Spacer(Modifier.height(14.dp))
@@ -583,11 +583,11 @@ private fun SettingsScreen(
     if (confirmClear) {
         AlertDialog(
             onDismissRequest = { confirmClear = false },
-            title = { Text("Cancellare i dati TikTok?") },
+            title = { Text("Cancellare i dati dei provider?") },
             text = {
                 Text(
-                    "Verranno rimossi cookie e preferenze del player. " +
-                        "TikTok potrebbe chiederti nuovamente le preferenze sui cookie.",
+                    "Verranno rimossi cookie e preferenze dei provider. " +
+                        "TikTok o Instagram potrebbero chiederti nuovamente le preferenze sui cookie.",
                 )
             },
             dismissButton = {
@@ -828,6 +828,7 @@ private fun PlayerScreen(
         ) {
             EmbedWebView(
                 html = content.embedHtml,
+                baseUrl = content.documentBaseUrl,
                 modifier = Modifier.fillMaxSize(),
             )
         }
@@ -886,7 +887,7 @@ private fun validateManualLink(
 
     if (registry.providerFor(candidate) == null) {
         return ManualLinkResult.Invalid(
-            message = "Questo servizio non è ancora supportato. Per ora Social Viewer apre contenuti TikTok.",
+            message = "Questo servizio non è ancora supportato.",
             displayValue = candidate,
         )
     }
@@ -906,7 +907,7 @@ private fun readClipboardText(context: Context): String? {
         ?.takeIf { it.isNotBlank() }
 }
 
-private fun clearTikTokSiteData(
+private fun clearProviderSiteData(
     context: Context,
     onComplete: () -> Unit,
 ) {
