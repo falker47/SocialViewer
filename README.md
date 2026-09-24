@@ -6,25 +6,26 @@ Social Viewer is intentionally not a social client: no feed, no Social Viewer ac
 
 ## Current baseline — v0.1.1
 
-Implemented providers:
+Verified on `main`:
 
-- **TikTok** — verified baseline.
-- **Instagram** — verified public posts and Reels via Meta's official tokenless oEmbed path.
-- Public availability/metadata are checked through TikTok's oEmbed endpoint.
-- Playback uses TikTok's official dedicated `/player/v1/{post_id}` embed player.
-- Canonical TikTok URLs plus `vm.tiktok.com` / `vt.tiktok.com` short links are supported.
-- Android `ACTION_VIEW` is the preferred direct-link path.
-- `ACTION_SEND` text sharing remains an unpromoted technical fallback.
-- Manual entry remains available; the trailing clipboard button pastes, validates, and opens in one tap.
-- First-run onboarding uses two coach marks on the real Home screen and respects the Android navigation-bar safe area.
-- Home and Settings summarize the real Android direct-link state for both TikTok and Instagram; configuration always opens Android's **Open by default** screen.
-- Appearance supports **System / Light / Dark**. System is the default, follows Android's current theme, and the selection is persisted locally.
+- **TikTok** — public supported items through TikTok's official oEmbed + dedicated player path.
+- **Instagram** — public posts and Reels through Meta's official tokenless oEmbed path.
+- provider-generic Home/onboarding/Settings;
+- provider-aware Android **Open by default** state;
+- System / Light / Dark appearance;
+- provider-generic local site-data clearing.
 
-TikTok and Instagram playback are verified on Android device/emulator. The multi-provider shared UI and Instagram direct-link declarations are implemented on `feature/multi-provider-ui` and require the documented smoke gate before merge.
+Current feature milestone:
+
+- **Facebook** is implemented on `feature/facebook-provider` for public individual `/{owner}/posts/{post-id}` posts and `/reel/{reel-id}` Reels.
+- Facebook uses Meta's official tokenless `v25.0/oembed_post` and `v25.0/oembed_video` endpoints.
+- Returned Facebook markup is rendered with Meta's official SDK using the required `#xfbml=1&version=v25.0` fragment.
+- No Meta access token, developer app, backend, database, Social Viewer account, or embedded secret is used.
+- Facebook remains pending CI + Android manual smoke verification and must not be merged before that gate passes.
 
 ## Product rule
 
-Social Viewer only handles content that is both public and available through a provider-supported public/embed mechanism. It does not bypass login requirements, age gates, private accounts, removals, or other access controls.
+Social Viewer only handles content that is both public and available through a provider-supported public/embed mechanism. It does not bypass login requirements, age gates, private accounts, removals, embedding restrictions, or other access controls.
 
 ## Architecture
 
@@ -37,23 +38,25 @@ incoming Android intent / shared text
               v
         ProviderRegistry
               |
-      +-------+---------+
-      |                 |
- TikTokProvider   InstagramProvider
-      |                 |
-      +-------+---------+
+      +-------+---------+----------+
+      |                 |          |
+ TikTokProvider   InstagramProvider FacebookProvider
+      |                 |          |
+      +-------+---------+----------+
               |
               v
  public provider integration
-      |
-      v
-      SocialContent
-      |
-      v
- renderer
+              |
+              v
+        SocialContent
+              |
+              v
+           renderer
 ```
 
-Each platform is isolated behind `SocialProvider`, so provider-specific URL parsing, redirects, API/oEmbed access, and rendering details can evolve without moving that logic into the Android shell.
+Each platform is isolated behind `SocialProvider`, so provider-specific URL policy, API/oEmbed access, and rendering details stay outside the Android shell.
+
+`SocialContent` carries a provider document base URL plus embed HTML. Facebook fits that existing contract, so no new renderer hierarchy was introduced.
 
 See `ARCHITECTURE.md` for the current decisions.
 
@@ -75,11 +78,17 @@ The remote social platform/CDN still receives ordinary network metadata required
 
 ## Android direct-link handling
 
-TikTok and Instagram own their web domains, so Social Viewer cannot publish the providers' `assetlinks.json` files and cannot self-verify those domains.
+TikTok, Instagram, and Facebook own their web domains, so Social Viewer cannot publish the providers' `assetlinks.json` files and does not claim verified App Links for those domains.
 
-The manifest declares TikTok web links plus supported Instagram post/Reel paths. On modern Android versions, the user may explicitly associate Social Viewer with those domains under **Open by default / supported links**. First-party apps or the browser may compete for the same domains.
+The manifest declares:
 
-On Android 12+, Social Viewer reads the real per-domain user state through `DomainVerificationManager`, summarizes it per provider, and opens the Android system screen for changes. It does not expose a fake in-app toggle. Manual paste and Android Share remain fallbacks.
+- the existing TikTok web links;
+- supported Instagram `/p/` and `/reel/` paths;
+- Facebook `/reel/` paths.
+
+Facebook individual post URLs remain supported through manual paste and Android Share, but are intentionally **not** declared for direct opening. Social Viewer's minSdk is 26; the legacy manifest path matcher cannot express exactly one owner segment in `/{owner}/posts/{id}` without also claiming unrelated Facebook paths. The API-31 advanced matcher cannot safely serve as the only constraint for the full supported Android range.
+
+On Android 12+, `DomainVerificationManager` remains the source of truth for the user-managed state. Settings summarizes it per provider and opens Android's real **Open by default** screen. First-party apps or the browser may compete for the same provider domains.
 
 ## Build
 
@@ -100,7 +109,7 @@ Pinned project versions:
 - Activity Compose `1.13.0`
 - kotlinx.coroutines `1.11.0`
 
-The standard Gradle Wrapper is committed. After cloning, open the repository root in Android Studio and sync; the old bootstrap scripts are no longer required for normal setup.
+The standard Gradle Wrapper is committed. After cloning, open the repository root in Android Studio and sync.
 
 CLI checks:
 
@@ -130,23 +139,21 @@ Device/WebView/provider behavior still requires a real Android smoke test before
 - CI must be green.
 - Test device/emulator behavior when the change touches UI, WebView, intents, or providers.
 - Merge only after the relevant smoke test passes.
-- Truly isolated micro-fixes may go directly to `main` when they are easy to verify and revert.
 
-Examples: `feature/dark-mode`, `feature/instagram-provider`, `feature/multi-provider-ui`.
+Current branch: `feature/facebook-provider`.
 
 ## Next milestones
 
-1. Complete the manual smoke gate for `feature/multi-provider-ui` and merge only after PASS.
-2. Add Facebook next if the current Meta integration can reuse the Instagram provider work.
-3. Consider Threads after Facebook; keep YouTube blocked until its policy/product conflicts are explicitly resolved.
-4. Evaluate YouTube separately, including link-routing semantics.
+1. Complete CI and the documented Facebook manual smoke gate; merge only after PASS.
+2. After Facebook is verified, evaluate **Threads** as the next provider milestone without bundling it into the Facebook work.
+3. Keep YouTube blocked until its previously identified policy/product constraints are explicitly accepted or resolved.
 
-Keep adding and verifying one provider at a time; do not turn the next step into a multi-provider mega-branch.
+Keep adding and verifying one provider at a time.
 
 ## Non-goals
 
 - downloading or rehosting social videos;
 - extracting private/internal media URLs;
 - bypassing authentication or platform restrictions;
-- implementing a feed, messaging, comments client, or social graph;
+- implementing a feed, messaging, comments client, profile browser, or social graph;
 - collecting user analytics or viewing history.
