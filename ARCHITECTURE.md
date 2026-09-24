@@ -10,7 +10,7 @@ Reason: provider integrations are the volatile part of the system. The Android s
 
 A provider should prefer documented public embed/oEmbed mechanisms. If a platform requires authentication or blocks public embedding for a piece of content, Social Viewer reports that limitation instead of scraping around it.
 
-Facebook uses Meta's official tokenless public oEmbed endpoints: `v25.0/oembed_post` for supported individual posts and `v25.0/oembed_video` for supported Reels. The returned XFBML markup is rendered with the official Facebook SDK using `#xfbml=1&version=v25.0`.
+Facebook uses Meta's official tokenless public oEmbed endpoints: `v25.0/oembed_post` for supported individual posts and `v25.0/oembed_video` for supported Reels. The returned XFBML markup is rendered with the official Facebook SDK using `#xfbml=1&version=v25.0`. Facebook-generated `/share/r/{code}` links are treated only as redirect aliases: Social Viewer follows the redirect and proceeds only if the final HTTPS URL canonicalizes to a supported Facebook Reel. It does not parse or scrape the share page.
 
 ## AD-003 — Privacy-minimal local state
 
@@ -46,9 +46,9 @@ The manifest declares:
 
 - TikTok hosts already supported by the verified baseline;
 - Instagram post/Reel paths;
-- Facebook Reel paths.
+- Facebook Reel paths plus the narrow Reel-share alias path `/share/r/`.
 
-Facebook `/{owner}/posts/{id}` URLs are deliberately omitted from `ACTION_VIEW` on this milestone. With minSdk 26, Android's legacy `pathPattern` cannot constrain the owner to exactly one path segment, so a pattern broad enough for Facebook posts would also claim unrelated Facebook surfaces such as group post paths. `pathAdvancedPattern` is only available from API 31 and therefore is not used as the sole constraint for an app that supports older Android releases. Manual paste and Android Share cover Facebook posts without overclaiming domains/paths.
+Facebook `/{owner}/posts/{id}` URLs are deliberately omitted from `ACTION_VIEW` on this milestone. By contrast, `/share/r/` can be constrained safely with a fixed path prefix and is declared because it is a Reel alias used by Facebook's share flow. Other Facebook share families such as `/share/p/` and `/share/v/` remain out of scope. With minSdk 26, Android's legacy `pathPattern` cannot constrain the owner to exactly one path segment, so a pattern broad enough for Facebook posts would also claim unrelated Facebook surfaces such as group post paths. `pathAdvancedPattern` is only available from API 31 and therefore is not used as the sole constraint for an app that supports older Android releases. Manual paste and Android Share cover Facebook posts without overclaiming domains/paths.
 
 On Android 12+, `DomainVerificationManager` is the source of truth. The Android shell maps declared hosts to provider-oriented states (**Attiva / Parziale / Da configurare**) and treats the global link-handling permission as a gate. Settings presents one compact **Apertura diretta** area with provider breakdown and one **Configura** action that opens Android's real **Open by default** screen.
 
