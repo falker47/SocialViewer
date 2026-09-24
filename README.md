@@ -17,7 +17,7 @@ Verified on `main`:
 
 Current feature milestone:
 
-- **Facebook** is implemented on `feature/facebook-provider` for public individual `/{owner}/posts/{post-id}` posts and Reels. Reels accept both canonical `/reel/{reel-id}` URLs and Facebook-generated `/share/r/{share-code}` aliases; share aliases are resolved to a canonical supported Reel before oEmbed.
+- **Facebook** is implemented on `feature/facebook-provider` for public individual posts and Reels. It accepts canonical `/{owner}/posts/{post-id}` and `/reel/{reel-id}` URLs plus Facebook-generated `/share/p/{share-code}` post aliases and `/share/r/{share-code}` Reel aliases. Share aliases are resolved to a canonical supported target before oEmbed.
 - Facebook uses Meta's official tokenless `v25.0/oembed_post` and `v25.0/oembed_video` endpoints.
 - Returned Facebook markup is rendered with Meta's official SDK using the required `#xfbml=1&version=v25.0` fragment.
 - No Meta access token, developer app, backend, database, Social Viewer account, or embedded secret is used.
@@ -84,9 +84,9 @@ The manifest declares:
 
 - the existing TikTok web links;
 - supported Instagram `/p/` and `/reel/` paths;
-- Facebook `/reel/` and Reel share-alias `/share/r/` paths.
+- Facebook `/reel/`, post-share `/share/p/`, and Reel-share `/share/r/` paths.
 
-Facebook individual post URLs remain supported through manual paste and Android Share, but are intentionally **not** declared for direct opening. Facebook `/share/r/` is a Reel redirect alias, so it is safe to declare separately with a narrow path prefix; `/share/p/` and `/share/v/` remain unsupported. Social Viewer's minSdk is 26; the legacy manifest path matcher cannot express exactly one owner segment in `/{owner}/posts/{id}` without also claiming unrelated Facebook paths. The API-31 advanced matcher cannot safely serve as the only constraint for the full supported Android range.
+Facebook canonical individual post URLs remain supported through manual paste and Android Share, but are intentionally **not** declared for direct opening. Facebook `/share/p/` and `/share/r/` are fixed-prefix redirect aliases, so they can be declared safely; `/share/v/` remains unsupported. Social Viewer's minSdk is 26; the legacy manifest path matcher cannot express exactly one owner segment in `/{owner}/posts/{id}` without also claiming unrelated Facebook paths. The API-31 advanced matcher cannot safely serve as the only constraint for the full supported Android range.
 
 On Android 12+, `DomainVerificationManager` remains the source of truth for the user-managed state. Settings summarizes it per provider and opens Android's real **Open by default** screen. First-party apps or the browser may compete for the same provider domains.
 
