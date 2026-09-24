@@ -20,13 +20,41 @@ object FacebookUrlPolicy {
         scheme: String?,
         host: String?,
         path: String?,
-    ): Boolean = canonicalTarget(scheme, host, path) != null
+    ): Boolean =
+        canonicalTarget(scheme, host, path) != null ||
+            shareReelAliasUrl(scheme, host, path) != null
 
     fun canonicalUrl(
         scheme: String?,
         host: String?,
         path: String?,
     ): String? = canonicalTarget(scheme, host, path)?.canonicalUrl
+
+    internal fun shareReelAliasUrl(
+        scheme: String?,
+        host: String?,
+        path: String?,
+    ): String? {
+        if (!scheme.equals("https", ignoreCase = true)) return null
+
+        val normalizedHost = host?.lowercase() ?: return null
+        if (normalizedHost !in allowedHosts) return null
+
+        val segments = path
+            ?.trim('/')
+            ?.split('/')
+            ?.filter { it.isNotBlank() }
+            .orEmpty()
+
+        if (segments.size != 3) return null
+        if (!segments[0].equals("share", ignoreCase = true)) return null
+        if (!segments[1].equals("r", ignoreCase = true)) return null
+
+        val shareCode = segments[2]
+        if (!isSafeSegment(shareCode)) return null
+
+        return "https://www.facebook.com/share/r/$shareCode/"
+    }
 
     internal fun canonicalTarget(
         scheme: String?,
