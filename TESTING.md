@@ -32,7 +32,11 @@ Test both post forms when available:
 - canonical: `https://www.facebook.com/{owner}/posts/{post-id}/`;
 - Facebook share alias: `https://www.facebook.com/share/p/{share-code}/`.
 
-Open both through manual paste. The `/share/p/` form gets one cheap redirect attempt. If Facebook exposes a canonical public post, it may proceed to the official post oEmbed call. If Facebook withholds the canonical target, Social Viewer must show the dedicated **Link Facebook non risolvibile** explanation rather than a generic technical error.
+Open both through manual paste. For the real share alias, the resolver may use the cheap HTTP redirect first; if that stays opaque, the temporary browser-assisted resolver must obtain the canonical URL from navigation or URL-identity metadata and then continue through the official post oEmbed call.
+
+Primary real-world regression URL: `https://www.facebook.com/share/p/1GMwhxUrGi/`.
+
+For a known-public alias, **Link Facebook non risolvibile** is now a smoke-test failure.
 
 Expected:
 
@@ -52,9 +56,11 @@ Test both forms for the same kind of public Reel when available:
 - canonical: `https://www.facebook.com/reel/{reel-id}/`;
 - Facebook share alias: `https://www.facebook.com/share/r/{share-code}/`.
 
-The `/share/r/` form is commonly produced by Facebook Share/Copy link. Social Viewer gives it one cheap redirect attempt. If Facebook exposes a canonical `/reel/` target, it may use Meta's official video oEmbed endpoint; otherwise it must show the dedicated **Link Facebook non risolvibile** explanation.
+The `/share/r/` form is commonly produced by Facebook Share/Copy link. If its cheap redirect stays opaque, the temporary resolver must recover a canonical `/reel/` URL from the local browser context and then use Meta's official video oEmbed endpoint.
 
-Expected for the canonical `/reel/` form: the official Facebook Reel embed renders and playback remains user-initiated where the provider requires it.
+Primary real-world regression URL: `https://www.facebook.com/share/r/1HNwyf2jVo/`.
+
+Expected for both the real alias and a canonical `/reel/` form: the official Facebook Reel embed renders and playback remains user-initiated where the provider requires it. **Link Facebook non risolvibile** for the known-public alias is a failure.
 
 Then test the Android direct-link path separately after section 8.
 
@@ -72,12 +78,13 @@ Normal expected provider HTTP details must not be shown to the user. A genuinely
 
 While testing Facebook, note any provider-controlled cookie consent or login UI.
 
-1. Do not sign in merely to make an unavailable item work.
-2. Open a second public Facebook item.
-3. Confirm Social Viewer itself does not add a login/account flow.
-4. Confirm first-party provider preferences can persist between views.
-5. Verify third-party cookies remain blocked.
-6. Confirm repeated viewing does not create Social Viewer history/storage beyond existing provider site data.
+1. Do **not** sign in to Facebook; the share-link resolver acceptance gate is logged-out.
+2. Resolve one real `/share/p/` alias and one real `/share/r/` alias.
+3. Open a second public Facebook item.
+4. Confirm Social Viewer itself does not add a login/account flow.
+5. Confirm first-party provider preferences can persist between normal embed views.
+6. Verify third-party cookies remain blocked.
+7. Confirm the temporary resolver never exposes a browsable Facebook page and repeated attempts do not create Social Viewer history/storage beyond existing provider site data.
 
 Provider-owned consent/login surfaces are observations for the smoke gate, not reasons to bypass platform restrictions.
 
@@ -103,9 +110,13 @@ After returning:
 - The state must reflect Android's real **Attiva / Parziale / Da configurare** status.
 - No separate Facebook toggle or custom configuration surface should exist.
 
-Test a canonical Facebook **Reel** link from WhatsApp or a browser. When Android is associated with Social Viewer for Facebook, the canonical `/reel/` form should route directly into resolve/render without first showing Home.
+Test from WhatsApp or a browser:
 
-Facebook `/share/p/` and `/share/r/` aliases are intentionally **not** claimed for ACTION_VIEW because Meta may withhold their canonical target from logged-out clients. They should therefore remain with the browser/Facebook app unless manually pasted or shared into Social Viewer.
+- one canonical Facebook **Reel** `/reel/`;
+- the real `/share/p/1GMwhxUrGi/` alias;
+- the real `/share/r/1HNwyf2jVo/` alias.
+
+When Android is associated with Social Viewer for Facebook, these declared paths should route directly into resolve/render without first showing Home. A first-party Facebook app may still compete for the domain; disassociate it temporarily if needed to test Social Viewer, as with the Instagram gate.
 
 Do **not** treat lack of direct routing for `/{owner}/posts/{id}` as a bug in this milestone: those post paths are intentionally not claimed because the minSdk-26 manifest matcher cannot constrain them without overclaiming unrelated Facebook paths. Manual paste and Share are the fallback for posts.
 
@@ -180,7 +191,7 @@ Manual input must reject as unsupported:
 - Facebook `/share/v/...` aliases (only `/share/p/` and `/share/r/` are supported in this milestone);
 - lookalike hosts such as `fakefacebook.com`.
 
-No scraping or redirect guessing should be introduced to make those forms work.
+Do not broaden the browser resolver beyond URL identity. It must not extract post text/media/comments, follow arbitrary external main-frame redirects, or add login/backend/third-party resolver behavior.
 
 ## 16. What to capture if something fails
 
@@ -196,4 +207,4 @@ Send:
 
 Do not include unrelated device/account logs.
 
-Record **PASS** only if Facebook post + Reel rendering, expected-unavailable handling, site-data behavior, Facebook Reel direct link (where Android association permits it), System/Light/Dark, TikTok regression, Instagram post+Reel regression, Share/manual fallbacks, and the navigation boundary all behave as expected.
+Record **PASS** only if the real `/share/p/1GMwhxUrGi/` and `/share/r/1HNwyf2jVo/` aliases resolve **without Facebook login** to the normal Facebook oEmbed flow, canonical Facebook post + Reel still render, expected-unavailable handling and site-data behavior remain correct, declared Facebook direct links work where Android association permits them, System/Light/Dark passes, TikTok regresses cleanly, Instagram post+Reel regresses cleanly, Share/manual fallbacks work, and the navigation boundary remains intact.

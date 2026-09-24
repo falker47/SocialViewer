@@ -17,11 +17,11 @@ Verified on `main`:
 
 Current feature milestone:
 
-- **Facebook** is implemented on `feature/facebook-provider` for public canonical individual post and Reel URLs. Facebook-generated `/share/p/{share-code}` and `/share/r/{share-code}` aliases receive one best-effort redirect resolution attempt; if Meta does not expose a canonical public target, Social Viewer reports the limitation explicitly instead of pretending the alias is embeddable.
-- Facebook uses Meta's official tokenless `v25.0/oembed_post` and `v25.0/oembed_video` endpoints.
-- Returned Facebook markup is rendered with Meta's official SDK using the required `#xfbml=1&version=v25.0` fragment.
-- No Meta access token, developer app, backend, database, Social Viewer account, or embedded secret is used.
-- Facebook has passed automated CI and remains pending Android manual smoke verification; it must not be merged before that gate passes.
+- **Facebook** is implemented on `feature/facebook-provider` for public canonical individual post/Reel URLs and the real-world `/share/p/{share-code}` / `/share/r/{share-code}` aliases.
+- Share aliases first use the cheap HTTP redirect path. If Facebook leaves the alias opaque, an **ephemeral local WebView resolver** observes only main-frame URL changes plus `rel=canonical` / `og:url` identity metadata, accepts only supported HTTPS Facebook post/Reel targets of the expected kind, and is destroyed after resolution.
+- The resolved canonical URL then follows the normal Meta tokenless `v25.0/oembed_post` / `v25.0/oembed_video` path; returned Facebook markup is rendered with the official SDK using `#xfbml=1&version=v25.0`.
+- The resolver does not require Facebook login, extract post text/media/comments, use a backend/database/third-party resolver, or relax third-party-cookie protection. No Meta access token, developer app, or embedded secret is used.
+- The feasibility spike is **FEASIBLE / implemented** but the Facebook milestone remains pending the documented physical-device smoke gate. PR #4 must not be merged before that gate passes.
 
 ## Product rule
 
@@ -72,7 +72,8 @@ Social Viewer itself:
 - disables cleartext HTTP traffic;
 - disables third-party cookies in the embedded WebView;
 - intentionally retains provider first-party consent/preferences across items;
-- exposes **Cancella dati del sito** to remove shared local provider cookies/preferences.
+- exposes **Cancella dati del sito** to remove shared local provider cookies/preferences;
+- uses the Facebook share-link WebView only as an ephemeral URL-identity resolver: no cache/history is retained by that surface, third-party cookies remain disabled, and the WebView is destroyed after each attempt.
 
 The remote social platform/CDN still receives ordinary network metadata required to serve a public embed. This project does **not** claim network anonymity from the provider.
 
@@ -84,9 +85,9 @@ The manifest declares:
 
 - the existing TikTok web links;
 - supported Instagram `/p/` and `/reel/` paths;
-- Facebook canonical `/reel/` paths.
+- Facebook canonical `/reel/` plus the narrow `/share/p/` and `/share/r/` alias paths handled by the local resolver.
 
-Facebook canonical individual post URLs remain supported through manual paste and Android Share, but are intentionally **not** declared for direct opening. Facebook `/share/p/` and `/share/r/` are also not declared for direct opening: Meta may withhold their canonical target from logged-out clients, so hijacking them into Social Viewer would create a failure loop. `/share/v/` remains unsupported. Social Viewer's minSdk is 26; the legacy manifest path matcher cannot express exactly one owner segment in `/{owner}/posts/{id}` without also claiming unrelated Facebook paths. The API-31 advanced matcher cannot safely serve as the only constraint for the full supported Android range.
+Facebook canonical individual post URLs remain supported through manual paste and Android Share, but are intentionally **not** declared for direct opening. `/share/p/` and `/share/r/` can now be claimed because the browser-assisted resolver handles the logged-out opaque-alias case locally. `/share/v/` remains unsupported. Social Viewer's minSdk is 26; the legacy manifest path matcher cannot express exactly one owner segment in `/{owner}/posts/{id}` without also claiming unrelated Facebook paths. The API-31 advanced matcher cannot safely serve as the only constraint for the full supported Android range.
 
 On Android 12+, `DomainVerificationManager` remains the source of truth for the user-managed state. Settings summarizes it per provider and opens Android's real **Open by default** screen. First-party apps or the browser may compete for the same provider domains.
 
