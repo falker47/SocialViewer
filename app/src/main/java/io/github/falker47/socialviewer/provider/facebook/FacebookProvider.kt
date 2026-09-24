@@ -19,7 +19,7 @@ private const val FACEBOOK_SDK_URL =
     "https://connect.facebook.net/en_US/sdk.js#xfbml=1&version=v25.0"
 
 private val FACEBOOK_SDK_SCRIPT_REGEX = Regex(
-    """<script\\b[^>]*\\bsrc=["']https://connect\\.facebook\\.net/en_US/sdk\\.js(?:[#?][^"']*)?["'][^>]*>\\s*</script>""",
+    """<script\b[^>]*\bsrc=["\']https://connect\.facebook\.net/en_US/sdk\.js(?:[#?][^"\']*)?["\'][^>]*>\s*</script>""",
     RegexOption.IGNORE_CASE,
 )
 
@@ -56,7 +56,7 @@ internal fun resolveCanonicalFacebook(
     }
 
     val encodedUrl = URLEncoder.encode(target.canonicalUrl, StandardCharsets.UTF_8.name())
-    val response = http.get("\$endpoint?url=\$encodedUrl")
+    val response = http.get("$endpoint?url=$encodedUrl")
 
     if (response.statusCode == 400 || response.statusCode == 404) {
         throw ProviderContentUnavailableException(
@@ -124,8 +124,8 @@ internal fun facebookDocument(providerHtml: String): String {
           </head>
           <body>
             <div id="fb-root"></div>
-            <div id="embed">\$embedMarkup</div>
-            <script async defer crossorigin="anonymous" src="\$FACEBOOK_SDK_URL"></script>
+            <div id="embed">$embedMarkup</div>
+            <script async defer crossorigin="anonymous" src="$FACEBOOK_SDK_URL"></script>
           </body>
         </html>
     """.trimIndent()
