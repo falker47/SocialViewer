@@ -40,7 +40,7 @@ internal fun resolveCanonicalInstagram(
     canonicalUrl: String,
     http: UrlConnectionHttpClient,
 ): SocialContent {
-    val encodedUrl = URLEncoder.encode(canonicalUrl, StandardCharsets.UTF_8)
+    val encodedUrl = URLEncoder.encode(canonicalUrl, StandardCharsets.UTF_8.name())
     val response = http.get("$INSTAGRAM_OEMBED_ENDPOINT?url=$encodedUrl")
 
     if (response.statusCode !in 200..299) {
