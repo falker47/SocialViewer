@@ -10,7 +10,7 @@ Implemented providers:
 
 - **TikTok** — verified baseline.
 - **Instagram** — verified public posts and Reels via Meta's official tokenless oEmbed path.
-- **Threads** — implemented on `feature/threads-provider` for public post permalinks, shorthand `/t/` URLs, and legacy `threads.net` URLs via Meta's official tokenless oEmbed path; physical-device verification is pending.
+- **Threads** — verified public post permalinks, shorthand `/t/` URLs, legacy `threads.net` compatibility and `/t/` direct opening via Meta's official tokenless oEmbed path.
 - **Facebook** — **In pausa / unsupported** for the real-world share-link flow. PR #4 remains an unmerged technical record and is not counted as a supported provider.
 - Public availability/metadata are checked through TikTok's oEmbed endpoint.
 - Playback uses TikTok's official dedicated `/player/v1/{post_id}` embed player.
@@ -19,10 +19,10 @@ Implemented providers:
 - `ACTION_SEND` text sharing remains an unpromoted technical fallback.
 - Manual entry remains available; the trailing clipboard button pastes, validates, and opens in one tap.
 - First-run onboarding uses two coach marks on the real Home screen and respects the Android navigation-bar safe area.
-- Home and Settings summarize the real Android direct-link state for both TikTok and Instagram; configuration always opens Android's **Open by default** screen.
+- Home and Settings summarize the real Android direct-link state for TikTok, Instagram and Threads; configuration always opens Android's **Open by default** screen.
 - Appearance supports **System / Light / Dark**. System is the default, follows Android's current theme, and the selection is persisted locally.
 
-TikTok and Instagram playback plus the shared multi-provider UI are verified on `main`. Threads is implemented on its own feature branch and remains unmerged until the documented phone smoke gate passes.
+TikTok, Instagram and Threads playback plus the shared multi-provider UI are verified on `main`. Threads completed its physical-device smoke gate and PR #5 was squash-merged.
 
 ## Product rule
 
@@ -138,9 +138,9 @@ Examples: `feature/dark-mode`, `feature/instagram-provider`, `feature/multi-prov
 
 ## Next milestone
 
-Complete the physical-device smoke gate for `feature/threads-provider`. Merge only after Threads public permalink/shorthand playback, unavailable handling, privacy/site-data behavior, direct-link behavior, theme coverage, main-frame navigation blocking, and TikTok/Instagram regressions all pass.
+Threads is complete. Facebook remains frozen as **In pausa / unsupported** and PR #4 remains unmerged.
 
-Facebook remains frozen as **In pausa / unsupported** and PR #4 remains unmerged. Keep adding and verifying one provider at a time.
+YouTube / YouTube Shorts remains a separate, **not product-cleared** candidate because of the previously identified API-key/policy and recommendation-surface conflicts. It has not been started. Any next provider milestone should be evaluated separately and continue the one-provider-at-a-time workflow.
 
 ## Non-goals
 
