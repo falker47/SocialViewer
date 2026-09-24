@@ -33,17 +33,52 @@ class FacebookProvider(
         FacebookUrlPolicy.supports(uri.scheme, uri.host, uri.path)
 
     override fun resolve(uri: Uri): SocialContent {
-        val target = FacebookUrlPolicy.canonicalTarget(
+        val target = resolveFacebookTarget(
             scheme = uri.scheme,
             host = uri.host,
             path = uri.path,
-        ) ?: error("URL Facebook non supportata")
+            http = http,
+        )
 
         return resolveCanonicalFacebook(
             target = target,
             http = http,
         )
     }
+}
+
+internal fun resolveFacebookTarget(
+    scheme: String?,
+    host: String?,
+    path: String?,
+    http: UrlConnectionHttpClient,
+): FacebookCanonicalTarget {
+    FacebookUrlPolicy.canonicalTarget(
+        scheme = scheme,
+        host = host,
+        path = path,
+    )?.let { return it }
+
+    val shareAlias = FacebookUrlPolicy.shareReelAliasUrl(
+        scheme = scheme,
+        host = host,
+        path = path,
+    ) ?: error("URL Facebook non supportata")
+
+    val resolvedUrl = http.resolveFinalUrl(shareAlias)
+    val resolvedUri = URI(resolvedUrl)
+
+    val target = FacebookUrlPolicy.canonicalTarget(
+        scheme = resolvedUri.scheme,
+        host = resolvedUri.host,
+        path = resolvedUri.path,
+    ) ?: error("Il link Facebook condiviso non ha risolto verso un contenuto supportato")
+
+    require(target.kind == FacebookContentKind.REEL) {
+        "Il link Facebook /share/r/ non ha risolto verso un Reel"
+    }
+
+    return target
 }
 
 internal fun resolveCanonicalFacebook(
