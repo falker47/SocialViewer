@@ -41,7 +41,7 @@ class InstagramProviderTest {
             canonicalUrl = "https://www.instagram.com/reel/CODE_123/",
             http = FakeHttpClient(
                 UrlConnectionHttpClient.Response(
-                    statusCode = 404,
+                    statusCode = 400,
                     finalUrl = "https://graph.facebook.com/v25.0/instagram_oembed",
                     body = "{}",
                 ),
