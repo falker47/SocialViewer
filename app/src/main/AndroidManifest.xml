@@ -58,6 +58,8 @@
                 <data android:scheme="https" android:host="www.facebook.com" android:pathPrefix="/reel/" />
                 <data android:scheme="https" android:host="facebook.com" android:pathPrefix="/share/r/" />
                 <data android:scheme="https" android:host="www.facebook.com" android:pathPrefix="/share/r/" />
+                <data android:scheme="https" android:host="facebook.com" android:pathPrefix="/share/p/" />
+                <data android:scheme="https" android:host="www.facebook.com" android:pathPrefix="/share/p/" />
             </intent-filter>
 
             <!-- Fallback: share a public link/text directly to Social Viewer. -->
