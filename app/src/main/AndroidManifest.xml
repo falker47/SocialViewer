@@ -46,11 +46,10 @@
                 <data android:scheme="https" android:host="www.instagram.com" android:pathPrefix="/reel/" />
             </intent-filter>
 
-            <!-- Only canonical Facebook Reels are claimed for direct opening.
-                 Facebook /share/p/ and /share/r/ aliases are intentionally not claimed because
-                 Meta may not expose their canonical target to logged-out clients. Canonical
-                 individual post paths remain paste/share only because the legacy manifest matcher
-                 cannot express exactly one owner segment without overmatching. -->
+            <!-- Facebook Reels plus the narrow share-link aliases supported by the local
+                 browser-assisted resolver are claimed for direct opening. Canonical individual
+                 post paths remain paste/share only because the legacy manifest matcher cannot
+                 express exactly one owner segment without overmatching. -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -58,6 +57,10 @@
 
                 <data android:scheme="https" android:host="facebook.com" android:pathPrefix="/reel/" />
                 <data android:scheme="https" android:host="www.facebook.com" android:pathPrefix="/reel/" />
+                <data android:scheme="https" android:host="facebook.com" android:pathPrefix="/share/p/" />
+                <data android:scheme="https" android:host="www.facebook.com" android:pathPrefix="/share/p/" />
+                <data android:scheme="https" android:host="facebook.com" android:pathPrefix="/share/r/" />
+                <data android:scheme="https" android:host="www.facebook.com" android:pathPrefix="/share/r/" />
             </intent-filter>
 
             <!-- Fallback: share a public link/text directly to Social Viewer. -->

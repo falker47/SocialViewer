@@ -26,6 +26,7 @@ private val FACEBOOK_SDK_SCRIPT_REGEX = Regex(
 
 class FacebookProvider(
     private val http: UrlConnectionHttpClient = UrlConnectionHttpClient(),
+    private val shareLinkResolver: FacebookShareLinkResolver? = null,
 ) : SocialProvider {
     override val id: String = "facebook"
     override val displayName: String = "Facebook"
@@ -39,6 +40,7 @@ class FacebookProvider(
             host = uri.host,
             path = uri.path,
             http = http,
+            shareLinkResolver = shareLinkResolver,
         )
 
         return resolveCanonicalFacebook(
@@ -53,6 +55,7 @@ internal fun resolveFacebookTarget(
     host: String?,
     path: String?,
     http: UrlConnectionHttpClient,
+    shareLinkResolver: FacebookShareLinkResolver? = null,
 ): FacebookCanonicalTarget {
     FacebookUrlPolicy.canonicalTarget(
         scheme = scheme,
@@ -66,37 +69,64 @@ internal fun resolveFacebookTarget(
         path = path,
     ) ?: error("URL Facebook non supportata")
 
-    val resolvedUrl = http.resolveFinalUrl(shareAlias.aliasUrl)
-    val resolvedUri = URI(resolvedUrl)
+    val cheapRedirect = runCatching {
+        http.resolveFinalUrl(shareAlias.aliasUrl)
+    }.getOrNull()
 
+    if (cheapRedirect != null) {
+        canonicalTargetFromResolvedShare(
+            resolvedUrl = cheapRedirect,
+            shareAlias = shareAlias,
+        )?.let { return it }
+    }
+
+    val resolver = shareLinkResolver ?: throw unresolvedShareLink(shareAlias)
+    val browserResolvedUrl = resolver.resolve(shareAlias)
+
+    return canonicalTargetFromResolvedShare(
+        resolvedUrl = browserResolvedUrl,
+        shareAlias = shareAlias,
+    ) ?: throw unresolvedShareLink(shareAlias)
+}
+
+private fun canonicalTargetFromResolvedShare(
+    resolvedUrl: String,
+    shareAlias: FacebookShareAlias,
+): FacebookCanonicalTarget? {
+    val resolvedUri = runCatching { URI(resolvedUrl) }.getOrNull() ?: return null
     val target = FacebookUrlPolicy.canonicalTarget(
         scheme = resolvedUri.scheme,
         host = resolvedUri.host,
         path = resolvedUri.path,
-    ) ?: throw ProviderShareLinkResolutionException(
-        providerName = "Facebook",
-        canonicalHint = if (shareAlias.expectedKind == FacebookContentKind.REEL) {
-            "facebook.com/reel/…"
-        } else {
-            "facebook.com/<profilo>/posts/…"
-        },
-        technicalDetail = "Facebook non ha esposto un permalink canonico per il link di condivisione",
-    )
+    ) ?: return null
 
     if (target.kind != shareAlias.expectedKind) {
         throw ProviderShareLinkResolutionException(
             providerName = "Facebook",
-            canonicalHint = if (shareAlias.expectedKind == FacebookContentKind.REEL) {
-                "facebook.com/reel/…"
-            } else {
-                "facebook.com/<profilo>/posts/…"
-            },
+            canonicalHint = canonicalHintFor(shareAlias),
             technicalDetail = "Il link Facebook condiviso ha risolto verso un tipo di contenuto inatteso",
         )
     }
 
     return target
 }
+
+private fun unresolvedShareLink(
+    shareAlias: FacebookShareAlias,
+    technicalDetail: String = "Facebook non ha esposto un permalink canonico per il link di condivisione",
+): ProviderShareLinkResolutionException =
+    ProviderShareLinkResolutionException(
+        providerName = "Facebook",
+        canonicalHint = canonicalHintFor(shareAlias),
+        technicalDetail = technicalDetail,
+    )
+
+internal fun canonicalHintFor(shareAlias: FacebookShareAlias): String =
+    if (shareAlias.expectedKind == FacebookContentKind.REEL) {
+        "facebook.com/reel/…"
+    } else {
+        "facebook.com/<profilo>/posts/…"
+    }
 
 internal fun resolveCanonicalFacebook(
     target: FacebookCanonicalTarget,
