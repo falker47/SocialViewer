@@ -3,6 +3,7 @@ package io.github.falker47.socialviewer.provider.instagram
 import android.net.Uri
 import io.github.falker47.socialviewer.domain.SocialContent
 import io.github.falker47.socialviewer.network.UrlConnectionHttpClient
+import io.github.falker47.socialviewer.provider.ProviderContentUnavailableException
 import io.github.falker47.socialviewer.provider.SocialProvider
 import org.json.JSONObject
 import java.net.URI
