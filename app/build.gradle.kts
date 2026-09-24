@@ -1,3 +1,16 @@
+import java.util.Properties
+
+val localProperties = Properties().apply {
+    val file = rootProject.file("local.properties")
+    if (file.exists()) {
+        file.inputStream().use(::load)
+    }
+}
+
+val youtubeApiKey = providers.gradleProperty("YOUTUBE_API_KEY")
+    .orElse(providers.environmentVariable("YOUTUBE_API_KEY"))
+    .getOrElse(localProperties.getProperty("YOUTUBE_API_KEY", ""))
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.plugin.compose")
@@ -15,6 +28,13 @@ android {
         versionName = "0.1.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        buildConfigField(
+            "String",
+            "YOUTUBE_API_KEY",
+            "\"" + youtubeApiKey
+                .replace("\\", "\\\\")
+                .replace("\"", "\\\"") + "\"",
+        )
     }
 
     buildTypes {
@@ -35,6 +55,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
