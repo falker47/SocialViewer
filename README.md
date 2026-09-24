@@ -10,6 +10,8 @@ Implemented providers:
 
 - **TikTok** — verified baseline.
 - **Instagram** — verified public posts and Reels via Meta's official tokenless oEmbed path.
+- **Threads** — implemented on `feature/threads-provider` for public post permalinks, shorthand `/t/` URLs, and legacy `threads.net` URLs via Meta's official tokenless oEmbed path; physical-device verification is pending.
+- **Facebook** — **In pausa / unsupported** for the real-world share-link flow. PR #4 remains an unmerged technical record and is not counted as a supported provider.
 - Public availability/metadata are checked through TikTok's oEmbed endpoint.
 - Playback uses TikTok's official dedicated `/player/v1/{post_id}` embed player.
 - Canonical TikTok URLs plus `vm.tiktok.com` / `vt.tiktok.com` short links are supported.
@@ -20,7 +22,7 @@ Implemented providers:
 - Home and Settings summarize the real Android direct-link state for both TikTok and Instagram; configuration always opens Android's **Open by default** screen.
 - Appearance supports **System / Light / Dark**. System is the default, follows Android's current theme, and the selection is persisted locally.
 
-TikTok and Instagram playback are verified on Android device/emulator. The multi-provider shared UI and Instagram direct-link declarations are implemented on `feature/multi-provider-ui` and require the documented smoke gate before merge.
+TikTok and Instagram playback plus the shared multi-provider UI are verified on `main`. Threads is implemented on its own feature branch and remains unmerged until the documented phone smoke gate passes.
 
 ## Product rule
 
@@ -38,11 +40,11 @@ incoming Android intent / shared text
         ProviderRegistry
               |
       +-------+---------+
-      |                 |
- TikTokProvider   InstagramProvider
-      |                 |
-      +-------+---------+
-              |
+      |           |            |
+ TikTokProvider InstagramProvider ThreadsProvider
+      |           |            |
+      +-----------+------------+
+                  |
               v
  public provider integration
       |
@@ -75,9 +77,9 @@ The remote social platform/CDN still receives ordinary network metadata required
 
 ## Android direct-link handling
 
-TikTok and Instagram own their web domains, so Social Viewer cannot publish the providers' `assetlinks.json` files and cannot self-verify those domains.
+TikTok, Instagram and Threads own their web domains, so Social Viewer cannot publish the providers' `assetlinks.json` files and cannot self-verify those domains.
 
-The manifest declares TikTok web links plus supported Instagram post/Reel paths. On modern Android versions, the user may explicitly associate Social Viewer with those domains under **Open by default / supported links**. First-party apps or the browser may compete for the same domains.
+The manifest declares TikTok web links, supported Instagram post/Reel paths, and only the safely constrainable Threads shorthand `/t/` paths on `threads.com` and legacy `threads.net`. Canonical Threads `/@user/post/...` permalinks remain available through manual paste/Android Share because the minSdk-26 path matcher cannot express that route narrowly without overclaiming profile/feed surfaces. On modern Android versions, the user may explicitly associate Social Viewer with declared provider domains under **Open by default / supported links**. First-party apps or the browser may compete for the same domains.
 
 On Android 12+, Social Viewer reads the real per-domain user state through `DomainVerificationManager`, summarizes it per provider, and opens the Android system screen for changes. It does not expose a fake in-app toggle. Manual paste and Android Share remain fallbacks.
 
@@ -134,14 +136,11 @@ Device/WebView/provider behavior still requires a real Android smoke test before
 
 Examples: `feature/dark-mode`, `feature/instagram-provider`, `feature/multi-provider-ui`.
 
-## Next milestones
+## Next milestone
 
-1. Complete the manual smoke gate for `feature/multi-provider-ui` and merge only after PASS.
-2. Add Facebook next if the current Meta integration can reuse the Instagram provider work.
-3. Consider Threads after Facebook; keep YouTube blocked until its policy/product conflicts are explicitly resolved.
-4. Evaluate YouTube separately, including link-routing semantics.
+Complete the physical-device smoke gate for `feature/threads-provider`. Merge only after Threads public permalink/shorthand playback, unavailable handling, privacy/site-data behavior, direct-link behavior, theme coverage, main-frame navigation blocking, and TikTok/Instagram regressions all pass.
 
-Keep adding and verifying one provider at a time; do not turn the next step into a multi-provider mega-branch.
+Facebook remains frozen as **In pausa / unsupported** and PR #4 remains unmerged. Keep adding and verifying one provider at a time.
 
 ## Non-goals
 

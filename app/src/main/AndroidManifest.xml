@@ -46,6 +46,23 @@
                 <data android:scheme="https" android:host="www.instagram.com" android:pathPrefix="/reel/" />
             </intent-filter>
 
+            <!--
+                Threads shorthand URLs can be constrained safely on every supported Android
+                version. Canonical /@user/post/... links remain paste/Share-only because the
+                legacy path matcher cannot express exactly one username segment without
+                overclaiming profile/feed surfaces.
+            -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="https" android:host="threads.com" android:pathPrefix="/t/" />
+                <data android:scheme="https" android:host="www.threads.com" android:pathPrefix="/t/" />
+                <data android:scheme="https" android:host="threads.net" android:pathPrefix="/t/" />
+                <data android:scheme="https" android:host="www.threads.net" android:pathPrefix="/t/" />
+            </intent-filter>
+
             <!-- Fallback: share a public link/text directly to Social Viewer. -->
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
