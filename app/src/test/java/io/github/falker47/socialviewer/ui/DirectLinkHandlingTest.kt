@@ -7,8 +7,8 @@ import org.junit.Test
 
 class DirectLinkHandlingTest {
     @Test
-    fun providerHostMappingIncludesTikTokAndInstagram() {
-        assertEquals(listOf("tiktok", "instagram"), DIRECT_LINK_PROVIDERS.map { it.providerId })
+    fun providerHostMappingIncludesTikTokInstagramAndFacebook() {
+        assertEquals(listOf("tiktok", "instagram", "facebook"), DIRECT_LINK_PROVIDERS.map { it.providerId })
         assertEquals(
             setOf(
                 "tiktok.com",
@@ -23,6 +23,10 @@ class DirectLinkHandlingTest {
             setOf("instagram.com", "www.instagram.com"),
             DIRECT_LINK_PROVIDERS.first { it.providerId == "instagram" }.hosts,
         )
+        assertEquals(
+            setOf("facebook.com", "www.facebook.com"),
+            DIRECT_LINK_PROVIDERS.first { it.providerId == "facebook" }.hosts,
+        )
     }
 
     @Test
@@ -35,7 +39,7 @@ class DirectLinkHandlingTest {
         )
 
         assertTrue(state.allProvidersActive)
-        assertEquals(2, state.activeProviderCount)
+        assertEquals(3, state.activeProviderCount)
         assertTrue(state.providers.all { it.status == DirectLinkProviderStatus.ACTIVE })
     }
 
@@ -61,6 +65,35 @@ class DirectLinkHandlingTest {
         assertEquals(
             DirectLinkProviderStatus.PARTIAL,
             state.providers.first { it.definition.providerId == "instagram" }.status,
+        )
+        assertEquals(
+            DirectLinkProviderStatus.NEEDS_SETUP,
+            state.providers.first { it.definition.providerId == "facebook" }.status,
+        )
+    }
+
+    @Test
+    fun facebookPartialAndActiveStatesFollowApprovedHosts() {
+        val partial = buildDirectLinkHandlingState(
+            platformStateAvailable = true,
+            linkHandlingAllowed = true,
+            approvedHosts = setOf("facebook.com"),
+        )
+
+        assertEquals(
+            DirectLinkProviderStatus.PARTIAL,
+            partial.providers.first { it.definition.providerId == "facebook" }.status,
+        )
+
+        val active = buildDirectLinkHandlingState(
+            platformStateAvailable = true,
+            linkHandlingAllowed = true,
+            approvedHosts = setOf("facebook.com", "www.facebook.com"),
+        )
+
+        assertEquals(
+            DirectLinkProviderStatus.ACTIVE,
+            active.providers.first { it.definition.providerId == "facebook" }.status,
         )
     }
 
