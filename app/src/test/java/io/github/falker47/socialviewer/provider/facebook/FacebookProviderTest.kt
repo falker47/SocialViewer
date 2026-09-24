@@ -66,6 +66,63 @@ class FacebookProviderTest {
         )
     }
 
+    @Test
+    fun resolvesShareReelAliasBeforeCallingOfficialVideoOEmbed() {
+        val http = FakeHttpClient(
+            response = UrlConnectionHttpClient.Response(
+                statusCode = 200,
+                finalUrl = "https://graph.facebook.com/v25.0/oembed_video",
+                body = """{"html":"<div class=\"fb-video\"></div><script src=\"https://connect.facebook.net/en_US/sdk.js\"></script>"}""",
+            ),
+            resolvedUrl = "https://www.facebook.com/reel/1254780559682152/?rdid=test",
+        )
+
+        val target = resolveFacebookTarget(
+            scheme = "https",
+            host = "www.facebook.com",
+            path = "/share/r/1HNwyf2jVo/",
+            http = http,
+        )
+        val content = resolveCanonicalFacebook(target, http)
+
+        assertEquals(FacebookContentKind.REEL, target.kind)
+        assertEquals(
+            "https://www.facebook.com/reel/1254780559682152/",
+            target.canonicalUrl,
+        )
+        assertEquals(
+            "https://www.facebook.com/share/r/1HNwyf2jVo/",
+            http.requestedResolveUrl,
+        )
+        assertTrue(
+            http.requestedUrl.orEmpty()
+                .startsWith("https://graph.facebook.com/v25.0/oembed_video?url="),
+        )
+        assertEquals("facebook", content.providerId)
+    }
+
+    @Test
+    fun rejectsShareReelAliasThatRedirectsOutsideSupportedFacebookReel() {
+        val error = runCatching {
+            resolveFacebookTarget(
+                scheme = "https",
+                host = "www.facebook.com",
+                path = "/share/r/1HNwyf2jVo/",
+                http = FakeHttpClient(
+                    response = UrlConnectionHttpClient.Response(
+                        statusCode = 200,
+                        finalUrl = "https://graph.facebook.com/v25.0/oembed_video",
+                        body = "{}",
+                    ),
+                    resolvedUrl = "https://example.com/reel/1254780559682152/",
+                ),
+            )
+        }.exceptionOrNull()
+
+        assertTrue(error is IllegalStateException)
+        assertTrue(error?.message.orEmpty().contains("non ha risolto"))
+    }
+
     @Test(expected = ProviderContentUnavailableException::class)
     fun expectedFacebookUnavailabilityUsesTypedError() {
         resolveCanonicalFacebook(
@@ -108,8 +165,15 @@ class FacebookProviderTest {
 
     private class FakeHttpClient(
         private val response: UrlConnectionHttpClient.Response,
+        private val resolvedUrl: String? = null,
     ) : UrlConnectionHttpClient() {
         var requestedUrl: String? = null
+        var requestedResolveUrl: String? = null
+
+        override fun resolveFinalUrl(url: String): String {
+            requestedResolveUrl = url
+            return resolvedUrl ?: url
+        }
 
         override fun get(url: String): UrlConnectionHttpClient.Response {
             requestedUrl = url
