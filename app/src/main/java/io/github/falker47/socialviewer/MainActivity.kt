@@ -9,7 +9,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import io.github.falker47.socialviewer.network.UrlConnectionHttpClient
 import io.github.falker47.socialviewer.provider.ProviderRegistry
-import io.github.falker47.socialviewer.provider.facebook.FacebookBrowserShareLinkResolver
 import io.github.falker47.socialviewer.provider.facebook.FacebookProvider
 import io.github.falker47.socialviewer.provider.instagram.InstagramProvider
 import io.github.falker47.socialviewer.provider.tiktok.TikTokProvider
@@ -25,10 +24,7 @@ class MainActivity : ComponentActivity() {
             providers = listOf(
                 TikTokProvider(UrlConnectionHttpClient()),
                 InstagramProvider(UrlConnectionHttpClient()),
-                FacebookProvider(
-                    http = UrlConnectionHttpClient(),
-                    shareLinkResolver = FacebookBrowserShareLinkResolver(this),
-                ),
+                FacebookProvider(UrlConnectionHttpClient()),
             ),
         )
     }
