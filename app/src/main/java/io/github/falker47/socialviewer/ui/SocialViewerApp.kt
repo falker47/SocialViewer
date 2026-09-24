@@ -448,7 +448,6 @@ private fun DirectLinkCard(
     onConfigure: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val providerNames = state.providers.joinToString(" e ") { it.definition.displayName }
     val title = when {
         state.allProvidersActive -> "Apertura diretta attiva"
         state.anyProviderConfigured -> "Apertura diretta parziale"
@@ -456,13 +455,13 @@ private fun DirectLinkCard(
     }
     val body = when {
         state.allProvidersActive ->
-            "I link $providerNames supportati possono aprirsi direttamente in Social Viewer."
+            "I link supportati possono aprirsi direttamente in Social Viewer."
 
         state.anyProviderConfigured ->
             "Alcuni link sono già configurati. Completa l'impostazione in Android."
 
         else ->
-            "Apri i link $providerNames supportati direttamente in Social Viewer."
+            "Apri i link supportati direttamente in Social Viewer."
     }
 
     Card(
@@ -623,7 +622,7 @@ private fun SettingsScreen(
             text = {
                 Text(
                     "Verranno rimossi cookie e preferenze dei provider. " +
-                        "TikTok o Instagram potrebbero chiederti nuovamente le preferenze sui cookie.",
+                        "I provider potrebbero chiederti nuovamente le preferenze sui cookie.",
                 )
             },
             dismissButton = {
@@ -779,7 +778,7 @@ private fun CoachMarkOverlay(
                     )
                     Spacer(Modifier.height(8.dp))
                     Text(
-                        "Incolla un link pubblico di TikTok o Instagram: Social Viewer lo aprirà subito.",
+                        "Incolla un link pubblico supportato: Social Viewer lo aprirà subito.",
                         style = MaterialTheme.typography.bodyMedium,
                     )
                     Spacer(Modifier.height(18.dp))
@@ -798,7 +797,7 @@ private fun CoachMarkOverlay(
                     )
                     Spacer(Modifier.height(8.dp))
                     Text(
-                        "Dopo la configurazione, tocca un link TikTok o Instagram su WhatsApp " +
+                        "Dopo la configurazione, tocca un link supportato su WhatsApp " +
                             "o nel browser: si aprirà in Social Viewer.",
                         style = MaterialTheme.typography.bodyMedium,
                     )
