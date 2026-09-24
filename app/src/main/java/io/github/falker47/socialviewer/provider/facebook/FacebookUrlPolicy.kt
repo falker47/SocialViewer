@@ -10,6 +10,11 @@ internal data class FacebookCanonicalTarget(
     val canonicalUrl: String,
 )
 
+internal data class FacebookShareAlias(
+    val expectedKind: FacebookContentKind,
+    val aliasUrl: String,
+)
+
 object FacebookUrlPolicy {
     private val allowedHosts = setOf(
         "facebook.com",
@@ -22,7 +27,7 @@ object FacebookUrlPolicy {
         path: String?,
     ): Boolean =
         canonicalTarget(scheme, host, path) != null ||
-            shareReelAliasUrl(scheme, host, path) != null
+            shareAlias(scheme, host, path) != null
 
     fun canonicalUrl(
         scheme: String?,
@@ -30,11 +35,11 @@ object FacebookUrlPolicy {
         path: String?,
     ): String? = canonicalTarget(scheme, host, path)?.canonicalUrl
 
-    internal fun shareReelAliasUrl(
+    internal fun shareAlias(
         scheme: String?,
         host: String?,
         path: String?,
-    ): String? {
+    ): FacebookShareAlias? {
         if (!scheme.equals("https", ignoreCase = true)) return null
 
         val normalizedHost = host?.lowercase() ?: return null
@@ -48,12 +53,21 @@ object FacebookUrlPolicy {
 
         if (segments.size != 3) return null
         if (!segments[0].equals("share", ignoreCase = true)) return null
-        if (!segments[1].equals("r", ignoreCase = true)) return null
+
+        val expectedKind = when {
+            segments[1].equals("p", ignoreCase = true) -> FacebookContentKind.POST
+            segments[1].equals("r", ignoreCase = true) -> FacebookContentKind.REEL
+            else -> return null
+        }
 
         val shareCode = segments[2]
         if (!isSafeSegment(shareCode)) return null
 
-        return "https://www.facebook.com/share/r/$shareCode/"
+        val aliasType = segments[1].lowercase()
+        return FacebookShareAlias(
+            expectedKind = expectedKind,
+            aliasUrl = "https://www.facebook.com/share/$aliasType/$shareCode/",
+        )
     }
 
     internal fun canonicalTarget(
