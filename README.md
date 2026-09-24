@@ -21,7 +21,7 @@ Current feature milestone:
 - Facebook uses Meta's official tokenless `v25.0/oembed_post` and `v25.0/oembed_video` endpoints.
 - Returned Facebook markup is rendered with Meta's official SDK using the required `#xfbml=1&version=v25.0` fragment.
 - No Meta access token, developer app, backend, database, Social Viewer account, or embedded secret is used.
-- Facebook remains pending CI + Android manual smoke verification and must not be merged before that gate passes.
+- Facebook has passed automated CI and remains pending Android manual smoke verification; it must not be merged before that gate passes.
 
 ## Product rule
 
