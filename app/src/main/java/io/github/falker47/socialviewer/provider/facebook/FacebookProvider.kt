@@ -24,24 +24,10 @@ private val FACEBOOK_SDK_SCRIPT_REGEX = Regex(
     RegexOption.IGNORE_CASE,
 )
 
-class FacebookProvider private constructor(
-    private val http: UrlConnectionHttpClient,
-    private val shareLinkResolver: FacebookShareLinkResolver?,
+class FacebookProvider internal constructor(
+    private val http: UrlConnectionHttpClient = UrlConnectionHttpClient(),
+    private val shareLinkResolver: FacebookShareLinkResolver? = null,
 ) : SocialProvider {
-    constructor(
-        http: UrlConnectionHttpClient = UrlConnectionHttpClient(),
-    ) : this(
-        http = http,
-        shareLinkResolver = null,
-    )
-
-    internal constructor(
-        http: UrlConnectionHttpClient,
-        shareLinkResolver: FacebookShareLinkResolver,
-    ) : this(
-        http = http,
-        shareLinkResolver = shareLinkResolver as FacebookShareLinkResolver?,
-    )
     override val id: String = "facebook"
     override val displayName: String = "Facebook"
 
