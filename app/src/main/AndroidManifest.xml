@@ -46,6 +46,25 @@
                 <data android:scheme="https" android:host="www.instagram.com" android:pathPrefix="/reel/" />
             </intent-filter>
 
+            <!-- Only Facebook content types supported by FacebookProvider are claimed. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="https" android:host="facebook.com" android:pathPattern="/.*/posts/.*" />
+                <data android:scheme="https" android:host="www.facebook.com" android:pathPattern="/.*/posts/.*" />
+            </intent-filter>
+
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="https" android:host="facebook.com" android:pathPrefix="/reel/" />
+                <data android:scheme="https" android:host="www.facebook.com" android:pathPrefix="/reel/" />
+            </intent-filter>
+
             <!-- Fallback: share a public link/text directly to Social Viewer. -->
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
