@@ -250,7 +250,7 @@ internal class FacebookBrowserShareLinkResolver(
             settings.setGeolocationEnabled(false)
 
             val resolverCookieManager = WebViewCompat.getProfile(this).cookieManager
-            resolverCookieManager.setAcceptCookie(false)
+            resolverCookieManager.setAcceptCookie(true)
             resolverCookieManager.setAcceptThirdPartyCookies(this, false)
 
             webViewClient = object : WebViewClient() {
