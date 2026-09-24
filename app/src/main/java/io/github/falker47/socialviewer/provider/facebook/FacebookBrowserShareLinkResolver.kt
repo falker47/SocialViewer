@@ -11,6 +11,9 @@ import android.webkit.WebResourceRequest
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import androidx.webkit.ProfileStore
+import androidx.webkit.WebViewCompat
+import androidx.webkit.WebViewFeature
 import io.github.falker47.socialviewer.provider.ProviderShareLinkResolutionException
 import org.json.JSONArray
 import java.net.URI
@@ -20,6 +23,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
 
 private const val DEFAULT_RESOLVE_TIMEOUT_MS = 12_000L
+private const val FACEBOOK_RESOLVER_PROFILE = "social_viewer_facebook_resolver"
 
 private val FACEBOOK_RESOLVER_HOSTS = setOf(
     "facebook.com",
@@ -94,6 +98,71 @@ internal class FacebookBrowserShareLinkResolver(
         val finished = AtomicBoolean(false)
         var webView: WebView? = null
         lateinit var timeout: Runnable
+        var isolatedProfileActive = false
+
+        if (!WebViewFeature.isFeatureSupported(WebViewFeature.MULTI_PROFILE)) {
+            failure.set(
+                unresolved(
+                    alias,
+                    "Il WebView di sistema non supporta l'isolamento richiesto dal resolver Facebook",
+                ),
+            )
+            latch.countDown()
+            return
+        }
+
+        val profileStore = ProfileStore.getInstance()
+        runCatching {
+            // A process crash could leave the named profile on disk. Remove it before reuse so
+            // every resolution begins from a fresh browser session.
+            profileStore.deleteProfile(FACEBOOK_RESOLVER_PROFILE)
+        }.onFailure {
+            failure.set(
+                unresolved(
+                    alias,
+                    "Impossibile inizializzare un profilo browser effimero per Facebook",
+                ),
+            )
+            latch.countDown()
+            return
+        }
+
+        fun completeAfterProfileCleanup(
+            value: String?,
+            error: Throwable?,
+            attempt: Int = 0,
+        ) {
+            if (!isolatedProfileActive) {
+                if (error != null) failure.set(error) else resolved.set(value)
+                latch.countDown()
+                return
+            }
+
+            val cleanup = runCatching {
+                profileStore.deleteProfile(FACEBOOK_RESOLVER_PROFILE)
+            }
+            if (cleanup.isFailure && attempt < 3) {
+                mainHandler.postDelayed(
+                    { completeAfterProfileCleanup(value, error, attempt + 1) },
+                    50L,
+                )
+                return
+            }
+
+            if (cleanup.isFailure) {
+                failure.set(
+                    unresolved(
+                        alias,
+                        "Impossibile eliminare lo stato effimero del resolver Facebook",
+                    ),
+                )
+            } else if (error != null) {
+                failure.set(error)
+            } else {
+                resolved.set(value)
+            }
+            latch.countDown()
+        }
 
         fun finish(value: String? = null, error: Throwable? = null) {
             if (!finished.compareAndSet(false, true)) return
@@ -107,12 +176,11 @@ internal class FacebookBrowserShareLinkResolver(
             }
             webView = null
 
-            if (error != null) {
-                failure.set(error)
-            } else {
-                resolved.set(value)
+            // Deleting the WebView releases the profile association. Retry briefly because some
+            // WebView builds detach that association on the next UI loop.
+            mainHandler.post {
+                completeAfterProfileCleanup(value, error)
             }
-            latch.countDown()
         }
 
         fun fail(detail: String) {
@@ -165,7 +233,10 @@ internal class FacebookBrowserShareLinkResolver(
             }
         }
 
-        val currentWebView = WebView(appContext).apply {
+        val currentWebView = WebView(appContext).also { view ->
+            WebViewCompat.setProfile(view, FACEBOOK_RESOLVER_PROFILE)
+            isolatedProfileActive = true
+        }.apply {
             settings.javaScriptEnabled = true
             settings.domStorageEnabled = true
             settings.allowFileAccess = false
@@ -178,7 +249,9 @@ internal class FacebookBrowserShareLinkResolver(
             settings.safeBrowsingEnabled = true
             settings.setGeolocationEnabled(false)
 
-            CookieManager.getInstance().setAcceptThirdPartyCookies(this, false)
+            val resolverCookieManager = WebViewCompat.getProfile(this).cookieManager
+            resolverCookieManager.setAcceptCookie(false)
+            resolverCookieManager.setAcceptThirdPartyCookies(this, false)
 
             webViewClient = object : WebViewClient() {
                 override fun shouldOverrideUrlLoading(
