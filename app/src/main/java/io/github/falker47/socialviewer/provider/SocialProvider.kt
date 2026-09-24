@@ -17,3 +17,9 @@ interface SocialProvider {
      */
     fun resolve(uri: Uri): SocialContent
 }
+
+class ProviderContentUnavailableException(
+    val providerName: String,
+    val technicalDetail: String,
+) : IllegalStateException(technicalDetail)
+
