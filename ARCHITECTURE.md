@@ -30,10 +30,10 @@ If favorites/history ever become a feature, they must be explicitly opt-in and m
 
 The second provider did not require a sealed `RenderableContent` hierarchy: a narrow provider-aware document base URL was sufficient. Keep the current model until a future real provider demonstrates a renderer mismatch that justifies a stronger abstraction.
 
-## AD-005 — Deep links are user-managed
+## AD-005 — Deep links are user-managed and provider-aware
 
-The app currently declares TikTok HTTP(S) intent filters only. Instagram playback is initially available through manual paste/share; Instagram direct-link declarations are deferred to the multi-provider link-handling milestone. Social Viewer does not claim verified App Links for domains it does not own.
+The app declares user-managed web-link filters for TikTok plus the supported Instagram post/Reel paths. Social Viewer does not claim verified App Links for provider-owned domains because it cannot publish their `assetlinks.json` files.
 
-On Android 12+, `DomainVerificationManager` is the source of truth for whether the user has approved the declared TikTok hosts. Social Viewer may display that state and open Android's **Open by default** settings, but it must not present a fake silent toggle.
+On Android 12+, `DomainVerificationManager` is the source of truth. The Android shell maps declared hosts to provider-oriented states (**Attiva / Parziale / Da configurare**) and treats the global link-handling permission as a gate. Settings presents one compact **Apertura diretta** area with provider breakdown and a single **Configura** action that opens Android's real **Open by default** screen.
 
-`ACTION_SEND` remains implemented as a technical fallback; the primary product flow is tap-on-link → Social Viewer → resolve/render.
+First-party provider apps and the browser may compete for the same domains, so Social Viewer does not imply exclusive ownership. `ACTION_SEND` and manual paste remain fallbacks; the preferred product flow remains tap-on-link → Social Viewer → resolve/render when Android is configured accordingly.
