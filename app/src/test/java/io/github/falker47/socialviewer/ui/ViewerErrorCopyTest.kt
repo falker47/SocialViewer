@@ -1,6 +1,7 @@
 package io.github.falker47.socialviewer.ui
 
 import io.github.falker47.socialviewer.provider.ProviderContentUnavailableException
+import io.github.falker47.socialviewer.provider.ProviderShareLinkResolutionException
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -32,6 +33,22 @@ class ViewerErrorCopyTest {
 
         assertEquals("Contenuto non disponibile", copy.title)
         assertEquals("Questo contenuto Facebook non è disponibile.", copy.message)
+        assertFalse(copy.message.contains("HTTP"))
+    }
+
+    @Test
+    fun unresolvedFacebookShareLinkGetsActionableCopy() {
+        val copy = viewerErrorCopyFor(
+            ProviderShareLinkResolutionException(
+                providerName = "Facebook",
+                canonicalHint = "facebook.com/reel/…",
+                technicalDetail = "Facebook non ha esposto un permalink canonico",
+            ),
+        )
+
+        assertEquals("Link Facebook non risolvibile", copy.title)
+        assertTrue(copy.message.contains("permalink pubblico"))
+        assertTrue(copy.message.contains("facebook.com/reel/…"))
         assertFalse(copy.message.contains("HTTP"))
     }
 
