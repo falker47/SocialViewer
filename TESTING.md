@@ -2,179 +2,192 @@
 
 This checklist is the gate for changes that touch UI, intents, WebView behavior, direct-link handling, or providers.
 
-Baseline note: TikTok playback plus the light Home/onboarding/Settings flow were verified during the 2026-09-23 MVP pass. Re-run the relevant sections after changes rather than assuming a previous pass covers new code.
+## 1. Sync the Facebook branch
 
-## 1. Clone, open and sync
+From the repository root in PowerShell:
 
-Clone `falker47/SocialViewer` and open the repository root (`SocialViewer`) in Android Studio, not the `app` subfolder.
+```powershell
+.\sync-test-branch.ps1 feature/facebook-provider
+```
 
-Required toolchain:
+Open the repository root in Android Studio, sync Gradle if required, then run on an emulator or physical Android device. For Facebook provider verification, use a physical device at least once before merge if available.
 
-- JDK 17 for Gradle
-- Android SDK Platform 37
-- Android SDK Build-Tools 36.0.0 or newer compatible tools
-- Android SDK Platform-Tools
-
-The project uses AGP 9.4.0 and the committed Gradle 9.6.0 wrapper.
-
-Run **File > Sync Project with Gradle Files** if sync does not start automatically.
-
-The legacy `bootstrap-gradle.*` scripts are not required for a normal clone because the wrapper is already committed.
-
-## 2. Run automated checks
+## 2. Automated checks
 
 From Android Studio's Terminal on Windows:
 
-`gradlew.bat testDebugUnitTest`
-
-`gradlew.bat assembleDebug`
+```text
+gradlew.bat testDebugUnitTest
+gradlew.bat assembleDebug
+```
 
 Expected result: `BUILD SUCCESSFUL`.
 
-The same checks run in GitHub Actions for pushes and pull requests targeting `main`.
+The same two checks must be green in GitHub Actions on the Facebook PR before the manual gate is considered ready.
 
-## 3. Launch on Android
+## 3. Facebook public post
 
-Use either a physical phone or emulator. For provider/player verification, prefer a real device at least once before merging a provider or WebView change.
+Use one known-public URL shaped like:
 
-Expected Home:
+`https://www.facebook.com/{owner}/posts/{post-id}/`
 
-- `Social Viewer`
-- `Apri un contenuto`
-- provider-generic URL field with trailing clipboard icon
-- `Apri`
-- `Apertura diretta`
+Open it through manual paste.
 
-## 4. Fresh-install onboarding
+Expected:
 
-Clear app data before this test.
+1. Social Viewer selects Facebook.
+2. Loading appears.
+3. Meta oEmbed resolves the item.
+4. The official Facebook embed renders inside the existing WebView.
+5. Tapping Facebook-native links/actions must not turn the WebView into a general Facebook browser.
+6. **Originale** may open the canonical Facebook URL externally.
 
-1. Coach mark 1 highlights the manual-open controls.
-2. Its card stays visibly above the Android navigation area in both gesture navigation and classic three-button navigation.
-3. `Avanti` moves to step 2.
-4. Coach mark 2 highlights `Apertura diretta` and explains that supported TikTok or Instagram links can open directly in Social Viewer after Android configuration.
-5. `Non ora` completes onboarding without blocking the app.
-6. Relaunch: coach marks must not return.
-7. Repeat with fresh app data and choose `Configura apertura diretta`; Android's **Open by default** screen must open.
+Facebook post direct-link routing is intentionally not declared in this milestone; paste and Share are the supported entry paths.
 
-## 5. Manual URL flows
+## 4. Facebook public Reel
 
-With one known-public TikTok URL, then repeat with one known-public Instagram post/Reel URL:
+Use one known-public URL shaped like:
 
-- clipboard icon → paste + validate + open immediately;
-- populated field + `Apri` → validate + open;
-- empty field + clipboard populated + `Apri` → read clipboard + open.
+`https://www.facebook.com/reel/{reel-id}/`
 
-Invalid clipboard/input must remain on Home and show inline feedback.
+Verify manual paste first.
 
-## 6. TikTok playback
+Expected: the official Facebook Reel embed renders and playback remains user-initiated where the provider requires it.
 
-Test at least:
+Then test the Android direct-link path separately after section 8.
 
-- canonical `https://www.tiktok.com/@.../video/...`
-- `https://vm.tiktok.com/...`
-- `https://vt.tiktok.com/...`
+## 5. Facebook unavailable / private / removed
 
-Expected path:
+Try a known private, removed, restricted, embedding-disabled, or otherwise unavailable Facebook item.
 
-1. short link resolves when necessary;
-2. loading surface appears;
-3. TikTok oEmbed confirms public availability/metadata;
-4. the dedicated TikTok `/player/v1/{post_id}` player appears;
-5. playback works after the user's play gesture;
-6. no raw/intermediate TikTok layout flashes before the player is ready.
+Expected user-facing result:
 
-Do not use a private, removed, login-only, or age-gated item as the first smoke test.
+`Questo contenuto Facebook non è disponibile.`
 
-## 7. Cookie/site-data behavior
+Normal expected provider HTTP details must not be shown to the user. A genuinely unexpected failure must still use the generic unexpected-error path rather than being mislabeled as normal unavailability.
 
-1. Make a TikTok cookie/consent choice if prompted.
-2. Open another TikTok: the same choice should not be requested again merely because the previous player was disposed.
-3. Open Settings → **Cancella dati del sito**.
-4. Confirm the warning.
-5. Verify the snackbar `Dati dei provider cancellati`.
-6. The next TikTok playback may legitimately ask for provider consent/preferences again.
+## 6. Consent / login / repeated viewing
 
-## 8. Direct-link handling
+While testing Facebook, note any provider-controlled cookie consent or login UI.
 
-Inside Social Viewer tap `Configura`.
+1. Do not sign in merely to make an unavailable item work.
+2. Open a second public Facebook item.
+3. Confirm Social Viewer itself does not add a login/account flow.
+4. Confirm first-party provider preferences can persist between views.
+5. Verify third-party cookies remain blocked.
+6. Confirm repeated viewing does not create Social Viewer history/storage beyond existing provider site data.
 
-On Android's **Open by default** screen enable supported-link handling and select the TikTok and Instagram domains Android offers for the app.
+Provider-owned consent/login surfaces are observations for the smoke gate, not reasons to bypass platform restrictions.
+
+## 7. Site-data behavior
+
+Open **Impostazioni → Cancella dati del sito**.
+
+1. Confirm the warning remains provider-generic.
+2. Clear site data.
+3. Verify the snackbar `Dati dei provider cancellati`.
+4. Open Facebook again; provider consent/preferences may legitimately reappear.
+5. Re-test one TikTok and one Instagram item afterward.
+
+## 8. Facebook direct-link handling
+
+Open **Impostazioni → Apertura diretta → Configura**.
+
+On Android's **Open by default** screen, configure Facebook domains if Android offers them. A first-party Facebook app or browser may already own the domain; that platform behavior is not a Social Viewer playback defect.
 
 After returning:
 
-- Social Viewer reads the real Android domain state;
-- Settings shows one compact **Apertura diretta** section with separate TikTok and Instagram state;
-- a provider may show **Parziale** when only some of its declared hosts are selected;
-- `Apertura diretta attiva` appears on Home only when all declared provider hosts are approved;
-- the first transition to fully active shows `Apertura diretta attivata`.
+- Settings must include **Facebook** in the same compact provider breakdown used for TikTok and Instagram.
+- The state must reflect Android's real **Attiva / Parziale / Da configurare** status.
+- No separate Facebook toggle or custom configuration surface should exist.
 
-Then tap one supported TikTok link and one supported Instagram post/Reel link from WhatsApp or a browser.
+Test a public Facebook **Reel** link from WhatsApp or a browser. When Android is associated with Social Viewer for Facebook, it should route directly into resolve/render without first showing Home.
 
-Expected: when Android is associated with Social Viewer for that domain, Social Viewer opens directly and starts resolving/rendering without first flashing Home. If a first-party app/browser owns the domain instead, change the association in Android rather than treating Social Viewer as a silent default.
+Do **not** treat lack of direct routing for `/{owner}/posts/{id}` as a bug in this milestone: those post paths are intentionally not claimed because the minSdk-26 manifest matcher cannot constrain them without overclaiming unrelated Facebook paths. Manual paste and Share are the fallback for posts.
 
-## 9. Share-sheet fallback
+## 9. Manual paste and Share fallback
 
-Share a public TikTok URL as text from another app and choose **Social Viewer**.
+Verify:
 
-Expected: the app starts resolving the URL. This path is supported but intentionally not promoted in the primary UI.
+- Facebook public post via manual paste;
+- Facebook public Reel via manual paste;
+- Facebook public post or Reel shared as text through Android Share → Social Viewer.
 
-## 10. Appearance / dark mode
+All supported cases should resolve to Facebook through the existing provider boundary.
 
-Open Settings → **Aspetto** and verify:
+## 10. Shared UI / onboarding
 
-1. On a fresh install, **Sistema** is selected by default.
-2. With **Sistema**, switch Android between light and dark theme; Social Viewer must follow the system theme.
-3. Select **Chiaro** while Android is dark; the Social Viewer chrome must remain light.
-4. Select **Scuro** while Android is light; the Social Viewer chrome must remain dark.
-5. Fully close and relaunch the app; the selected mode must persist.
-6. In dark mode inspect Home, top bar, URL input, direct-link card, Settings, the clear-site-data dialog, snackbar, Loading, Error, and the chrome above the player. No Social Viewer surface should remain accidentally light.
-7. Verify both coach marks remain readable against the scrim in dark mode. A fresh app-data run with Android dark + default **Sistema** is sufficient.
-8. Open a TikTok and confirm the remote player itself is not recolored; its black player background remains unchanged.
-9. Re-run clipboard paste/open and direct-link configuration to confirm no regression in those flows.
+Clear Social Viewer app data and launch again.
 
-## 11. Negative tests
+1. Home remains compact and provider-generic.
+2. Coach mark 1 explains a supported public link without hardcoding a provider list.
+3. Coach mark 2 explains direct opening without hardcoding a provider list.
+4. The configuration CTA still opens Android's real **Open by default** screen.
+5. Settings lists TikTok, Instagram, and Facebook under the existing compact **Apertura diretta** section.
+6. No new Facebook-specific settings area or tutorial appears.
 
-Confirm clean failure for:
+## 11. Appearance regression
 
-- `http://www.tiktok.com/...`
-- `https://example.com/...`
-- malformed text with no URL
-- a TikTok URL without a supported post/photo ID
-- a short TikTok URL that redirects outside TikTok, when a safe fixture is available
+Exercise **Sistema / Chiaro / Scuro**.
 
-## 12. What to capture if something fails
+Inspect:
+
+- Home;
+- Settings;
+- onboarding coach marks;
+- Loading;
+- Error;
+- player chrome around Facebook;
+- clear-site-data dialog/snackbar.
+
+No Social Viewer surface should regress visually. Remote provider embeds are not recolored by Social Viewer.
+
+## 12. TikTok regression
+
+Open at least one known-public canonical TikTok video. If convenient also verify one `vm.tiktok.com` or `vt.tiktok.com` short link.
+
+Expected: existing TikTok resolution/playback remains unchanged.
+
+## 13. Instagram regression
+
+Open:
+
+- one public Instagram `/p/` post;
+- one public Instagram `/reel/` Reel.
+
+Expected: existing Instagram rendering remains unchanged, including clean unavailable copy for an unavailable Instagram item.
+
+## 14. Navigation boundary
+
+For Facebook, Instagram, and TikTok, interact with any provider-native links visible inside the embed.
+
+Expected: main-frame navigation remains blocked inside Social Viewer. The embedded surface must not become a general-purpose Facebook/Instagram/TikTok browser.
+
+## 15. Negative Facebook URL policy
+
+Manual input must reject as unsupported:
+
+- `http://www.facebook.com/alice/posts/123/`;
+- Facebook profile-only URLs;
+- Facebook Stories;
+- Facebook group-post paths;
+- Facebook `/share/...` aliases not explicitly supported;
+- lookalike hosts such as `fakefacebook.com`.
+
+No scraping or redirect guessing should be introduced to make those forms work.
+
+## 16. What to capture if something fails
 
 Send:
 
 - screenshot of the app/error;
-- the exact public test URL when relevant;
+- exact public test URL when relevant;
 - Android version and phone/emulator model;
+- whether the Facebook first-party app is installed;
+- what Android shows under **Open by default** for Social Viewer/Facebook;
 - Android Studio **Build** error text for build/sync failures;
 - Logcat filtered by package `io.github.falker47.socialviewer` for runtime crashes.
 
 Do not include unrelated device/account logs.
 
-## Multi-provider UI + direct-link smoke test
-
-Run this only after CI is green on `feature/multi-provider-ui`.
-
-1. Sync the branch:
-   ```powershell
-   .\sync-test-branch.ps1 feature/multi-provider-ui
-   ```
-2. Run the app from Android Studio on an emulator or physical device.
-3. Home: confirm the field says `Incolla un link` and shared copy no longer assumes TikTok is the only provider.
-4. Manual playback: open one known-public TikTok item, one public Instagram post and one public Instagram Reel. All must render as before.
-5. Instagram unavailable/private: confirm the user-facing error is `Questo contenuto Instagram non è disponibile.` and does not expose the expected HTTP 400 detail. Unexpected provider failures must still use the generic error title rather than being mislabeled as normal unavailability.
-6. Direct-link settings: open **Impostazioni → Apertura diretta → Configura**. Confirm Android's real **Open by default** screen opens.
-7. Select/approve TikTok and Instagram domains where Android allows it. Return to Social Viewer and confirm the provider breakdown reflects the real state (**Attiva / Parziale / Da configurare**) rather than a fake toggle.
-8. Direct TikTok: tap a supported TikTok link from another app/browser and confirm Social Viewer resolves it directly when Android is associated with Social Viewer for that domain.
-9. Direct Instagram: tap a supported `/p/` or `/reel/` link from another app/browser and confirm Social Viewer resolves it directly when Android is associated with Social Viewer for that domain.
-10. Fallbacks: manual paste still works for both providers; Android Share-to-Social-Viewer still resolves a supported shared link.
-11. Fresh-install onboarding: both coach marks remain the same two-step flow; their copy mentions TikTok + Instagram and the second CTA opens Android's real direct-link settings.
-12. Appearance regression: exercise **Sistema / Chiaro / Scuro** and inspect Home, Settings, onboarding, loading/error chrome and player surroundings.
-13. Site-data regression: **Cancella dati del sito** remains provider-generic and may cause either provider to ask for its preferences again.
-14. Re-run at least one TikTok video after Instagram/direct-link testing and one Instagram item after TikTok/direct-link testing to catch cross-provider regressions.
-
-Record PASS only if the branch builds, both providers retain playback, the direct-link states match Android's actual settings, and the Instagram unavailable path is clean.
+Record **PASS** only if Facebook post + Reel rendering, expected-unavailable handling, site-data behavior, Facebook Reel direct link (where Android association permits it), System/Light/Dark, TikTok regression, Instagram post+Reel regression, Share/manual fallbacks, and the navigation boundary all behave as expected.
