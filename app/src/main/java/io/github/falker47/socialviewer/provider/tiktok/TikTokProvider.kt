@@ -53,6 +53,7 @@ class TikTokProvider(
             canonicalUrl = canonical,
             title = json.optString("title").takeIf { it.isNotBlank() },
             authorName = json.optString("author_name").takeIf { it.isNotBlank() },
+            documentBaseUrl = "https://www.tiktok.com/",
             embedHtml = playerHtml(postId),
         )
     }
