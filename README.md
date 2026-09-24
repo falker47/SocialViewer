@@ -12,6 +12,7 @@ Implemented providers:
 - **Instagram** — verified public posts and Reels via Meta's official tokenless oEmbed path.
 - **Threads** — verified public post permalinks, shorthand `/t/` URLs, legacy `threads.net` compatibility and `/t/` direct opening via Meta's official tokenless oEmbed path.
 - **Facebook** — **In pausa / unsupported** for the real-world share-link flow. PR #4 remains an unmerged technical record and is not counted as a supported provider.
+- **YouTube / Shorts** — implemented on `feature/youtube-provider` for single public videos through the official privacy-enhanced IFrame player; physical-device verification is pending. Made For Kids videos are deliberately not embedded.
 - Public availability/metadata are checked through TikTok's oEmbed endpoint.
 - Playback uses TikTok's official dedicated `/player/v1/{post_id}` embed player.
 - Canonical TikTok URLs plus `vm.tiktok.com` / `vt.tiktok.com` short links are supported.
@@ -22,11 +23,11 @@ Implemented providers:
 - Home and Settings summarize the real Android direct-link state for TikTok, Instagram and Threads; configuration always opens Android's **Open by default** screen.
 - Appearance supports **System / Light / Dark**. System is the default, follows Android's current theme, and the selection is persisted locally.
 
-TikTok, Instagram and Threads playback plus the shared multi-provider UI are verified on `main`. Threads completed its physical-device smoke gate and PR #5 was squash-merged.
+TikTok, Instagram and Threads playback plus the shared multi-provider UI are verified on `main`. YouTube is isolated on `feature/youtube-provider` and must not merge until CI plus the documented physical-device smoke gate pass.
 
 ## Product rule
 
-Social Viewer only handles content that is both public and available through a provider-supported public/embed mechanism. It does not bypass login requirements, age gates, private accounts, removals, or other access controls.
+Social Viewer only handles content that is both public and available through a provider-supported public/embed mechanism. It does not bypass login requirements, age gates, private accounts, removals, or other access controls. It does not create recommendation surfaces of its own; provider-native related/advertising surfaces that cannot be removed through supported controls may remain inside an official player. For YouTube, Made For Kids status is checked before embedding and MFK videos are rejected in-app.
 
 ## Architecture
 
@@ -82,6 +83,20 @@ TikTok, Instagram and Threads own their web domains, so Social Viewer cannot pub
 The manifest declares TikTok web links, supported Instagram post/Reel paths, and only the safely constrainable Threads shorthand `/t/` paths on `threads.com` and legacy `threads.net`. Canonical Threads `/@user/post/...` permalinks remain available through manual paste/Android Share because the minSdk-26 path matcher cannot express that route narrowly without overclaiming profile/feed surfaces. On modern Android versions, the user may explicitly associate Social Viewer with declared provider domains under **Open by default / supported links**. First-party apps or the browser may compete for the same domains.
 
 On Android 12+, Social Viewer reads the real per-domain user state through `DomainVerificationManager`, summarizes it per provider, and opens the Android system screen for changes. It does not expose a fake in-app toggle. Manual paste and Android Share remain fallbacks.
+
+## YouTube Data API configuration
+
+YouTube playback itself is keyless, but current YouTube policy requires a Made For Kids lookup before embedding. The app therefore expects `YOUTUBE_API_KEY` at build time.
+
+Use one of these local-only sources:
+
+- `YOUTUBE_API_KEY=...` in the repository `local.properties` file (already gitignored);
+- Gradle property `YOUTUBE_API_KEY`;
+- environment variable `YOUTUBE_API_KEY`.
+
+Do not commit the key. Restrict it to the **YouTube Data API v3** and, for Android application restrictions, package `io.github.falker47.socialviewer` plus the signing certificate SHA-1. The client sends `X-Android-Package` and `X-Android-Cert` headers for this purpose.
+
+CI intentionally builds with an empty key; deterministic tests use fixtures and do not call YouTube live.
 
 ## Build
 
@@ -140,7 +155,7 @@ Examples: `feature/dark-mode`, `feature/instagram-provider`, `feature/multi-prov
 
 Threads is complete. Facebook remains frozen as **In pausa / unsupported** and PR #4 remains unmerged.
 
-YouTube / YouTube Shorts remains a separate, **not product-cleared** candidate because of the previously identified API-key/policy and recommendation-surface conflicts. It has not been started. Any next provider milestone should be evaluated separately and continue the one-provider-at-a-time workflow.
+YouTube is now product-cleared under the explicit provider-native-surface compromise and is implemented on `feature/youtube-provider`. Next gate: green CI, configure a restricted local Data API key, then run the physical-device YouTube smoke test before merge.
 
 ## Non-goals
 
