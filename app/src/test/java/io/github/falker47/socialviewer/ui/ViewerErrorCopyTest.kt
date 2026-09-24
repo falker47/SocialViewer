@@ -22,6 +22,20 @@ class ViewerErrorCopyTest {
     }
 
     @Test
+    fun expectedFacebookUnavailabilityGetsCleanUserCopy() {
+        val copy = viewerErrorCopyFor(
+            ProviderContentUnavailableException(
+                providerName = "Facebook",
+                technicalDetail = "Facebook oEmbed ha risposto HTTP 400",
+            ),
+        )
+
+        assertEquals("Contenuto non disponibile", copy.title)
+        assertEquals("Questo contenuto Facebook non è disponibile.", copy.message)
+        assertFalse(copy.message.contains("HTTP"))
+    }
+
+    @Test
     fun unexpectedProviderFailureIsNotMislabelledAsUnavailable() {
         val copy = viewerErrorCopyFor(
             IllegalStateException("Instagram oEmbed ha risposto HTTP 500"),
