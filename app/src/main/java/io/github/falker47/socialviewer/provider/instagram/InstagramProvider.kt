@@ -43,6 +43,12 @@ internal fun resolveCanonicalInstagram(
     val encodedUrl = URLEncoder.encode(canonicalUrl, StandardCharsets.UTF_8.name())
     val response = http.get("$INSTAGRAM_OEMBED_ENDPOINT?url=$encodedUrl")
 
+    if (response.statusCode == 400 || response.statusCode == 404) {
+        throw ProviderContentUnavailableException(
+            providerName = "Instagram",
+            technicalDetail = "Instagram oEmbed ha risposto HTTP ${response.statusCode}",
+        )
+    }
     if (response.statusCode !in 200..299) {
         error("Instagram oEmbed ha risposto HTTP ${response.statusCode}")
     }
