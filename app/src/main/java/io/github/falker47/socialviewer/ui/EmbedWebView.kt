@@ -15,6 +15,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 @Composable
 fun EmbedWebView(
     html: String,
+    baseUrl: String,
     modifier: Modifier = Modifier,
 ) {
     var webView: WebView? = null
@@ -55,10 +56,11 @@ fun EmbedWebView(
             }
         },
         update = { view ->
-            if (view.tag != html.hashCode()) {
-                view.tag = html.hashCode()
+            val documentKey = 31 * baseUrl.hashCode() + html.hashCode()
+            if (view.tag != documentKey) {
+                view.tag = documentKey
                 view.loadDataWithBaseURL(
-                    "https://www.tiktok.com/",
+                    baseUrl,
                     html,
                     "text/html",
                     "UTF-8",
