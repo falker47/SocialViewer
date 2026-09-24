@@ -12,8 +12,10 @@ import io.github.falker47.socialviewer.provider.ProviderRegistry
 import io.github.falker47.socialviewer.provider.instagram.InstagramProvider
 import io.github.falker47.socialviewer.provider.threads.ThreadsProvider
 import io.github.falker47.socialviewer.provider.tiktok.TikTokProvider
+import io.github.falker47.socialviewer.provider.youtube.YouTubeProvider
 import io.github.falker47.socialviewer.ui.SocialViewerApp
 import io.github.falker47.socialviewer.util.UrlExtractor
+import io.github.falker47.socialviewer.util.googleAndroidApiClientHeaders
 
 class MainActivity : ComponentActivity() {
     private var incomingUrl by mutableStateOf<String?>(null)
@@ -25,6 +27,11 @@ class MainActivity : ComponentActivity() {
                 TikTokProvider(UrlConnectionHttpClient()),
                 InstagramProvider(UrlConnectionHttpClient()),
                 ThreadsProvider(UrlConnectionHttpClient()),
+                YouTubeProvider(
+                    http = UrlConnectionHttpClient(),
+                    apiKey = BuildConfig.YOUTUBE_API_KEY,
+                    apiClientHeaders = googleAndroidApiClientHeaders(this),
+                ),
             ),
         )
     }

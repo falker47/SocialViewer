@@ -1,6 +1,8 @@
 package io.github.falker47.socialviewer.ui
 
+import io.github.falker47.socialviewer.provider.ProviderConfigurationException
 import io.github.falker47.socialviewer.provider.ProviderContentUnavailableException
+import io.github.falker47.socialviewer.provider.ProviderPolicyBlockedException
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -19,6 +21,35 @@ class ViewerErrorCopyTest {
         assertEquals("Contenuto non disponibile", copy.title)
         assertEquals("Questo contenuto Instagram non è disponibile.", copy.message)
         assertFalse(copy.message.contains("HTTP"))
+    }
+
+    @Test
+    fun madeForKidsBlockGetsPolicyCopy() {
+        val copy = viewerErrorCopyFor(
+            ProviderPolicyBlockedException(
+                providerName = "YouTube",
+                userMessage = "I video YouTube destinati ai bambini non vengono aperti in Social Viewer.",
+                technicalDetail = "Made For Kids",
+            ),
+        )
+
+        assertEquals("Contenuto non supportato", copy.title)
+        assertTrue(copy.message.contains("destinati ai bambini"))
+        assertFalse(copy.message.contains("Made For Kids"))
+    }
+
+    @Test
+    fun missingProviderConfigurationGetsCleanCopy() {
+        val copy = viewerErrorCopyFor(
+            ProviderConfigurationException(
+                providerName = "YouTube",
+                userMessage = "YouTube non è configurato in questa build.",
+                technicalDetail = "YOUTUBE_API_KEY non configurata",
+            ),
+        )
+
+        assertEquals("Provider non configurato", copy.title)
+        assertEquals("YouTube non è configurato in questa build.", copy.message)
     }
 
     @Test
