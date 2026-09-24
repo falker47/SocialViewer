@@ -2,7 +2,6 @@ package io.github.falker47.socialviewer.provider.facebook
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.net.Uri
 import android.os.Handler
 import android.os.Looper
 import android.webkit.CookieManager
@@ -14,6 +13,7 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import io.github.falker47.socialviewer.provider.ProviderShareLinkResolutionException
 import org.json.JSONArray
+import java.net.URI
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
@@ -134,12 +134,14 @@ internal class FacebookBrowserShareLinkResolver(
                 return true
             }
 
-            val uri = Uri.parse(rawUrl)
-            val unexpectedKind = FacebookUrlPolicy.canonicalTarget(
-                scheme = uri.scheme,
-                host = uri.host,
-                path = uri.path,
-            )
+            val uri = runCatching { URI(rawUrl) }.getOrNull()
+            val unexpectedKind = uri?.let {
+                FacebookUrlPolicy.canonicalTarget(
+                    scheme = it.scheme,
+                    host = it.host,
+                    path = it.path,
+                )
+            }
             if (unexpectedKind != null && unexpectedKind.kind != alias.expectedKind) {
                 fail("Il link Facebook condiviso ha risolto verso un tipo di contenuto inatteso")
                 return true
@@ -240,7 +242,7 @@ internal class FacebookBrowserShareLinkResolver(
 }
 
 internal fun isAllowedFacebookResolverMainFrame(rawUrl: String): Boolean {
-    val uri = Uri.parse(rawUrl)
+    val uri = runCatching { URI(rawUrl) }.getOrNull() ?: return false
     return uri.scheme.equals("https", ignoreCase = true) &&
         uri.host?.lowercase() in FACEBOOK_RESOLVER_HOSTS
 }
@@ -251,7 +253,7 @@ internal fun selectFacebookResolverCanonicalUrl(
 ): String? =
     candidates.asSequence()
         .mapNotNull { raw ->
-            val uri = Uri.parse(raw)
+            val uri = runCatching { URI(raw) }.getOrNull() ?: return@mapNotNull null
             FacebookUrlPolicy.canonicalTarget(
                 scheme = uri.scheme,
                 host = uri.host,
