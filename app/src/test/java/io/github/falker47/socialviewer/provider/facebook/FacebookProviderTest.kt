@@ -2,6 +2,7 @@ package io.github.falker47.socialviewer.provider.facebook
 
 import io.github.falker47.socialviewer.network.UrlConnectionHttpClient
 import io.github.falker47.socialviewer.provider.ProviderContentUnavailableException
+import io.github.falker47.socialviewer.provider.ProviderShareLinkResolutionException
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -154,8 +155,8 @@ class FacebookProviderTest {
             )
         }.exceptionOrNull()
 
-        assertTrue(error is IllegalArgumentException)
-        assertTrue(error?.message.orEmpty().contains("tipo di contenuto atteso"))
+        assertTrue(error is ProviderShareLinkResolutionException)
+        assertTrue(error?.message.orEmpty().contains("tipo di contenuto inatteso"))
     }
 
     @Test
@@ -176,8 +177,8 @@ class FacebookProviderTest {
             )
         }.exceptionOrNull()
 
-        assertTrue(error is IllegalStateException)
-        assertTrue(error?.message.orEmpty().contains("non ha risolto"))
+        assertTrue(error is ProviderShareLinkResolutionException)
+        assertTrue(error?.message.orEmpty().contains("permalink canonico"))
     }
 
     @Test(expected = ProviderContentUnavailableException::class)
