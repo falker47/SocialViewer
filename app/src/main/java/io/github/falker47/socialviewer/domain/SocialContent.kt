@@ -6,5 +6,6 @@ data class SocialContent(
     val canonicalUrl: String,
     val title: String?,
     val authorName: String?,
+    val documentBaseUrl: String,
     val embedHtml: String,
 )
