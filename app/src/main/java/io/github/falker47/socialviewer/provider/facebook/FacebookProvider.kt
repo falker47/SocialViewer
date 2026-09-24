@@ -59,13 +59,13 @@ internal fun resolveFacebookTarget(
         path = path,
     )?.let { return it }
 
-    val shareAlias = FacebookUrlPolicy.shareReelAliasUrl(
+    val shareAlias = FacebookUrlPolicy.shareAlias(
         scheme = scheme,
         host = host,
         path = path,
     ) ?: error("URL Facebook non supportata")
 
-    val resolvedUrl = http.resolveFinalUrl(shareAlias)
+    val resolvedUrl = http.resolveFinalUrl(shareAlias.aliasUrl)
     val resolvedUri = URI(resolvedUrl)
 
     val target = FacebookUrlPolicy.canonicalTarget(
@@ -74,8 +74,8 @@ internal fun resolveFacebookTarget(
         path = resolvedUri.path,
     ) ?: error("Il link Facebook condiviso non ha risolto verso un contenuto supportato")
 
-    require(target.kind == FacebookContentKind.REEL) {
-        "Il link Facebook /share/r/ non ha risolto verso un Reel"
+    require(target.kind == shareAlias.expectedKind) {
+        "Il link Facebook condiviso non ha risolto verso il tipo di contenuto atteso"
     }
 
     return target
