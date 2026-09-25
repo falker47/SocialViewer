@@ -15,6 +15,7 @@ Implemented providers:
 - **YouTube / Shorts** — verified for public watch URLs, `youtu.be`, Shorts and the narrow `/live/` alias through the official privacy-enhanced IFrame player. Made For Kids videos fail closed before embedding; removed/unavailable content is handled cleanly.
 - **Reddit** — verified public post permalinks, single-comment permalinks, `redd.it` short links and Reddit `/s/` share aliases through Reddit's official oEmbed/Embeds surface. Full comment-thread browsing is not part of this provider slice.
 - **Pinterest** — verified single public Pins through Pinterest's official Pin Widget. Numeric, regional/SEO Pin URLs and real `pin.it` share aliases are normalized to one canonical Pin; board/profile/feed surfaces remain out of scope.
+- **X** — verified single public posts from `x.com/{user}/status/{id}` and legacy `twitter.com` permalinks through X's official `publish.x.com/oembed` + `platform.x.com/widgets.js` path. No X API key, paid API read, backend or login is used. X remains manual-paste/Android-Share-only.
 - Public availability/metadata are checked through TikTok's oEmbed endpoint.
 - Playback uses TikTok's official dedicated `/player/v1/{post_id}` embed player.
 - Canonical TikTok URLs plus `vm.tiktok.com` / `vt.tiktok.com` short links are supported.
@@ -25,7 +26,7 @@ Implemented providers:
 - Home and Settings summarize the real Android direct-link state for TikTok, Instagram, Threads and Pinterest; configuration always opens Android's **Open by default** screen.
 - Appearance supports **System / Light / Dark**. System is the default, follows Android's current theme, and the selection is persisted locally.
 
-TikTok, Instagram, Threads, YouTube, Reddit and Pinterest playback plus the shared multi-provider UI are verified. Pinterest completed its physical-device gate for standard, SEO/regional and real `pin.it` URLs, unavailable handling, direct opening, appearance sanity and all existing-provider regressions.
+TikTok, Instagram, Threads, YouTube, Reddit, Pinterest and X playback plus the shared multi-provider UI are verified. X completed its physical-device gate for canonical and legacy permalinks, query canonicalization, unavailable handling, appearance sanity and all existing-provider regressions.
 
 ## Product rule
 
@@ -74,17 +75,18 @@ Social Viewer itself:
 - disables cleartext HTTP traffic;
 - disables third-party cookies in the embedded WebView;
 - intentionally retains provider first-party consent/preferences across items;
+- stores a local one-time X embed-consent flag after explicit approval; it can be revoked in Settings;
 - exposes **Cancella dati del sito** to remove shared local provider cookies/preferences.
 
 The remote social platform/CDN still receives ordinary network metadata required to serve a public embed. This project does **not** claim network anonymity from the provider.
 
 ## Android direct-link handling
 
-TikTok, Instagram, Threads and Pinterest own their web domains, so Social Viewer cannot publish the providers' `assetlinks.json` files and cannot self-verify those domains. YouTube and Reddit are intentionally not declared for direct-link handling in their current implementation slices.
+TikTok, Instagram, Threads and Pinterest own their web domains, so Social Viewer cannot publish the providers' `assetlinks.json` files and cannot self-verify those domains. YouTube, Reddit and X are intentionally not declared for direct-link handling in their current implementation slices.
 
 The manifest declares TikTok web links, supported Instagram post/Reel paths, only the safely constrainable Threads shorthand `/t/` paths on `threads.com` and legacy `threads.net`, and Pinterest `/pin/` paths on `pinterest.com` / `www.pinterest.com`. Pinterest regional hosts and opaque `pin.it` aliases remain manual-paste/Share-only. Canonical Threads `/@user/post/...` permalinks remain available through manual paste/Android Share because the minSdk-26 path matcher cannot express that route narrowly without overclaiming profile/feed surfaces. On modern Android versions, the user may explicitly associate Social Viewer with declared provider domains under **Open by default / supported links**. First-party apps or the browser may compete for the same domains.
 
-On Android 12+, Social Viewer reads the real per-domain user state through `DomainVerificationManager`, summarizes it per provider, and opens the Android system screen for changes. It does not expose a fake in-app toggle. Manual paste and Android Share remain fallbacks; they are the current YouTube and Reddit routing modes. Settings explicitly labels the direct-link count so it is not confused with the total number of supported providers.
+On Android 12+, Social Viewer reads the real per-domain user state through `DomainVerificationManager`, summarizes it per provider, and opens the Android system screen for changes. It does not expose a fake in-app toggle. Manual paste and Android Share remain fallbacks; they are the current YouTube, Reddit and X routing modes. Settings explicitly labels the direct-link count so it is not confused with the total number of supported providers.
 
 ## YouTube Data API configuration
 
@@ -155,9 +157,9 @@ Examples: `feature/dark-mode`, `feature/instagram-provider`, `feature/multi-prov
 
 ## Next milestone
 
-Pinterest is complete and verified after its physical-device gate. Facebook remains frozen as **In pausa / unsupported** and PR #4 remains unmerged.
+X is complete and verified after its physical-device gate. Facebook remains frozen as **In pausa / unsupported** and PR #4 remains unmerged.
 
-The next provider-expansion milestone is the focused **X feasibility spike**: implement X only if a current official single-post embed path remains zero-login, zero-backend and non-paid. A richer read-only comments experience is a separate future product/architecture question: Reddit's Embeds can render a single comment permalink, but loading a post's comment thread would require Reddit Data API access rather than the current zero-account oEmbed path.
+The next provider-expansion milestone is the focused **LinkedIn feasibility spike**: prove a deterministic public-permalink → official single-post embed path that requires no login, scraping, backend or paid/billing dependency before implementing anything. Bluesky and Mastodon remain lower-priority candidates after LinkedIn. A richer read-only comments experience remains deferred under the project's zero-cost boundary.
 
 ## Non-goals
 
