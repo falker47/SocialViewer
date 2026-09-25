@@ -63,6 +63,16 @@
                 <data android:scheme="https" android:host="www.threads.net" android:pathPrefix="/t/" />
             </intent-filter>
 
+            <!-- Only single-Pin Pinterest paths are claimed. pin.it aliases stay paste/Share-only. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="https" android:host="pinterest.com" android:pathPrefix="/pin/" />
+                <data android:scheme="https" android:host="www.pinterest.com" android:pathPrefix="/pin/" />
+            </intent-filter>
+
             <!-- Fallback: share a public link/text directly to Social Viewer. -->
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
