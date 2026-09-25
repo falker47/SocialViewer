@@ -91,18 +91,6 @@
                 <data android:pathPattern="/user/..*/s/..*" />
             </intent-filter>
 
-            <!-- redd.it is a dedicated short-permalink host; keep it separate from reddit.com. -->
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-
-                <data
-                    android:scheme="https"
-                    android:host="redd.it"
-                    android:pathPattern="/..*" />
-            </intent-filter>
-
             <!-- Only single-Pin Pinterest paths are claimed. pin.it aliases stay paste/Share-only. -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
