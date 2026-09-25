@@ -2,6 +2,7 @@ package io.github.falker47.socialviewer.provider.bluesky
 
 object BlueskyUrlPolicy {
     private const val HOST = "bsky.app"
+    private val supportedDidMethods = setOf("plc", "web")
 
     fun supports(
         scheme: String?,
@@ -36,23 +37,24 @@ object BlueskyUrlPolicy {
     }
 
     private fun isValidDid(value: String): Boolean {
-        if (!value.startsWith("did:", ignoreCase = true)) return false
-        if (value.length > 512) return false
+        if (!value.startsWith("did:")) return false
+        if (value.length !in 7..2048) return false
 
-        val firstSeparator = value.indexOf(':')
-        val secondSeparator = value.indexOf(':', firstSeparator + 1)
-        if (firstSeparator != 3 || secondSeparator <= firstSeparator + 1) return false
+        val secondSeparator = value.indexOf(':', startIndex = 4)
+        if (secondSeparator <= 4) return false
 
-        val method = value.substring(firstSeparator + 1, secondSeparator)
+        val method = value.substring(4, secondSeparator)
         val methodSpecificId = value.substring(secondSeparator + 1)
 
-        return method.all { it in 'a'..'z' || it in '0'..'9' } &&
+        return method in supportedDidMethods &&
+            method.all { it in 'a'..'z' } &&
             methodSpecificId.isNotBlank() &&
+            !methodSpecificId.endsWith(':') &&
             methodSpecificId.all { char ->
-                char.isLetterOrDigit() ||
+                isAsciiLetterOrDigit(char) ||
                     char == '.' ||
-                    char == ':' ||
                     char == '_' ||
+                    char == ':' ||
                     char == '%' ||
                     char == '-'
             }
@@ -60,16 +62,18 @@ object BlueskyUrlPolicy {
 
     private fun isValidHandle(value: String): Boolean {
         if (value.length !in 3..253) return false
+        if (!value.all { isAsciiLetterOrDigit(it) || it == '.' || it == '-' }) return false
         if (value.contains("..")) return false
 
         val labels = value.split('.')
         if (labels.size < 2) return false
+        if (labels.last().firstOrNull()?.let(::isAsciiLetter) != true) return false
 
         return labels.all { label ->
             label.length in 1..63 &&
-                label.firstOrNull()?.isLetterOrDigit() == true &&
-                label.lastOrNull()?.isLetterOrDigit() == true &&
-                label.all { it.isLetterOrDigit() || it == '-' }
+                label.firstOrNull()?.let(::isAsciiLetterOrDigit) == true &&
+                label.lastOrNull()?.let(::isAsciiLetterOrDigit) == true &&
+                label.all { isAsciiLetterOrDigit(it) || it == '-' }
         }
     }
 
@@ -78,13 +82,19 @@ object BlueskyUrlPolicy {
             value != "." &&
             value != ".." &&
             value.all { char ->
-                char.isLetterOrDigit() ||
+                isAsciiLetterOrDigit(char) ||
                     char == '.' ||
                     char == '_' ||
                     char == '~' ||
                     char == ':' ||
                     char == '-'
             }
+
+    private fun isAsciiLetter(char: Char): Boolean =
+        char in 'a'..'z' || char in 'A'..'Z'
+
+    private fun isAsciiLetterOrDigit(char: Char): Boolean =
+        isAsciiLetter(char) || char in '0'..'9'
 
     private fun pathSegments(path: String?): List<String> =
         path
