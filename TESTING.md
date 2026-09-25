@@ -52,7 +52,7 @@ Clear app data before this test.
 1. Coach mark 1 highlights the manual-open controls.
 2. Its card stays visibly above the Android navigation area in both gesture navigation and classic three-button navigation.
 3. `Avanti` moves to step 2.
-4. Coach mark 2 highlights `Apertura diretta` and explains that supported TikTok or Instagram links can open directly in Social Viewer after Android configuration.
+4. Coach mark 2 highlights `Apertura diretta` and explains generically that supported links can open directly in Social Viewer after Android configuration.
 5. `Non ora` completes onboarding without blocking the app.
 6. Relaunch: coach marks must not return.
 7. Repeat with fresh app data and choose `Configura apertura diretta`; Android's **Open by default** screen must open.
@@ -99,17 +99,17 @@ Do not use a private, removed, login-only, or age-gated item as the first smoke 
 
 Inside Social Viewer tap `Configura`.
 
-On Android's **Open by default** screen enable supported-link handling and select the TikTok and Instagram domains Android offers for the app.
+On Android's **Open by default** screen enable supported-link handling and select the TikTok, Instagram and Bluesky domains Android offers for the app.
 
 After returning:
 
 - Social Viewer reads the real Android domain state;
-- Settings shows one compact **Apertura diretta** section with separate TikTok and Instagram state;
+- Settings shows one compact **Apertura diretta** section with separate provider state, including Bluesky;
 - a provider may show **Parziale** when only some of its declared hosts are selected;
 - `Apertura diretta attiva` appears on Home only when all declared provider hosts are approved;
 - the first transition to fully active shows `Apertura diretta attivata`.
 
-Then tap one supported TikTok link and one supported Instagram post/Reel link from WhatsApp or a browser.
+Then tap one supported TikTok link, one supported Instagram post/Reel link and one Bluesky post permalink from WhatsApp or a browser. For Bluesky, also tap a plain `https://bsky.app/profile/<handle>` URL and confirm Social Viewer does not intercept the profile.
 
 Expected: when Android is associated with Social Viewer for that domain, Social Viewer opens directly and starts resolving/rendering without first flashing Home. If a first-party app/browser owns the domain instead, change the association in Android rather than treating Social Viewer as a silent default.
 
@@ -290,4 +290,24 @@ Verified:
 9. X remains manual-paste / Android-Share-only in this slice; no X ACTION_VIEW filters are declared because the supported status route cannot be constrained safely enough on the minSdk-26 manifest matcher.
 10. System / Light / Dark sanity passed.
 11. TikTok, Instagram, Threads, YouTube, Reddit and Pinterest regressions all passed after the X changes.
+12. Facebook PR #4 and the Reddit loading-transition polish item were not modified.
+
+
+## Bluesky provider smoke test
+
+Physical-device gate completed successfully on 2026-09-25 for `feature/bluesky-provider`.
+
+Verified:
+
+1. A public handle permalink `https://bsky.app/profile/{handle}/post/{rkey}` renders as one Bluesky post through the official `embed.bsky.app/oembed` path.
+2. The equivalent DID permalink renders the same single post through the same provider path.
+3. Harmless tracking query parameters do not alter post identity after canonicalization.
+4. A syntactically valid unavailable post exits loading cleanly rather than leaving an indefinite black surface.
+5. No Bluesky login, OAuth, API key, backend, scraping, remote browser or billing-dependent service is required.
+6. Strict URL policy rejects profiles, feeds, extra path segments, HTTP URLs, lookalike domains, invalid handles/DIDs and invalid record keys.
+7. User-managed Android direct-link handling is enabled for `bsky.app` single-post paths through `/profile/.*/post/.*`.
+8. On a physical device, a real Bluesky post permalink opens directly in Social Viewer after enabling `bsky.app` under Open by default.
+9. A plain Bluesky profile URL `https://bsky.app/profile/{handle}` is not intercepted by Social Viewer.
+10. Third-party cookies remain blocked and main-frame navigation remains blocked.
+11. TikTok, Instagram, Threads, YouTube, Reddit, Pinterest and X regressions all passed before the final direct-link patch; the direct-link patch is isolated to Bluesky manifest/state handling and passed CI plus the final physical direct-link/profile-non-interception check.
 12. Facebook PR #4 and the Reddit loading-transition polish item were not modified.
