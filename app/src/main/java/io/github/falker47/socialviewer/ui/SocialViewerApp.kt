@@ -116,6 +116,7 @@ import io.github.falker47.socialviewer.util.UrlExtractor
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlin.math.sqrt
 
 sealed interface ViewerState {
     data object Home : ViewerState
@@ -954,15 +955,14 @@ private fun DirectLinkHowToCard() {
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.SemiBold,
                 )
-                Spacer(Modifier.height(5.dp))
+                Spacer(Modifier.height(6.dp))
                 Text(
-                    "Configura → Aggiungi link → seleziona i domini disponibili.",
+                    "• Configura\n• Aggiungi link\n• Seleziona i domini disponibili",
                     style = MaterialTheme.typography.bodySmall,
                 )
-                Spacer(Modifier.height(5.dp))
+                Spacer(Modifier.height(7.dp))
                 Text(
-                    "Se un link continua ad aprirsi nell’app ufficiale, modifica anche il suo " +
-                        "“Apri per impostazione predefinita”.",
+                    "Se possiedi l’app ufficiale, questa potrebbe avere priorità rispetto a Social Viewer.",
                     style = MaterialTheme.typography.bodySmall,
                 )
             }
@@ -1233,18 +1233,38 @@ private fun CoachMarkArrow(
             style = Stroke(width = strokeWidth, cap = StrokeCap.Round),
         )
 
-        val arrowY = if (calloutBelowTarget) end.y + arrowDepth else end.y - arrowDepth
+        val tangentX = end.x - control.x
+        val tangentY = end.y - control.y
+        val tangentLength = sqrt(tangentX * tangentX + tangentY * tangentY)
+            .coerceAtLeast(1f)
+        val unitX = tangentX / tangentLength
+        val unitY = tangentY / tangentLength
+        val perpendicularX = -unitY
+        val perpendicularY = unitX
+        val baseCenter = Offset(
+            x = end.x - unitX * arrowDepth,
+            y = end.y - unitY * arrowDepth,
+        )
+        val left = Offset(
+            x = baseCenter.x + perpendicularX * arrowHalfWidth,
+            y = baseCenter.y + perpendicularY * arrowHalfWidth,
+        )
+        val right = Offset(
+            x = baseCenter.x - perpendicularX * arrowHalfWidth,
+            y = baseCenter.y - perpendicularY * arrowHalfWidth,
+        )
+
         drawLine(
             color = color,
             start = end,
-            end = Offset(end.x - arrowHalfWidth, arrowY),
+            end = left,
             strokeWidth = strokeWidth,
             cap = StrokeCap.Round,
         )
         drawLine(
             color = color,
             start = end,
-            end = Offset(end.x + arrowHalfWidth, arrowY),
+            end = right,
             strokeWidth = strokeWidth,
             cap = StrokeCap.Round,
         )
