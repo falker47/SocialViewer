@@ -54,7 +54,7 @@ class RedditProviderTest {
         )
 
         assertEquals(
-            "https://www.reddit.com/comments/1abc234/",
+            "https://www.reddit.com/r/android/comments/1abc234/example_post/",
             canonical,
         )
         assertEquals(
@@ -78,7 +78,7 @@ class RedditProviderTest {
         )
 
         assertEquals(
-            "https://www.reddit.com/r/android/comments/1abc234/example_post/",
+            "https://www.reddit.com/comments/1abc234/",
             canonical,
         )
     }
