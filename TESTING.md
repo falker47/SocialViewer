@@ -249,3 +249,25 @@ Verified:
 8. Settings copy distinguishes the number of providers with direct-link handling from the total number of supported providers.
 
 Full Reddit comment-thread browsing is intentionally outside this gate. If implemented later, test it as a separate Data API feature with explicit OAuth/policy/rate-limit coverage rather than as an extension of the oEmbed smoke test.
+
+
+## Pinterest provider smoke test
+
+Physical-device gate completed successfully on 2026-09-25 for `feature/pinterest-provider`.
+
+Verified:
+
+1. Standard public numeric Pin renders through Pinterest's official Pin Widget.
+2. Pinterest SEO and regional `*.pinterest.com` Pin URLs normalize to the canonical numeric `www.pinterest.com/pin/{id}/` form.
+3. A real `pin.it` share alias that resolves through Pinterest's `/sent/` share path normalizes to the same single Pin and renders correctly.
+4. A nonexistent Pin exits the loading state and shows `Questo Pin Pinterest non è disponibile.` rather than leaving an indefinite black surface.
+5. Canonical Pinterest `/pin/` direct-link handling works through Android Open by default.
+6. System / Light / Dark sanity passed around the Pinterest embed.
+7. TikTok, Instagram, Threads, YouTube and Reddit regressions all passed after the Pinterest changes.
+8. Board, profile, feed and arbitrary Pinterest navigation remain outside the provider boundary.
+9. `pin.it` and regional hosts remain manual-paste / Android-Share-only; the manifest claims only canonical Pinterest hosts and `/pin/` paths.
+10. The implementation has no Pinterest API key, OAuth, backend or paid/billing dependency.
+
+### Known Reddit visual polish note
+
+During the final Pinterest regression pass, Reddit occasionally exposed a brief fragment of pre-widget text immediately before the official Reddit card finished transforming. The post still rendered correctly, no functional regression was observed, and the Pinterest branch did not modify Reddit provider/WebView code. Track this separately as a non-blocking Reddit loading-transition polish item rather than reopening the Pinterest gate.

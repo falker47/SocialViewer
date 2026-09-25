@@ -14,6 +14,7 @@ Implemented providers:
 - **Facebook** — **In pausa / unsupported** for the real-world share-link flow. PR #4 remains an unmerged technical record and is not counted as a supported provider.
 - **YouTube / Shorts** — verified for public watch URLs, `youtu.be`, Shorts and the narrow `/live/` alias through the official privacy-enhanced IFrame player. Made For Kids videos fail closed before embedding; removed/unavailable content is handled cleanly.
 - **Reddit** — verified public post permalinks, single-comment permalinks, `redd.it` short links and Reddit `/s/` share aliases through Reddit's official oEmbed/Embeds surface. Full comment-thread browsing is not part of this provider slice.
+- **Pinterest** — verified single public Pins through Pinterest's official Pin Widget. Numeric, regional/SEO Pin URLs and real `pin.it` share aliases are normalized to one canonical Pin; board/profile/feed surfaces remain out of scope.
 - Public availability/metadata are checked through TikTok's oEmbed endpoint.
 - Playback uses TikTok's official dedicated `/player/v1/{post_id}` embed player.
 - Canonical TikTok URLs plus `vm.tiktok.com` / `vt.tiktok.com` short links are supported.
@@ -21,10 +22,10 @@ Implemented providers:
 - `ACTION_SEND` text sharing remains an unpromoted technical fallback.
 - Manual entry remains available; the trailing clipboard button pastes, validates, and opens in one tap.
 - First-run onboarding uses two coach marks on the real Home screen and respects the Android navigation-bar safe area.
-- Home and Settings summarize the real Android direct-link state for TikTok, Instagram and Threads; configuration always opens Android's **Open by default** screen.
+- Home and Settings summarize the real Android direct-link state for TikTok, Instagram, Threads and Pinterest; configuration always opens Android's **Open by default** screen.
 - Appearance supports **System / Light / Dark**. System is the default, follows Android's current theme, and the selection is persisted locally.
 
-TikTok, Instagram, Threads, YouTube and Reddit playback plus the shared multi-provider UI are verified. Reddit completed its physical-device gate for a public post, a single comment, a real share alias, unavailable/removed behavior, appearance, and existing-provider regressions.
+TikTok, Instagram, Threads, YouTube, Reddit and Pinterest playback plus the shared multi-provider UI are verified. Pinterest completed its physical-device gate for standard, SEO/regional and real `pin.it` URLs, unavailable handling, direct opening, appearance sanity and all existing-provider regressions.
 
 ## Product rule
 
@@ -43,7 +44,7 @@ incoming Android intent / shared text
               |
       +-------+---------+---------+
       |           |           |           |
- TikTokProvider InstagramProvider ThreadsProvider YouTubeProvider RedditProvider
+ TikTokProvider InstagramProvider ThreadsProvider YouTubeProvider RedditProvider PinterestProvider
       |           |           |           |
       +-----------+-----------+-----------+
                   |
@@ -79,9 +80,9 @@ The remote social platform/CDN still receives ordinary network metadata required
 
 ## Android direct-link handling
 
-TikTok, Instagram and Threads own their web domains, so Social Viewer cannot publish the providers' `assetlinks.json` files and cannot self-verify those domains. YouTube and Reddit are intentionally not declared for direct-link handling in their current implementation slices.
+TikTok, Instagram, Threads and Pinterest own their web domains, so Social Viewer cannot publish the providers' `assetlinks.json` files and cannot self-verify those domains. YouTube and Reddit are intentionally not declared for direct-link handling in their current implementation slices.
 
-The manifest declares TikTok web links, supported Instagram post/Reel paths, and only the safely constrainable Threads shorthand `/t/` paths on `threads.com` and legacy `threads.net`. Canonical Threads `/@user/post/...` permalinks remain available through manual paste/Android Share because the minSdk-26 path matcher cannot express that route narrowly without overclaiming profile/feed surfaces. On modern Android versions, the user may explicitly associate Social Viewer with declared provider domains under **Open by default / supported links**. First-party apps or the browser may compete for the same domains.
+The manifest declares TikTok web links, supported Instagram post/Reel paths, only the safely constrainable Threads shorthand `/t/` paths on `threads.com` and legacy `threads.net`, and Pinterest `/pin/` paths on `pinterest.com` / `www.pinterest.com`. Pinterest regional hosts and opaque `pin.it` aliases remain manual-paste/Share-only. Canonical Threads `/@user/post/...` permalinks remain available through manual paste/Android Share because the minSdk-26 path matcher cannot express that route narrowly without overclaiming profile/feed surfaces. On modern Android versions, the user may explicitly associate Social Viewer with declared provider domains under **Open by default / supported links**. First-party apps or the browser may compete for the same domains.
 
 On Android 12+, Social Viewer reads the real per-domain user state through `DomainVerificationManager`, summarizes it per provider, and opens the Android system screen for changes. It does not expose a fake in-app toggle. Manual paste and Android Share remain fallbacks; they are the current YouTube and Reddit routing modes. Settings explicitly labels the direct-link count so it is not confused with the total number of supported providers.
 
@@ -154,9 +155,9 @@ Examples: `feature/dark-mode`, `feature/instagram-provider`, `feature/multi-prov
 
 ## Next milestone
 
-Reddit is complete and verified after its physical-device gate. Facebook remains frozen as **In pausa / unsupported** and PR #4 remains unmerged.
+Pinterest is complete and verified after its physical-device gate. Facebook remains frozen as **In pausa / unsupported** and PR #4 remains unmerged.
 
-The next provider-expansion milestone is Pinterest. A richer read-only comments experience is a separate future product/architecture question: Reddit's Embeds can render a single comment permalink, but loading a post's comment thread would require Reddit Data API access rather than the current zero-account oEmbed path.
+The next provider-expansion milestone is the focused **X feasibility spike**: implement X only if a current official single-post embed path remains zero-login, zero-backend and non-paid. A richer read-only comments experience is a separate future product/architecture question: Reddit's Embeds can render a single comment permalink, but loading a post's comment thread would require Reddit Data API access rather than the current zero-account oEmbed path.
 
 ## Non-goals
 
