@@ -80,6 +80,8 @@ internal fun pinterestDocument(canonicalUrl: String): String = """
             width: 100%;
             min-height: 100%;
             background: #000;
+            color: #fff;
+            font-family: sans-serif;
           }
           body {
             display: flex;
@@ -95,13 +97,76 @@ internal fun pinterestDocument(canonicalUrl: String): String = """
             display: flex;
             justify-content: center;
           }
+          #status {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            text-align: center;
+            background: #000;
+            color: #fff;
+            font-size: 16px;
+            line-height: 1.4;
+          }
         </style>
+        <script>
+          let pinterestResolved = false;
+
+          function socialViewerPinterestRendered() {
+            if (pinterestResolved) return;
+            const pin = document.getElementById('social-viewer-pin');
+            const embed = document.getElementById('embed');
+            if (!pin || (embed && embed.children.length > 1)) {
+              pinterestResolved = true;
+              const status = document.getElementById('status');
+              if (status) status.style.display = 'none';
+            }
+          }
+
+          function socialViewerPinterestError() {
+            if (pinterestResolved) return;
+            pinterestResolved = true;
+            const status = document.getElementById('status');
+            if (status) {
+              status.textContent = 'Questo Pin Pinterest non è disponibile.';
+              status.style.display = 'flex';
+            }
+          }
+
+          window.addEventListener('DOMContentLoaded', function () {
+            const embed = document.getElementById('embed');
+            if (embed) {
+              new MutationObserver(socialViewerPinterestRendered).observe(
+                embed,
+                { childList: true, subtree: true }
+              );
+            }
+
+            window.setTimeout(function () {
+              socialViewerPinterestRendered();
+              if (!pinterestResolved) socialViewerPinterestError();
+            }, 10000);
+          });
+        </script>
       </head>
       <body>
         <div id="embed">
-          <a href="$canonicalUrl" data-pin-do="embedPin"></a>
+          <a
+            id="social-viewer-pin"
+            href="$canonicalUrl"
+            data-pin-do="embedPin"
+          ></a>
         </div>
-        <script type="text/javascript" async defer src="$PINTEREST_WIDGET_SCRIPT"></script>
+        <div id="status">Caricamento Pin…</div>
+        <script
+          type="text/javascript"
+          async
+          defer
+          data-pin-error="socialViewerPinterestError"
+          src="$PINTEREST_WIDGET_SCRIPT"
+        ></script>
       </body>
     </html>
 """.trimIndent()

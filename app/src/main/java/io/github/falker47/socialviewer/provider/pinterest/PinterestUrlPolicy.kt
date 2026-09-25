@@ -27,8 +27,9 @@ object PinterestUrlPolicy {
         if (!isSupportedPinHost(normalizedHost)) return null
 
         val segments = pathSegments(path)
-        if (segments.size != 2) return null
+        if (segments.size !in 2..3) return null
         if (!segments[0].equals("pin", ignoreCase = true)) return null
+        if (segments.size == 3 && !segments[2].equals("sent", ignoreCase = true)) return null
 
         val pinId = pinIdFromPathSegment(segments[1]) ?: return null
         return "https://www.pinterest.com/pin/$pinId/"

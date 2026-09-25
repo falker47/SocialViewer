@@ -8,7 +8,7 @@ import org.junit.Test
 
 class PinterestProviderTest {
     @Test
-    fun buildsOfficialPinWidgetWithoutApiDependency() {
+    fun buildsOfficialPinWidgetWithoutApiDependencyAndWithBoundedErrorFallback() {
         val content = resolveCanonicalPinterest(
             canonicalUrl = "https://www.pinterest.com/pin/617415430169271912/",
         )
@@ -22,15 +22,22 @@ class PinterestProviderTest {
         assertEquals("https://www.pinterest.com/", content.documentBaseUrl)
         assertNull(content.title)
         assertNull(content.authorName)
-        assertTrue(content.embedHtml.contains("data-pin-do=\"embedPin\""))
+        assertTrue(content.embedHtml.contains("data-pin-do="embedPin""))
         assertTrue(
             content.embedHtml.contains(
-                "href=\"https://www.pinterest.com/pin/617415430169271912/\"",
+                "href="https://www.pinterest.com/pin/617415430169271912/"",
             ),
         )
         assertTrue(
             content.embedHtml.contains("https://assets.pinterest.com/js/pinit.js"),
         )
+        assertTrue(
+            content.embedHtml.contains("data-pin-error="socialViewerPinterestError""),
+        )
+        assertTrue(
+            content.embedHtml.contains("Questo Pin Pinterest non è disponibile."),
+        )
+        assertTrue(content.embedHtml.contains("10000"))
     }
 
     @Test
@@ -53,9 +60,11 @@ class PinterestProviderTest {
     }
 
     @Test
-    fun resolvesPinItAliasOnlyWhenFinalTargetIsSupportedPin() {
+    fun resolvesPinItAliasWhenFinalTargetUsesPinterestSentSharePath() {
         val http = FakeHttpClient(
-            finalUrl = "https://it.pinterest.com/pin/nasa--754845587535670858/?share_id=tracking",
+            finalUrl =
+                "https://www.pinterest.com/pin/266556871689003952/sent/" +
+                    "?invite_code=example&sender=123&sfo=1",
         )
 
         val canonical = canonicalPinterestUrlFor(
@@ -67,7 +76,7 @@ class PinterestProviderTest {
         )
 
         assertEquals(
-            "https://www.pinterest.com/pin/754845587535670858/",
+            "https://www.pinterest.com/pin/266556871689003952/",
             canonical,
         )
         assertEquals("https://pin.it/AbC123_xYz", http.resolvedUrl)
