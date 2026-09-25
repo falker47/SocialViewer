@@ -93,7 +93,9 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.CompositingStrategy
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -557,6 +559,48 @@ private fun HomePrimaryContent(
             Text("Apri")
         }
     }
+
+    Spacer(Modifier.height(22.dp))
+    SupportedProvidersStrip()
+}
+
+@Composable
+private fun SupportedProvidersStrip() {
+    val providers = listOf(
+        "tiktok" to "TikTok",
+        "instagram" to "Instagram",
+        "threads" to "Threads",
+        "youtube" to "YouTube",
+        "reddit" to "Reddit",
+        "pinterest" to "Pinterest",
+        "x" to "X",
+        "bluesky" to "Bluesky",
+    )
+
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(
+            "Link supportati",
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Spacer(Modifier.height(10.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            providers.forEach { (providerId, label) ->
+                ProviderMark(
+                    providerId = providerId,
+                    contentDescription = label,
+                    modifier = Modifier.size(22.dp),
+                )
+            }
+        }
+    }
 }
 
 @Composable
@@ -689,12 +733,8 @@ private fun SettingsScreen(
                 }
             }
         }
-        Spacer(Modifier.height(10.dp))
-        Text(
-            "Android gestisce l’approvazione dei domini. Tocca un provider per modificarla.",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+        Spacer(Modifier.height(12.dp))
+        DirectLinkHowToCard()
         Spacer(Modifier.height(28.dp))
         SettingsSectionTitle("Aspetto")
         Spacer(Modifier.height(10.dp))
@@ -889,6 +929,47 @@ private fun ThemeSegmentedControl(
 }
 
 @Composable
+private fun DirectLinkHowToCard() {
+    Surface(
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.38f),
+        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 14.dp),
+            verticalAlignment = Alignment.Top,
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.Info,
+                contentDescription = null,
+                modifier = Modifier.size(22.dp),
+            )
+            Spacer(Modifier.size(12.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    "Come si attiva",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold,
+                )
+                Spacer(Modifier.height(5.dp))
+                Text(
+                    "Configura → Aggiungi link → seleziona i domini disponibili.",
+                    style = MaterialTheme.typography.bodySmall,
+                )
+                Spacer(Modifier.height(5.dp))
+                Text(
+                    "Se un link continua ad aprirsi nell’app ufficiale, modifica anche il suo " +
+                        "“Apri per impostazione predefinita”.",
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
+        }
+    }
+}
+
+@Composable
 private fun SettingsActionRow(
     icon: ImageVector,
     title: String,
@@ -978,16 +1059,17 @@ private fun CoachMarkOverlay(
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val scrimColor = Color.Black.copy(alpha = 0.62f)
+
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         val density = LocalDensity.current
         val containerHeightPx = with(density) { maxHeight.toPx() }
-        val navigationBarBottomPadding =
-            WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
-        val alignment = if (target.center.y < containerHeightPx / 2f) {
-            Alignment.BottomCenter
-        } else {
-            Alignment.TopCenter
-        }
+        val targetIsUpper = target.center.y < containerHeightPx / 2f
+        val calloutGap = 54.dp
+        val calloutGapPx = with(density) { calloutGap.toPx() }
+        val targetBottomDp = with(density) { target.bottom.toDp() }
+        val bottomDistanceToTargetTopDp =
+            with(density) { (containerHeightPx - target.top).toDp() }
+
         Canvas(
             modifier = Modifier
                 .fillMaxSize()
@@ -1012,6 +1094,13 @@ private fun CoachMarkOverlay(
             )
         }
 
+        CoachMarkArrow(
+            target = target,
+            calloutBelowTarget = targetIsUpper,
+            gapPx = calloutGapPx,
+            modifier = Modifier.fillMaxSize(),
+        )
+
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -1024,16 +1113,12 @@ private fun CoachMarkOverlay(
 
         Surface(
             modifier = Modifier
-                .align(alignment)
+                .align(if (targetIsUpper) Alignment.TopCenter else Alignment.BottomCenter)
                 .padding(
                     start = 20.dp,
                     end = 20.dp,
-                    top = if (alignment == Alignment.TopCenter) 92.dp else 20.dp,
-                    bottom = if (alignment == Alignment.BottomCenter) {
-                        navigationBarBottomPadding + if (step == 1) 56.dp else 28.dp
-                    } else {
-                        20.dp
-                    },
+                    top = if (targetIsUpper) targetBottomDp + calloutGap else 20.dp,
+                    bottom = if (targetIsUpper) 20.dp else bottomDistanceToTargetTopDp + calloutGap,
                 )
                 .widthIn(max = 520.dp),
             shape = RoundedCornerShape(20.dp),
@@ -1067,8 +1152,8 @@ private fun CoachMarkOverlay(
                     )
                     Spacer(Modifier.height(8.dp))
                     Text(
-                        "Dopo la configurazione, tocca un link compatibile su WhatsApp o nel browser: " +
-                            "si aprirà in Social Viewer.",
+                        "Configura Android una volta: poi i link compatibili possono aprirsi " +
+                            "direttamente in Social Viewer.",
                         style = MaterialTheme.typography.bodyMedium,
                     )
                     Spacer(Modifier.height(18.dp))
@@ -1087,6 +1172,81 @@ private fun CoachMarkOverlay(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun CoachMarkArrow(
+    target: Rect,
+    calloutBelowTarget: Boolean,
+    gapPx: Float,
+    modifier: Modifier = Modifier,
+) {
+    val color = MaterialTheme.colorScheme.primary
+
+    Canvas(modifier = modifier) {
+        val strokeWidth = 2.5.dp.toPx()
+        val arrowHalfWidth = 6.dp.toPx()
+        val arrowDepth = 9.dp.toPx()
+
+        val start: Offset
+        val control: Offset
+        val end: Offset
+
+        if (calloutBelowTarget) {
+            start = Offset(
+                x = target.center.x + 34.dp.toPx(),
+                y = target.bottom + gapPx - 6.dp.toPx(),
+            )
+            control = Offset(
+                x = target.center.x + 54.dp.toPx(),
+                y = target.bottom + gapPx * 0.48f,
+            )
+            end = Offset(
+                x = target.center.x + 8.dp.toPx(),
+                y = target.bottom + 8.dp.toPx(),
+            )
+        } else {
+            start = Offset(
+                x = target.center.x - 34.dp.toPx(),
+                y = target.top - gapPx + 6.dp.toPx(),
+            )
+            control = Offset(
+                x = target.center.x - 54.dp.toPx(),
+                y = target.top - gapPx * 0.48f,
+            )
+            end = Offset(
+                x = target.center.x - 8.dp.toPx(),
+                y = target.top - 8.dp.toPx(),
+            )
+        }
+
+        val path = Path().apply {
+            moveTo(start.x, start.y)
+            quadraticBezierTo(control.x, control.y, end.x, end.y)
+        }
+
+        drawPath(
+            path = path,
+            color = color,
+            style = Stroke(width = strokeWidth, cap = StrokeCap.Round),
+        )
+
+        val arrowY = if (calloutBelowTarget) end.y + arrowDepth else end.y - arrowDepth
+        drawLine(
+            color = color,
+            start = end,
+            end = Offset(end.x - arrowHalfWidth, arrowY),
+            strokeWidth = strokeWidth,
+            cap = StrokeCap.Round,
+        )
+        drawLine(
+            color = color,
+            start = end,
+            end = Offset(end.x + arrowHalfWidth, arrowY),
+            strokeWidth = strokeWidth,
+            cap = StrokeCap.Round,
+        )
     }
 }
 

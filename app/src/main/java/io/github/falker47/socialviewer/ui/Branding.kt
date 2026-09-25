@@ -110,12 +110,17 @@ internal fun ProviderMark(
         "tiktok" -> R.drawable.ic_provider_tiktok
         "instagram" -> R.drawable.ic_provider_instagram
         "threads" -> R.drawable.ic_provider_threads
+        "youtube" -> R.drawable.ic_provider_youtube
+        "reddit" -> R.drawable.ic_provider_reddit
         "pinterest" -> R.drawable.ic_provider_pinterest
+        "x" -> R.drawable.ic_provider_x
         "bluesky" -> R.drawable.ic_provider_bluesky
         else -> R.drawable.ic_provider_generic
     }
     val tint = when (providerId) {
         "instagram" -> Color(0xFFE1306C)
+        "youtube" -> Color(0xFFFF0000)
+        "reddit" -> Color(0xFFFF4500)
         "pinterest" -> Color(0xFFE60023)
         "bluesky" -> Color(0xFF1185FE)
         else -> MaterialTheme.colorScheme.onSurface
