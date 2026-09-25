@@ -63,23 +63,16 @@ class RedditProviderTest {
         )
     }
 
-    @Test
-    fun resolvesReddItShortLinkThroughSameSafeRedirectGate() {
-        val http = FakeHttpClient(
-            finalUrl = "https://old.reddit.com/r/android/comments/1abc234/example_post/",
-        )
-
-        val canonical = canonicalRedditUrlFor(
+    @Test(expected = IllegalArgumentException::class)
+    fun rejectsReddItShortLinkWithoutSupportedCanonicalResolver() {
+        canonicalRedditUrlFor(
             scheme = "https",
             host = "redd.it",
             path = "/1abc234/",
             rawUrl = "https://redd.it/1abc234",
-            http = http,
-        )
-
-        assertEquals(
-            "https://www.reddit.com/r/android/comments/1abc234/example_post/",
-            canonical,
+            http = FakeHttpClient(
+                finalUrl = "https://www.reddit.com/comments/1abc234/",
+            ),
         )
     }
 
