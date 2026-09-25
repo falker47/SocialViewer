@@ -73,6 +73,18 @@
                 <data android:scheme="https" android:host="www.pinterest.com" android:pathPrefix="/pin/" />
             </intent-filter>
 
+            <!-- Only Bluesky single-post paths are claimed; profile pages are not. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:scheme="https"
+                    android:host="bsky.app"
+                    android:pathPattern="/profile/.*/post/.*" />
+            </intent-filter>
+
             <!-- Fallback: share a public link/text directly to Social Viewer. -->
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />

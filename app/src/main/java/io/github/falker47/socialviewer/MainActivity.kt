@@ -9,6 +9,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import io.github.falker47.socialviewer.network.UrlConnectionHttpClient
 import io.github.falker47.socialviewer.provider.ProviderRegistry
+import io.github.falker47.socialviewer.provider.bluesky.BlueskyProvider
 import io.github.falker47.socialviewer.provider.instagram.InstagramProvider
 import io.github.falker47.socialviewer.provider.pinterest.PinterestProvider
 import io.github.falker47.socialviewer.provider.reddit.RedditProvider
@@ -33,6 +34,7 @@ class MainActivity : ComponentActivity() {
                 RedditProvider(UrlConnectionHttpClient()),
                 PinterestProvider(UrlConnectionHttpClient()),
                 XProvider(UrlConnectionHttpClient()),
+                BlueskyProvider(UrlConnectionHttpClient()),
                 YouTubeProvider(
                     http = UrlConnectionHttpClient(),
                     apiKey = BuildConfig.YOUTUBE_API_KEY,

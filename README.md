@@ -16,6 +16,7 @@ Implemented providers:
 - **Reddit** — verified public post permalinks, single-comment permalinks, `redd.it` short links and Reddit `/s/` share aliases through Reddit's official oEmbed/Embeds surface. Full comment-thread browsing is not part of this provider slice.
 - **Pinterest** — verified single public Pins through Pinterest's official Pin Widget. Numeric, regional/SEO Pin URLs and real `pin.it` share aliases are normalized to one canonical Pin; board/profile/feed surfaces remain out of scope.
 - **X** — verified single public posts from `x.com/{user}/status/{id}` and legacy `twitter.com` permalinks through X's official `publish.x.com/oembed` + `platform.x.com/widgets.js` path. No X API key, paid API read, backend or login is used. X remains manual-paste/Android-Share-only.
+- **Bluesky** — verified single public posts from `bsky.app/profile/{handle|DID}/post/{rkey}` through Bluesky's official `embed.bsky.app/oembed` path. Handle and DID permalinks normalize to one strict single-post flow; `bsky.app` post links support user-managed Android direct opening without claiming profile pages.
 - Public availability/metadata are checked through TikTok's oEmbed endpoint.
 - Playback uses TikTok's official dedicated `/player/v1/{post_id}` embed player.
 - Canonical TikTok URLs plus `vm.tiktok.com` / `vt.tiktok.com` short links are supported.
@@ -23,10 +24,10 @@ Implemented providers:
 - `ACTION_SEND` text sharing remains an unpromoted technical fallback.
 - Manual entry remains available; the trailing clipboard button pastes, validates, and opens in one tap.
 - First-run onboarding uses two coach marks on the real Home screen and respects the Android navigation-bar safe area.
-- Home and Settings summarize the real Android direct-link state for TikTok, Instagram, Threads and Pinterest; configuration always opens Android's **Open by default** screen.
+- Home and Settings summarize the real Android direct-link state for TikTok, Instagram, Threads, Pinterest and Bluesky; configuration always opens Android's **Open by default** screen.
 - Appearance supports **System / Light / Dark**. System is the default, follows Android's current theme, and the selection is persisted locally.
 
-TikTok, Instagram, Threads, YouTube, Reddit, Pinterest and X playback plus the shared multi-provider UI are verified. X completed its physical-device gate for canonical and legacy permalinks, query canonicalization, unavailable handling, appearance sanity and all existing-provider regressions.
+TikTok, Instagram, Threads, YouTube, Reddit, Pinterest, X and Bluesky playback plus the shared multi-provider UI are verified. Bluesky completed its physical-device gate for handle/DID permalinks, query canonicalization, unavailable handling, direct opening, profile non-interception and existing-provider regressions.
 
 ## Product rule
 
@@ -45,7 +46,7 @@ incoming Android intent / shared text
               |
       +-------+---------+---------+
       |           |           |           |
- TikTokProvider InstagramProvider ThreadsProvider YouTubeProvider RedditProvider PinterestProvider
+ TikTokProvider InstagramProvider ThreadsProvider YouTubeProvider RedditProvider PinterestProvider XProvider BlueskyProvider
       |           |           |           |
       +-----------+-----------+-----------+
                   |
@@ -82,11 +83,11 @@ The remote social platform/CDN still receives ordinary network metadata required
 
 ## Android direct-link handling
 
-TikTok, Instagram, Threads and Pinterest own their web domains, so Social Viewer cannot publish the providers' `assetlinks.json` files and cannot self-verify those domains. YouTube, Reddit and X are intentionally not declared for direct-link handling in their current implementation slices.
+TikTok, Instagram, Threads, Pinterest and Bluesky own their web domains, so Social Viewer cannot publish the providers' `assetlinks.json` files and cannot self-verify those domains. YouTube, Reddit and X are intentionally not declared for direct-link handling in their current implementation slices.
 
-The manifest declares TikTok web links, supported Instagram post/Reel paths, only the safely constrainable Threads shorthand `/t/` paths on `threads.com` and legacy `threads.net`, and Pinterest `/pin/` paths on `pinterest.com` / `www.pinterest.com`. Pinterest regional hosts and opaque `pin.it` aliases remain manual-paste/Share-only. Canonical Threads `/@user/post/...` permalinks remain available through manual paste/Android Share because the minSdk-26 path matcher cannot express that route narrowly without overclaiming profile/feed surfaces. On modern Android versions, the user may explicitly associate Social Viewer with declared provider domains under **Open by default / supported links**. First-party apps or the browser may compete for the same domains.
+The manifest declares TikTok web links, supported Instagram post/Reel paths, only the safely constrainable Threads shorthand `/t/` paths on `threads.com` and legacy `threads.net`, Pinterest `/pin/` paths on `pinterest.com` / `www.pinterest.com`, and Bluesky single-post paths matching `/profile/.*/post/.*` on `bsky.app`. Bluesky's provider-level URL policy remains stricter than the manifest filter and accepts only exact four-segment single-post permalinks, so ordinary `/profile/{identifier}` pages are not claimed. Pinterest regional hosts and opaque `pin.it` aliases remain manual-paste/Share-only. Canonical Threads `/@user/post/...` permalinks remain available through manual paste/Android Share because the minSdk-26 path matcher cannot express that route narrowly without overclaiming profile/feed surfaces. On modern Android versions, the user may explicitly associate Social Viewer with declared provider domains under **Open by default / supported links**. First-party apps or the browser may compete for the same domains.
 
-On Android 12+, Social Viewer reads the real per-domain user state through `DomainVerificationManager`, summarizes it per provider, and opens the Android system screen for changes. It does not expose a fake in-app toggle. Manual paste and Android Share remain fallbacks; they are the current YouTube, Reddit and X routing modes. Settings explicitly labels the direct-link count so it is not confused with the total number of supported providers.
+On Android 12+, Social Viewer reads the real per-domain user state through `DomainVerificationManager`, summarizes it per provider, and opens the Android system screen for changes. It does not expose a fake in-app toggle. Manual paste and Android Share remain fallbacks; they are the current YouTube, Reddit and X routing modes. Bluesky participates in the direct-link provider count through `bsky.app`. Settings explicitly labels the direct-link count so it is not confused with the total number of supported providers.
 
 ## YouTube Data API configuration
 
@@ -157,9 +158,9 @@ Examples: `feature/dark-mode`, `feature/instagram-provider`, `feature/multi-prov
 
 ## Next milestone
 
-X is complete and verified after its physical-device gate. Facebook remains frozen as **In pausa / unsupported** and PR #4 remains unmerged.
+Bluesky is complete and verified after its physical-device and direct-link gates. LinkedIn is **BLOCKED / NOT CLEARED** because no current official public deterministic permalink → embed/oEmbed resolver was found that fits the zero-login / zero-OAuth / zero-backend boundary. Facebook remains frozen as **In pausa / unsupported** and PR #4 remains unmerged.
 
-The next provider-expansion milestone is the focused **LinkedIn feasibility spike**: prove a deterministic public-permalink → official single-post embed path that requires no login, scraping, backend or paid/billing dependency before implementing anything. Bluesky and Mastodon remain lower-priority candidates after LinkedIn. A richer read-only comments experience remains deferred under the project's zero-cost boundary.
+The next provider-expansion milestone is **Mastodon**. Re-check the current official per-instance oEmbed mechanism and multi-instance/domain-validation constraints, then implement only if the single-public-status path remains zero-login, zero-backend, zero-scraping and zero-cost. A richer read-only comments experience remains deferred under the project's zero-cost boundary.
 
 ## Non-goals
 
