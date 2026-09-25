@@ -66,7 +66,7 @@ class RedditProviderTest {
     @Test
     fun resolvesReddItShortLinkThroughSameSafeRedirectGate() {
         val http = FakeHttpClient(
-            finalUrl = "https://www.reddit.com/comments/1abc234/",
+            finalUrl = "https://old.reddit.com/r/android/comments/1abc234/example_post/",
         )
 
         val canonical = canonicalRedditUrlFor(
@@ -78,7 +78,7 @@ class RedditProviderTest {
         )
 
         assertEquals(
-            "https://www.reddit.com/comments/1abc234/",
+            "https://www.reddit.com/r/android/comments/1abc234/example_post/",
             canonical,
         )
     }
