@@ -56,7 +56,6 @@ internal val DIRECT_LINK_PROVIDERS = listOf(
         hosts = linkedSetOf(
             "reddit.com",
             "www.reddit.com",
-            "redd.it",
         ),
     ),
     DirectLinkProviderDefinition(
