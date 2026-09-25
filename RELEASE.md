@@ -110,14 +110,14 @@ Before uploading, confirm the exact generated filename rather than assuming it.
 
 After this repository plumbing is green:
 
-1. Create the Social Viewer app in Play Console with package `io.github.falker47.socialviewer`.
-2. Keep Google Play App Signing enabled with the default Google-generated app-signing key.
-3. Generate and securely back up a dedicated RSA upload key / keystore.
-4. Configure the four `PLAY_UPLOAD_*` values locally.
-5. Read the **app-signing certificate SHA-1** from Play Console → App integrity.
-6. Add that package + SHA-1 pair to the Android restrictions of the YouTube Data API key.
-7. Optionally add the upload-key SHA-1 too for local signed-release smoke testing.
-8. Build with `playReleaseBundle`.
-9. Only after the signed release-candidate smoke gate passes, upload the AAB to an internal Play testing track.
+1. Generate and securely back up a dedicated RSA upload key / keystore.
+2. Configure the four `PLAY_UPLOAD_*` values locally.
+3. Build the signed AAB with `playReleaseBundle` using the existing non-empty YouTube Data API key. For a local signed-release playback check, the API-key restriction may additionally authorize package `io.github.falker47.socialviewer` with the upload-key SHA-1.
+4. In Play Console, create the Social Viewer app, accept the Play App Signing terms and keep the default Google-generated app-signing key. The initial Create app form does not define the Android package; the uploaded bundle carries the frozen application ID.
+5. Create an internal-testing release and upload the signed AAB. This establishes the Play package/signing identity; do not roll it out to production.
+6. Open Play Console → App integrity / App signing and read the **app-signing certificate SHA-1**.
+7. Add package `io.github.falker47.socialviewer` + that Play app-signing SHA-1 to the Android restrictions of the YouTube Data API key. Google API-key restrictions can authorize more than one package/certificate pair, so the debug/upload identities may remain only where they are still needed for testing.
+8. Install the Play-generated build from the internal test track and run the signed release-candidate smoke gate.
+9. Proceed to store listing, privacy/Data Safety and production rollout only after that gate passes.
 
 Privacy policy, Data Safety, store listing assets and production rollout belong to later release-readiness milestones.
