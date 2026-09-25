@@ -12,9 +12,47 @@ val localProperties = Properties().apply {
     }
 }
 
-val youtubeApiKey = providers.gradleProperty("YOUTUBE_API_KEY")
-    .orElse(providers.environmentVariable("YOUTUBE_API_KEY"))
-    .getOrElse(localProperties.getProperty("YOUTUBE_API_KEY", ""))
+val keystoreProperties = Properties().apply {
+    val file = rootProject.file("keystore.properties")
+    if (file.exists()) {
+        file.inputStream().use(::load)
+    }
+}
+
+fun gradleOrEnvironment(name: String): String? =
+    providers.gradleProperty(name)
+        .orElse(providers.environmentVariable(name))
+        .orNull
+        ?.takeIf { it.isNotBlank() }
+
+fun releaseSigningValue(name: String): String? =
+    gradleOrEnvironment(name)
+        ?: keystoreProperties.getProperty(name)?.takeIf { it.isNotBlank() }
+
+val youtubeApiKey = gradleOrEnvironment("YOUTUBE_API_KEY")
+    ?: localProperties.getProperty("YOUTUBE_API_KEY", "")
+
+val playUploadStoreFile = releaseSigningValue("PLAY_UPLOAD_STORE_FILE")
+val playUploadStorePassword = releaseSigningValue("PLAY_UPLOAD_STORE_PASSWORD")
+val playUploadKeyAlias = releaseSigningValue("PLAY_UPLOAD_KEY_ALIAS")
+val playUploadKeyPassword = releaseSigningValue("PLAY_UPLOAD_KEY_PASSWORD")
+
+val playUploadSigningValues = listOf(
+    playUploadStoreFile,
+    playUploadStorePassword,
+    playUploadKeyAlias,
+    playUploadKeyPassword,
+)
+val hasAnyPlayUploadSigningConfig = playUploadSigningValues.any { !it.isNullOrBlank() }
+val hasCompletePlayUploadSigningConfig = playUploadSigningValues.all { !it.isNullOrBlank() }
+
+if (hasAnyPlayUploadSigningConfig && !hasCompletePlayUploadSigningConfig) {
+    throw GradleException(
+        "Configurazione Play upload signing incompleta. " +
+            "Imposta PLAY_UPLOAD_STORE_FILE, PLAY_UPLOAD_STORE_PASSWORD, " +
+            "PLAY_UPLOAD_KEY_ALIAS e PLAY_UPLOAD_KEY_PASSWORD.",
+    )
+}
 
 android {
     namespace = "io.github.falker47.socialviewer"
@@ -37,9 +75,21 @@ android {
         )
     }
 
+    val playUploadSigning = if (hasCompletePlayUploadSigningConfig) {
+        signingConfigs.create("playUpload") {
+            storeFile = rootProject.file(playUploadStoreFile!!)
+            storePassword = playUploadStorePassword
+            keyAlias = playUploadKeyAlias
+            keyPassword = playUploadKeyPassword
+        }
+    } else {
+        null
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
+            playUploadSigning?.let { signingConfig = it }
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
@@ -52,11 +102,46 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-
     buildFeatures {
         compose = true
         buildConfig = true
     }
+}
+
+val verifyPlayPublishConfig = tasks.register("verifyPlayPublishConfig") {
+    group = "verification"
+    description = "Fail fast unless the Google Play publish configuration is complete."
+
+    doLast {
+        if (youtubeApiKey.isBlank()) {
+            throw GradleException(
+                "YOUTUBE_API_KEY mancante: una build pubblicabile non deve disabilitare YouTube.",
+            )
+        }
+        if (!hasCompletePlayUploadSigningConfig) {
+            throw GradleException(
+                "Play upload signing non configurato. " +
+                    "Vedi RELEASE.md e keystore.properties.example.",
+            )
+        }
+
+        val configuredStoreFile = rootProject.file(playUploadStoreFile!!)
+        if (!configuredStoreFile.isFile) {
+            throw GradleException(
+                "Keystore di upload non trovato: ${configuredStoreFile.absolutePath}",
+            )
+        }
+    }
+}
+
+tasks.named("bundleRelease").configure {
+    mustRunAfter(verifyPlayPublishConfig)
+}
+
+tasks.register("playReleaseBundle") {
+    group = "build"
+    description = "Validate publish configuration, then build the signed Google Play AAB."
+    dependsOn(verifyPlayPublishConfig, "bundleRelease")
 }
 
 dependencies {
