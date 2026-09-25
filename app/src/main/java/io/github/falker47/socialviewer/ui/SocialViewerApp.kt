@@ -424,88 +424,163 @@ private fun HomeScreen(
     onDirectLinkTargetChanged: (Rect) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 24.dp, vertical = 28.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Spacer(Modifier.height(8.dp))
-        FocusFrameMark(
-            modifier = Modifier.size(72.dp),
-            color = MaterialTheme.colorScheme.primary,
-        )
-        Spacer(Modifier.height(18.dp))
-        Text(
-            "Social Viewer",
-            style = MaterialTheme.typography.headlineLarge.copy(
-                fontWeight = FontWeight.SemiBold,
-                letterSpacing = (-0.5).sp,
-            ),
-        )
-        Spacer(Modifier.height(6.dp))
-        Text(
-            "Apri il contenuto, non il feed.",
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        Spacer(Modifier.height(36.dp))
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .onGloballyPositioned { onInputTargetChanged(it.boundsInRoot()) },
-        ) {
-            OutlinedTextField(
-                value = value,
-                onValueChange = onValueChange,
-                placeholder = { Text("Incolla un link pubblico…") },
-                singleLine = true,
-                isError = error != null,
-                supportingText = error?.let { message -> { Text(message) } },
-                trailingIcon = {
-                    IconButton(onClick = onPasteAndOpen) {
-                        Icon(
-                            painter = painterResource(R.drawable.ic_content_paste_24),
-                            contentDescription = "Incolla e apri",
-                        )
-                    }
-                },
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Uri,
-                    imeAction = ImeAction.Go,
-                ),
-                keyboardActions = KeyboardActions(onGo = { onOpen() }),
-                shape = RoundedCornerShape(18.dp),
-                modifier = Modifier.fillMaxWidth(),
-            )
-            Spacer(Modifier.height(12.dp))
-            Button(
-                onClick = onOpen,
-                shape = RoundedCornerShape(16.dp),
-                modifier = Modifier.fillMaxWidth().height(54.dp),
+    BoxWithConstraints(modifier = modifier.fillMaxSize()) {
+        val compactHeight = maxHeight < 640.dp
+
+        if (compactHeight) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 24.dp, vertical = 20.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                Text("Apri")
+                Spacer(Modifier.height(8.dp))
+                HomePrimaryContent(
+                    value = value,
+                    error = error,
+                    onValueChange = onValueChange,
+                    onPasteAndOpen = onPasteAndOpen,
+                    onOpen = onOpen,
+                    onInputTargetChanged = onInputTargetChanged,
+                )
+                Spacer(Modifier.height(32.dp))
+                HomeUtilities(
+                    directLinkState = directLinkState,
+                    onConfigureDirectLinks = onConfigureDirectLinks,
+                    onOpenSettings = onOpenSettings,
+                    onDirectLinkTargetChanged = onDirectLinkTargetChanged,
+                )
+            }
+        } else {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 24.dp, vertical = 20.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Spacer(Modifier.height(24.dp))
+                    HomePrimaryContent(
+                        value = value,
+                        error = error,
+                        onValueChange = onValueChange,
+                        onPasteAndOpen = onPasteAndOpen,
+                        onOpen = onOpen,
+                        onInputTargetChanged = onInputTargetChanged,
+                    )
+                }
+
+                HomeUtilities(
+                    directLinkState = directLinkState,
+                    onConfigureDirectLinks = onConfigureDirectLinks,
+                    onOpenSettings = onOpenSettings,
+                    onDirectLinkTargetChanged = onDirectLinkTargetChanged,
+                )
+                Spacer(Modifier.height(4.dp))
             }
         }
-        Spacer(Modifier.height(32.dp))
-        DirectLinkCard(
-            state = directLinkState,
-            onConfigure = onConfigureDirectLinks,
-            modifier = Modifier
-                .fillMaxWidth()
-                .onGloballyPositioned { onDirectLinkTargetChanged(it.boundsInRoot()) },
-        )
-        Spacer(Modifier.height(10.dp))
-        HomeNavigationRow(
-            icon = Icons.Outlined.Settings,
-            title = "Impostazioni",
-            subtitle = "Aspetto, privacy e configurazione",
-            onClick = onOpenSettings,
+    }
+}
+
+@Composable
+private fun HomePrimaryContent(
+    value: String,
+    error: String?,
+    onValueChange: (String) -> Unit,
+    onPasteAndOpen: () -> Unit,
+    onOpen: () -> Unit,
+    onInputTargetChanged: (Rect) -> Unit,
+) {
+    FocusFrameMark(
+        modifier = Modifier.size(72.dp),
+        color = MaterialTheme.colorScheme.primary,
+    )
+    Spacer(Modifier.height(18.dp))
+    Text(
+        "Social Viewer",
+        style = MaterialTheme.typography.headlineLarge.copy(
+            fontWeight = FontWeight.SemiBold,
+            letterSpacing = (-0.5).sp,
+        ),
+    )
+    Spacer(Modifier.height(6.dp))
+    Text(
+        "Apri il contenuto, non il feed.",
+        style = MaterialTheme.typography.bodyLarge,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+    Spacer(Modifier.height(32.dp))
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .onGloballyPositioned { onInputTargetChanged(it.boundsInRoot()) },
+    ) {
+        OutlinedTextField(
+            value = value,
+            onValueChange = onValueChange,
+            placeholder = { Text("Incolla un link pubblico…") },
+            singleLine = true,
+            isError = error != null,
+            supportingText = error?.let { message -> { Text(message) } },
+            trailingIcon = {
+                IconButton(onClick = onPasteAndOpen) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_content_paste_24),
+                        contentDescription = "Incolla e apri",
+                    )
+                }
+            },
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Uri,
+                imeAction = ImeAction.Go,
+            ),
+            keyboardActions = KeyboardActions(onGo = { onOpen() }),
+            shape = RoundedCornerShape(18.dp),
             modifier = Modifier.fillMaxWidth(),
         )
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(12.dp))
+        Button(
+            onClick = onOpen,
+            shape = RoundedCornerShape(16.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(54.dp),
+        ) {
+            Text("Apri")
+        }
     }
+}
+
+@Composable
+private fun HomeUtilities(
+    directLinkState: DirectLinkHandlingState,
+    onConfigureDirectLinks: () -> Unit,
+    onOpenSettings: () -> Unit,
+    onDirectLinkTargetChanged: (Rect) -> Unit,
+) {
+    DirectLinkCard(
+        state = directLinkState,
+        onConfigure = onConfigureDirectLinks,
+        modifier = Modifier
+            .fillMaxWidth()
+            .onGloballyPositioned { onDirectLinkTargetChanged(it.boundsInRoot()) },
+    )
+    Spacer(Modifier.height(10.dp))
+    HomeNavigationRow(
+        icon = Icons.Outlined.Settings,
+        title = "Impostazioni",
+        subtitle = "Aspetto, privacy e configurazione",
+        onClick = onOpenSettings,
+        modifier = Modifier.fillMaxWidth(),
+    )
 }
 
 @Composable
