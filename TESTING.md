@@ -99,17 +99,17 @@ Do not use a private, removed, login-only, or age-gated item as the first smoke 
 
 Inside Social Viewer tap `Configura`.
 
-On Android's **Open by default** screen enable supported-link handling and select the TikTok, Instagram and Bluesky domains Android offers for the app.
+On Android's **Open by default** screen enable supported-link handling and select the TikTok, Instagram, Reddit and Bluesky domains Android offers for the app.
 
 After returning:
 
 - Social Viewer reads the real Android domain state;
-- Settings shows one compact **Apertura diretta** section with separate provider state, including Bluesky;
+- Settings shows one compact **Apertura diretta** section with separate provider state, including Reddit and Bluesky;
 - a provider may show **Parziale** when only some of its declared hosts are selected;
 - `Apertura diretta attiva` appears on Home only when all declared provider hosts are approved;
 - the first transition to fully active shows `Apertura diretta attivata`.
 
-Then tap one supported TikTok link, one supported Instagram post/Reel link and one Bluesky post permalink from WhatsApp or a browser. For Bluesky, also tap a plain `https://bsky.app/profile/<handle>` URL and confirm Social Viewer does not intercept the profile.
+Then tap one supported TikTok link, one supported Instagram post/Reel link, one declared Reddit single-content link and one Bluesky post permalink from WhatsApp or a browser. For Reddit, also tap a normal subreddit and a user profile and confirm Social Viewer does not intercept them. For Bluesky, also tap a plain `https://bsky.app/profile/<handle>` URL and confirm Social Viewer does not intercept the profile.
 
 Expected: when Android is associated with Social Viewer for that domain, Social Viewer opens directly and starts resolving/rendering without first flashing Home. If a first-party app/browser owns the domain instead, change the association in Android rather than treating Social Viewer as a silent default.
 
@@ -245,8 +245,26 @@ Verified:
 4. Removed/unavailable behavior remains bounded and does not turn Social Viewer into an unrestricted Reddit browser.
 5. System / Light / Dark rendering is acceptable around the Reddit embed.
 6. TikTok, Instagram, Threads and YouTube regressions pass.
-7. Reddit remains manual-paste / Android-Share-only in this slice; it is intentionally absent from Android Open-by-default provider rows.
+7. The original Reddit provider gate did not include Android direct opening; the direct-link extension below is a separate gate.
 8. Settings copy distinguishes the number of providers with direct-link handling from the total number of supported providers.
+
+### Reddit direct-link extension gate
+
+Run this after CI is green on `feature/reddit-direct-links`. The provider/rendering path itself is unchanged.
+
+1. Configure Android **Open by default** for Social Viewer and select `reddit.com`, `www.reddit.com` and `redd.it` where Android allows it.
+2. Tap a canonical public post permalink from another app/browser. It must open Social Viewer directly and render the post.
+3. Tap a direct single-comment permalink. It must open Social Viewer directly and render the explicitly linked comment.
+4. Tap a real root `/s/{token}` share URL. It must open Social Viewer directly, resolve through the existing safe redirect gate and render normally.
+5. Tap a real `https://redd.it/{id}` short permalink. It must open Social Viewer directly and render normally.
+6. If available, tap a real contextual `/r/{context}/s/{token}` share URL. It must open directly and resolve through the existing provider redirect gate.
+7. Settings must reflect Android's real Reddit state: **Attivo** when all three declared hosts are selected, **Parziale** when only some are selected, and **Da configurare** when none are selected or global link handling is disabled.
+8. Tap a normal subreddit URL such as `https://www.reddit.com/r/android/` and a user/profile URL such as `https://www.reddit.com/user/example/`. Neither may open Social Viewer. Home, search, `r/all`, `r/popular`, wiki, mod tools, messages and settings are likewise out of scope.
+9. Verify one already-active direct-link provider still opens normally (for example TikTok, Instagram, Pinterest or Bluesky).
+10. Verify Reddit manual paste and Android Share still work, including a supported permalink on a non-declared legacy host such as `old.reddit.com` if convenient.
+11. If the first-party Reddit app or browser owns a declared domain, treat that as Android association competition: change **Open by default** ownership for the test rather than changing Social Viewer routing.
+
+Record PASS only if useful Reddit content opens directly, out-of-scope Reddit navigation stays unclaimed, Settings matches Android's actual host selection, and the existing Reddit provider plus one other direct-link provider regress cleanly.
 
 Full Reddit comment-thread browsing is intentionally outside this gate. If implemented later, test it as a separate Data API feature with explicit OAuth/policy/rate-limit coverage rather than as an extension of the oEmbed smoke test.
 
