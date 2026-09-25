@@ -22,10 +22,10 @@ class PinterestProviderTest {
         assertEquals("https://www.pinterest.com/", content.documentBaseUrl)
         assertNull(content.title)
         assertNull(content.authorName)
-        assertTrue(content.embedHtml.contains("""data-pin-do="embedPin""""))
+        assertTrue(content.embedHtml.contains("data-pin-do=\"embedPin\""))
         assertTrue(
             content.embedHtml.contains(
-                """href="https://www.pinterest.com/pin/617415430169271912/"""",
+                "href=\"https://www.pinterest.com/pin/617415430169271912/\"",
             ),
         )
         assertTrue(
@@ -55,7 +55,7 @@ class PinterestProviderTest {
     @Test
     fun resolvesPinItAliasOnlyWhenFinalTargetIsSupportedPin() {
         val http = FakeHttpClient(
-            finalUrl = "https://www.pinterest.com/pin/617415430169271912/?share_id=tracking",
+            finalUrl = "https://it.pinterest.com/pin/754845587535670858/?share_id=tracking",
         )
 
         val canonical = canonicalPinterestUrlFor(
@@ -67,7 +67,7 @@ class PinterestProviderTest {
         )
 
         assertEquals(
-            "https://www.pinterest.com/pin/617415430169271912/",
+            "https://www.pinterest.com/pin/754845587535670858/",
             canonical,
         )
         assertEquals("https://pin.it/AbC123_xYz", http.resolvedUrl)

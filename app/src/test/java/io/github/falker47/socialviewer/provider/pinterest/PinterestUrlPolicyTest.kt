@@ -8,7 +8,7 @@ import org.junit.Test
 
 class PinterestUrlPolicyTest {
     @Test
-    fun supportsCanonicalSinglePinUrls() {
+    fun supportsCanonicalSinglePinUrlsIncludingRegionalPinterestComHosts() {
         assertTrue(
             PinterestUrlPolicy.supports(
                 "https",
@@ -23,6 +23,13 @@ class PinterestUrlPolicyTest {
                 "/pin/1234567890",
             ),
         )
+        assertTrue(
+            PinterestUrlPolicy.supports(
+                "https",
+                "it.pinterest.com",
+                "/pin/754845587535670858/",
+            ),
+        )
     }
 
     @Test
@@ -33,6 +40,14 @@ class PinterestUrlPolicyTest {
                 "https",
                 "pinterest.com",
                 "/pin/617415430169271912/",
+            ),
+        )
+        assertEquals(
+            "https://www.pinterest.com/pin/754845587535670858/",
+            PinterestUrlPolicy.canonicalPinUrl(
+                "https",
+                "it.pinterest.com",
+                "/pin/754845587535670858/",
             ),
         )
     }
@@ -72,6 +87,13 @@ class PinterestUrlPolicyTest {
             PinterestUrlPolicy.supports(
                 "https",
                 "pinterest.example.com",
+                "/pin/1234567890/",
+            ),
+        )
+        assertFalse(
+            PinterestUrlPolicy.supports(
+                "https",
+                "help.pinterest.com",
                 "/pin/1234567890/",
             ),
         )
