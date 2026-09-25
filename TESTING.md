@@ -271,3 +271,23 @@ Verified:
 ### Known Reddit visual polish note
 
 During the final Pinterest regression pass, Reddit occasionally exposed a brief fragment of pre-widget text immediately before the official Reddit card finished transforming. The post still rendered correctly, no functional regression was observed, and the Pinterest branch did not modify Reddit provider/WebView code. Track this separately as a non-blocking Reddit loading-transition polish item rather than reopening the Pinterest gate.
+
+
+## X provider smoke test
+
+Physical-device gate completed successfully on 2026-09-25 for `feature/x-provider`.
+
+Verified:
+
+1. A public canonical `x.com/{user}/status/{id}` permalink renders as one X post through the official X for Websites path.
+2. A legacy `twitter.com/{user}/status/{id}` permalink normalizes to the same canonical X post and renders correctly.
+3. Tracking/query parameters do not alter post identity after canonicalization.
+4. A syntactically valid unavailable post exits loading cleanly; no indefinite black surface occurs.
+5. No X login, OAuth, developer key, backend, paid API read or billing-dependent X API is required.
+6. The first X load shows the privacy notice before any X network/embed load. After approval, the choice is stored locally and subsequent X links open directly without repeating the prompt.
+7. Settings → Privacy and site data → **Revoca autorizzazione** clears the local X embed-consent decision; the next X load shows the notice again.
+8. Third-party cookies remain blocked; `dnt=true`, `hide_thread=true` and `omit_script=true` are requested from X oEmbed.
+9. X remains manual-paste / Android-Share-only in this slice; no X ACTION_VIEW filters are declared because the supported status route cannot be constrained safely enough on the minSdk-26 manifest matcher.
+10. System / Light / Dark sanity passed.
+11. TikTok, Instagram, Threads, YouTube, Reddit and Pinterest regressions all passed after the X changes.
+12. Facebook PR #4 and the Reddit loading-transition polish item were not modified.

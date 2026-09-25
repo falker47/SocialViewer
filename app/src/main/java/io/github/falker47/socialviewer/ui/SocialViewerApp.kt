@@ -93,6 +93,7 @@ import kotlinx.coroutines.withContext
 
 sealed interface ViewerState {
     data object Home : ViewerState
+    data class XConsent(val url: String) : ViewerState
     data class Loading(val url: String) : ViewerState
     data class Ready(val content: SocialContent) : ViewerState
     data class Error(
@@ -114,6 +115,7 @@ private sealed interface ManualLinkResult {
 
 private const val PREFS_NAME = "social_viewer_ui"
 private const val PREF_ONBOARDING_COMPLETE = "onboarding_complete"
+private const val PREF_X_EMBED_CONSENT_GRANTED = "x_embed_consent_granted"
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -124,10 +126,20 @@ fun SocialViewerApp(
     resumeToken: Int,
     onIncomingConsumed: () -> Unit,
 ) {
+    val uiPrefs = remember {
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    }
     val initialIncoming = incomingUrl?.takeIf { it.isNotBlank() }
+    val initialXEmbedConsentGranted =
+        uiPrefs.getBoolean(PREF_X_EMBED_CONSENT_GRANTED, false)
+    var xEmbedConsentGranted by remember {
+        mutableStateOf(initialXEmbedConsentGranted)
+    }
     var state by remember {
         mutableStateOf<ViewerState>(
-            initialIncoming?.let { ViewerState.Loading(it) } ?: ViewerState.Home,
+            initialIncoming?.let {
+                viewerStateBeforeResolve(it, registry, initialXEmbedConsentGranted)
+            } ?: ViewerState.Home,
         )
     }
     var screen by remember { mutableStateOf(AppScreen.Viewer) }
@@ -138,9 +150,6 @@ fun SocialViewerApp(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
-    val uiPrefs = remember {
-        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-    }
     var themeMode by remember { mutableStateOf(readThemeMode(uiPrefs)) }
     val darkTheme = themeMode.resolveDark(isSystemInDarkTheme())
     var onboardingStep by remember {
@@ -160,7 +169,7 @@ fun SocialViewerApp(
         manualUrl = url
         manualError = null
         screen = AppScreen.Viewer
-        state = ViewerState.Loading(url)
+        state = viewerStateBeforeResolve(url, registry, xEmbedConsentGranted)
     }
 
     fun attemptManualOpen(rawValue: String) {
@@ -302,6 +311,16 @@ fun SocialViewerApp(
                                 }
                             }
                         },
+                        xEmbedConsentGranted = xEmbedConsentGranted,
+                        onRevokeXEmbedConsent = {
+                            xEmbedConsentGranted = false
+                            uiPrefs.edit().remove(PREF_X_EMBED_CONSENT_GRANTED).apply()
+                            scope.launch {
+                                snackbarHostState.showSnackbar(
+                                    "Autorizzazione X revocata",
+                                )
+                            }
+                        },
                         appVersion = appVersionName(context),
                         modifier = Modifier.padding(padding),
                     )
@@ -320,6 +339,19 @@ fun SocialViewerApp(
                             onConfigureDirectLinks = ::launchDirectLinkSettings,
                             onInputTargetChanged = { inputTarget = it },
                             onDirectLinkTargetChanged = { directLinkTarget = it },
+                            modifier = Modifier.padding(padding),
+                        )
+
+                        is ViewerState.XConsent -> XConsentScreen(
+                            onBack = { state = ViewerState.Home },
+                            onOpenOriginal = { openExternal(context, current.url) },
+                            onLoadX = {
+                                xEmbedConsentGranted = true
+                                uiPrefs.edit()
+                                    .putBoolean(PREF_X_EMBED_CONSENT_GRANTED, true)
+                                    .apply()
+                                state = ViewerState.Loading(current.url)
+                            },
                             modifier = Modifier.padding(padding),
                         )
 
@@ -509,6 +541,8 @@ private fun SettingsScreen(
     onThemeModeChange: (ThemeMode) -> Unit,
     onConfigureDirectLinks: () -> Unit,
     onClearSiteData: () -> Unit,
+    xEmbedConsentGranted: Boolean,
+    onRevokeXEmbedConsent: () -> Unit,
     appVersion: String,
     modifier: Modifier = Modifier,
 ) {
@@ -559,7 +593,7 @@ private fun SettingsScreen(
         Spacer(Modifier.height(8.dp))
         Text(
             "Qui compaiono solo i provider configurabili per l'apertura diretta. " +
-                "YouTube e Reddit restano disponibili tramite Incolla o Condividi.",
+                "YouTube, Reddit e X restano disponibili tramite Incolla o Condividi.",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -625,6 +659,18 @@ private fun SettingsScreen(
         Spacer(Modifier.height(14.dp))
         OutlinedButton(onClick = { confirmClear = true }) {
             Text("Cancella dati del sito")
+        }
+        if (xEmbedConsentGranted) {
+            Spacer(Modifier.height(18.dp))
+            Text("Contenuti X", style = MaterialTheme.typography.titleSmall)
+            Spacer(Modifier.height(4.dp))
+            Text(
+                "Caricamento autorizzato. La scelta viene ricordata sul dispositivo.",
+                style = MaterialTheme.typography.bodyMedium,
+            )
+            TextButton(onClick = onRevokeXEmbedConsent) {
+                Text("Revoca autorizzazione")
+            }
         }
 
         Spacer(Modifier.height(24.dp))
@@ -871,6 +917,69 @@ private fun ApplySystemBars(
             currentFlags and lightBarFlags.inv()
         } else {
             currentFlags or lightBarFlags
+        }
+    }
+}
+
+private fun viewerStateBeforeResolve(
+    url: String,
+    registry: ProviderRegistry,
+    xEmbedConsentGranted: Boolean,
+): ViewerState =
+    if (registry.providerFor(url)?.id == "x" && !xEmbedConsentGranted) {
+        ViewerState.XConsent(url)
+    } else {
+        ViewerState.Loading(url)
+    }
+
+@Composable
+private fun XConsentScreen(
+    onBack: () -> Unit,
+    onOpenOriginal: () -> Unit,
+    onLoadX: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(24.dp),
+        verticalArrangement = Arrangement.Center,
+    ) {
+        Text(
+            "Caricare il contenuto da X?",
+            style = MaterialTheme.typography.headlineSmall,
+        )
+        Spacer(Modifier.height(12.dp))
+        Text(
+            "X può ricevere dati tecnici del dispositivo e della visualizzazione quando " +
+                "carichiamo un post incorporato. Social Viewer blocca i cookie di terze parti " +
+                "e usa dnt=true per disattivare l'uso dell'embed per personalizzazione.",
+            style = MaterialTheme.typography.bodyMedium,
+        )
+        Spacer(Modifier.height(10.dp))
+        Text(
+            "Questa scelta verrà ricordata sul dispositivo, quindi i prossimi post X si " +
+                "apriranno direttamente. Puoi revocarla in Impostazioni > Privacy e dati del sito.",
+            style = MaterialTheme.typography.bodyMedium,
+        )
+        Spacer(Modifier.height(20.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            OutlinedButton(onClick = onBack) {
+                Text("Indietro")
+            }
+            OutlinedButton(onClick = onOpenOriginal) {
+                Text("Apri originale")
+            }
+        }
+        Spacer(Modifier.height(10.dp))
+        Button(
+            onClick = onLoadX,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Text("Carica post X")
         }
     }
 }
