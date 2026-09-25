@@ -556,6 +556,13 @@ private fun SettingsScreen(
                 )
             }
         }
+        Spacer(Modifier.height(8.dp))
+        Text(
+            "Qui compaiono solo i provider configurabili per l'apertura diretta. " +
+                "YouTube e Reddit restano disponibili tramite Incolla o Condividi.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
         Spacer(Modifier.height(10.dp))
         Text(
             "NON ATTIVO",
@@ -712,7 +719,7 @@ private fun directLinkSummaryLabel(state: DirectLinkHandlingState): String {
     return when {
         state.allProvidersActive -> "Attiva per tutti i provider"
         state.activeProviderCount == 0 && !state.anyProviderConfigured -> "Da configurare"
-        else -> "${state.activeProviderCount} di $total provider attivi"
+        else -> "${state.activeProviderCount} di $total provider con apertura diretta attiva"
     }
 }
 
