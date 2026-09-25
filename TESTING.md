@@ -231,3 +231,21 @@ Run this only after CI is green on `feature/youtube-provider`.
 17. Appearance: check System / Light / Dark around the player; the player itself must not be recolored.
 18. Regression: re-run one TikTok canonical item, one Instagram post + Reel, and one Threads permalink or /t/ item. Their provider code and behavior must remain unchanged.
 19. Record PASS only if the Data API preflight, public watch/short/Shorts playback, MFK fail-closed behavior, privacy-enhanced player, and existing-provider regressions all pass.
+
+
+## Reddit provider smoke test
+
+Physical-device gate completed successfully on 2026-09-25 for `feature/reddit-provider`.
+
+Verified:
+
+1. Public Reddit post permalink renders as one Reddit item through the official oEmbed/Embeds path.
+2. A public single-comment permalink renders as that explicitly linked comment; Social Viewer does not open a comment tree.
+3. A real Reddit `/s/` share alias resolves to a supported canonical HTTPS Reddit permalink and then renders normally.
+4. Removed/unavailable behavior remains bounded and does not turn Social Viewer into an unrestricted Reddit browser.
+5. System / Light / Dark rendering is acceptable around the Reddit embed.
+6. TikTok, Instagram, Threads and YouTube regressions pass.
+7. Reddit remains manual-paste / Android-Share-only in this slice; it is intentionally absent from Android Open-by-default provider rows.
+8. Settings copy distinguishes the number of providers with direct-link handling from the total number of supported providers.
+
+Full Reddit comment-thread browsing is intentionally outside this gate. If implemented later, test it as a separate Data API feature with explicit OAuth/policy/rate-limit coverage rather than as an extension of the oEmbed smoke test.
