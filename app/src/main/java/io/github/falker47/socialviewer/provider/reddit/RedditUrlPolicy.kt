@@ -30,16 +30,6 @@ object RedditUrlPolicy {
         if (normalizedHost !in directHosts) return null
 
         val segments = pathSegments(path)
-
-        // Reddit's legacy redd.it shortlink can resolve to this single-post form.
-        // It is still content-scoped: exactly /comments/{postId}, never a feed/profile path.
-        if (segments.size == 2 &&
-            segments[0].equals("comments", ignoreCase = true) &&
-            isValidThingId(segments[1])
-        ) {
-            return "https://www.reddit.com/comments/${segments[1]}/"
-        }
-
         if (segments.size !in 4..6) return null
         if (!segments[0].equals("r", ignoreCase = true)) return null
         if (!segments[2].equals("comments", ignoreCase = true)) return null
