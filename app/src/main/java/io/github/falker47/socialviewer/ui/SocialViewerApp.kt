@@ -93,6 +93,7 @@ import kotlinx.coroutines.withContext
 
 sealed interface ViewerState {
     data object Home : ViewerState
+    data class XConsent(val url: String) : ViewerState
     data class Loading(val url: String) : ViewerState
     data class Ready(val content: SocialContent) : ViewerState
     data class Error(
@@ -127,7 +128,7 @@ fun SocialViewerApp(
     val initialIncoming = incomingUrl?.takeIf { it.isNotBlank() }
     var state by remember {
         mutableStateOf<ViewerState>(
-            initialIncoming?.let { ViewerState.Loading(it) } ?: ViewerState.Home,
+            initialIncoming?.let { viewerStateBeforeResolve(it, registry) } ?: ViewerState.Home,
         )
     }
     var screen by remember { mutableStateOf(AppScreen.Viewer) }
@@ -160,7 +161,7 @@ fun SocialViewerApp(
         manualUrl = url
         manualError = null
         screen = AppScreen.Viewer
-        state = ViewerState.Loading(url)
+        state = viewerStateBeforeResolve(url, registry)
     }
 
     fun attemptManualOpen(rawValue: String) {
@@ -320,6 +321,13 @@ fun SocialViewerApp(
                             onConfigureDirectLinks = ::launchDirectLinkSettings,
                             onInputTargetChanged = { inputTarget = it },
                             onDirectLinkTargetChanged = { directLinkTarget = it },
+                            modifier = Modifier.padding(padding),
+                        )
+
+                        is ViewerState.XConsent -> XConsentScreen(
+                            onBack = { state = ViewerState.Home },
+                            onOpenOriginal = { openExternal(context, current.url) },
+                            onLoadX = { state = ViewerState.Loading(current.url) },
                             modifier = Modifier.padding(padding),
                         )
 
@@ -871,6 +879,70 @@ private fun ApplySystemBars(
             currentFlags and lightBarFlags.inv()
         } else {
             currentFlags or lightBarFlags
+        }
+    }
+}
+
+private fun viewerStateBeforeResolve(
+    url: String,
+    registry: ProviderRegistry,
+): ViewerState =
+    if (registry.providerFor(url)?.id == "x") {
+        ViewerState.XConsent(url)
+    } else {
+        ViewerState.Loading(url)
+    }
+
+@Composable
+private fun XConsentScreen(
+    onBack: () -> Unit,
+    onOpenOriginal: () -> Unit,
+    onLoadX: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(24.dp),
+        verticalArrangement = Arrangement.Center,
+    ) {
+        Text(
+            "Caricare il contenuto da X?",
+            style = MaterialTheme.typography.headlineSmall,
+        )
+        Spacer(Modifier.height(12.dp))
+        Text(
+            "Per mostrare questo post, Social Viewer contatterà X tramite i suoi strumenti " +
+                "ufficiali di incorporamento. X può ricevere dati tecnici come indirizzo IP, " +
+                "informazioni su browser/dispositivo e dati relativi alla pagina che incorpora " +
+                "il contenuto, e può usare cookie o altre tecnologie di archiviazione.",
+            style = MaterialTheme.typography.bodyMedium,
+        )
+        Spacer(Modifier.height(10.dp))
+        Text(
+            "Social Viewer blocca i cookie di terze parti e richiede dnt=true: X documenta " +
+                "questa opzione come esclusione dell'uso dell'embed per suggerimenti e annunci " +
+                "personalizzati. Non è richiesto un account o login X.",
+            style = MaterialTheme.typography.bodyMedium,
+        )
+        Spacer(Modifier.height(20.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            OutlinedButton(onClick = onBack) {
+                Text("Indietro")
+            }
+            OutlinedButton(onClick = onOpenOriginal) {
+                Text("Apri originale")
+            }
+        }
+        Spacer(Modifier.height(10.dp))
+        Button(
+            onClick = onLoadX,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Text("Carica post X")
         }
     }
 }
