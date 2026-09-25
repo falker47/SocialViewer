@@ -14,6 +14,7 @@ import io.github.falker47.socialviewer.provider.pinterest.PinterestProvider
 import io.github.falker47.socialviewer.provider.reddit.RedditProvider
 import io.github.falker47.socialviewer.provider.threads.ThreadsProvider
 import io.github.falker47.socialviewer.provider.tiktok.TikTokProvider
+import io.github.falker47.socialviewer.provider.x.XProvider
 import io.github.falker47.socialviewer.provider.youtube.YouTubeProvider
 import io.github.falker47.socialviewer.ui.SocialViewerApp
 import io.github.falker47.socialviewer.util.UrlExtractor
@@ -31,6 +32,7 @@ class MainActivity : ComponentActivity() {
                 ThreadsProvider(UrlConnectionHttpClient()),
                 RedditProvider(UrlConnectionHttpClient()),
                 PinterestProvider(UrlConnectionHttpClient()),
+                XProvider(UrlConnectionHttpClient()),
                 YouTubeProvider(
                     http = UrlConnectionHttpClient(),
                     apiKey = BuildConfig.YOUTUBE_API_KEY,
