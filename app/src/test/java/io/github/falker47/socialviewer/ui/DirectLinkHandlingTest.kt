@@ -31,7 +31,7 @@ class DirectLinkHandlingTest {
             DIRECT_LINK_PROVIDERS.first { it.providerId == "threads" }.hosts,
         )
         assertEquals(
-            setOf("reddit.com", "www.reddit.com", "redd.it"),
+            setOf("reddit.com", "www.reddit.com"),
             DIRECT_LINK_PROVIDERS.first { it.providerId == "reddit" }.hosts,
         )
         assertEquals(
@@ -92,17 +92,17 @@ class DirectLinkHandlingTest {
         val state = buildDirectLinkHandlingState(
             platformStateAvailable = true,
             linkHandlingAllowed = true,
-            approvedHosts = setOf("reddit.com", "www.reddit.com"),
+            approvedHosts = setOf("reddit.com"),
         )
 
         val reddit = state.providers.first { it.definition.providerId == "reddit" }
         assertEquals(DirectLinkProviderStatus.PARTIAL, reddit.status)
-        assertEquals(setOf("reddit.com", "www.reddit.com"), reddit.approvedHosts)
+        assertEquals(setOf("reddit.com"), reddit.approvedHosts)
 
         val completedState = buildDirectLinkHandlingState(
             platformStateAvailable = true,
             linkHandlingAllowed = true,
-            approvedHosts = setOf("reddit.com", "www.reddit.com", "redd.it"),
+            approvedHosts = setOf("reddit.com", "www.reddit.com"),
         )
 
         assertEquals(
