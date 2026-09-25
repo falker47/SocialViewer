@@ -58,6 +58,13 @@ internal val DIRECT_LINK_PROVIDERS = listOf(
             "www.pinterest.com",
         ),
     ),
+    DirectLinkProviderDefinition(
+        providerId = "bluesky",
+        displayName = "Bluesky",
+        hosts = linkedSetOf(
+            "bsky.app",
+        ),
+    ),
 )
 
 internal data class DirectLinkProviderState(
