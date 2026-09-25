@@ -55,7 +55,7 @@ class PinterestProviderTest {
     @Test
     fun resolvesPinItAliasOnlyWhenFinalTargetIsSupportedPin() {
         val http = FakeHttpClient(
-            finalUrl = "https://it.pinterest.com/pin/754845587535670858/?share_id=tracking",
+            finalUrl = "https://it.pinterest.com/pin/nasa--754845587535670858/?share_id=tracking",
         )
 
         val canonical = canonicalPinterestUrlFor(

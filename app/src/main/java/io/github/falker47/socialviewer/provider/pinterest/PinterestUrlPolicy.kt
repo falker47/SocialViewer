@@ -30,9 +30,7 @@ object PinterestUrlPolicy {
         if (segments.size != 2) return null
         if (!segments[0].equals("pin", ignoreCase = true)) return null
 
-        val pinId = segments[1]
-        if (!isValidPinId(pinId)) return null
-
+        val pinId = pinIdFromPathSegment(segments[1]) ?: return null
         return "https://www.pinterest.com/pin/$pinId/"
     }
 
@@ -51,6 +49,16 @@ object PinterestUrlPolicy {
     private fun isSupportedPinHost(host: String): Boolean =
         host in primaryHosts || regionalPinterestComHost.matches(host)
 
+    private fun pinIdFromPathSegment(value: String): String? {
+        if (isValidPinId(value)) return value
+
+        val separatorIndex = value.lastIndexOf("--")
+        if (separatorIndex <= 0) return null
+
+        val pinId = value.substring(separatorIndex + 2)
+        return pinId.takeIf(::isValidPinId)
+    }
+
     private fun pathSegments(path: String?): List<String> =
         path
             ?.trim('/')
@@ -59,9 +67,15 @@ object PinterestUrlPolicy {
             .orEmpty()
 
     private fun isValidPinId(value: String): Boolean =
-        value.isNotBlank() && value.all { it.isDigit() }
+        value.isNotBlank() && value.all { it in '0'..'9' }
 
     private fun isValidShareToken(value: String): Boolean =
         value.isNotBlank() &&
-            value.all { it.isLetterOrDigit() || it == '_' || it == '-' }
+            value.all { char ->
+                char in 'a'..'z' ||
+                    char in 'A'..'Z' ||
+                    char in '0'..'9' ||
+                    char == '_' ||
+                    char == '-'
+            }
 }
