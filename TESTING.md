@@ -311,3 +311,29 @@ Verified:
 10. Third-party cookies remain blocked and main-frame navigation remains blocked.
 11. TikTok, Instagram, Threads, YouTube, Reddit, Pinterest and X regressions all passed before the final direct-link patch; the direct-link patch is isolated to Bluesky manifest/state handling and passed CI plus the final physical direct-link/profile-non-interception check.
 12. Facebook PR #4 and the Reddit loading-transition polish item were not modified.
+
+
+## Google Play release-plumbing gate
+
+This gate applies to `feature/play-release-plumbing`.
+
+CI must pass all of:
+
+```text
+testDebugUnitTest
+lintRelease
+assembleDebug
+bundleRelease
+```
+
+The CI `bundleRelease` artifact is only a release-variant packaging check. CI intentionally does not contain the upload keystore or the production YouTube API key and therefore does not establish a publishable Play build.
+
+After Play App Signing and the local upload key exist, the later signed-RC gate must use:
+
+```text
+gradlew.bat playReleaseBundle
+```
+
+That task must fail if the YouTube key, any upload-signing value, or the configured keystore file is missing.
+
+Do not perform the full provider/device regression merely for this plumbing branch unless the changes extend beyond Gradle/CI/docs. The signed release-candidate smoke belongs to the later RC milestone after the real Play signing identities are available.
