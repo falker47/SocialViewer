@@ -74,6 +74,13 @@ object RedditUrlPolicy {
             return segments.size == 1 && isValidThingId(segments[0])
         }
 
+        if (segments.size == 2 &&
+            segments[0].equals("s", ignoreCase = true) &&
+            isValidShareToken(segments[1])
+        ) {
+            return true
+        }
+
         return segments.size == 4 &&
             segments[0].lowercase() in setOf("r", "u", "user") &&
             segments[2].equals("s", ignoreCase = true) &&
@@ -93,7 +100,7 @@ object RedditUrlPolicy {
             value.all { it.isLetterOrDigit() || it == '_' }
 
     private fun isValidThingId(value: String): Boolean =
-        value.isNotBlank() && value.all(Char::isLetterOrDigit)
+        value.isNotBlank() && value.all { it.isLetterOrDigit() }
 
     private fun isValidSlug(value: String): Boolean =
         value.isNotBlank() &&
