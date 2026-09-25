@@ -134,10 +134,6 @@ val verifyPlayPublishConfig = tasks.register("verifyPlayPublishConfig") {
     }
 }
 
-tasks.named("bundleRelease").configure {
-    mustRunAfter(verifyPlayPublishConfig)
-}
-
 tasks.register("playReleaseBundle") {
     group = "build"
     description = "Validate publish configuration, then build the signed Google Play AAB."
