@@ -286,9 +286,19 @@ Verified:
 9. `pin.it` and regional hosts remain manual-paste / Android-Share-only; the manifest claims only canonical Pinterest hosts and `/pin/` paths.
 10. The implementation has no Pinterest API key, OAuth, backend or paid/billing dependency.
 
-### Known Reddit visual polish note
+### Shared embed loading-transition gate
 
-During the final Pinterest regression pass, Reddit occasionally exposed a brief fragment of pre-widget text immediately before the official Reddit card finished transforming. The post still rendered correctly, no functional regression was observed, and the Pinterest branch did not modify Reddit provider/WebView code. Track this separately as a non-blocking Reddit loading-transition polish item rather than reopening the Pinterest gate.
+The shared loading-overlay polish must be verified on a physical device before merge.
+
+1. Open a public Reddit post that previously exposed brief pre-widget text. The branded Social Viewer loading surface must remain visible until the final Reddit card is ready; no raw blockquote/text fragment should flash.
+2. Repeat with one Instagram post/Reel and one Threads post. Provider oEmbed markup must not become visible before the transformed embed.
+3. Open one TikTok and one YouTube video. Their existing official players must still appear normally and remain interactive after the native overlay clears.
+4. Open Pinterest, X and Bluesky once each. Their provider-specific loading/error behavior must remain reachable; the native overlay must not remain stuck indefinitely.
+5. Exercise one unavailable/failed provider case. After the bounded WebView fallback, any provider-owned status/error surface must be allowed to appear rather than leaving a permanent loading overlay.
+6. Rotate or resize once while loading and once after reveal. The current item must remain active and must not return to Home.
+7. Re-run System / Light / Dark around the loading transition. The overlay must use the Social Viewer theme and must not expose an accidental white/unstyled frame.
+
+Record PASS only if the transition is visually atomic across the representative providers and there is no playback, navigation, consent, or rotation regression.
 
 
 ## X provider smoke test
