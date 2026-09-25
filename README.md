@@ -128,8 +128,12 @@ CLI checks:
 
 ```text
 gradlew.bat testDebugUnitTest
+gradlew.bat lintRelease
 gradlew.bat assembleDebug
+gradlew.bat bundleRelease
 ```
+
+The ordinary release bundle check is intentionally unsigned and can run without secrets. Google Play publication uses Play App Signing plus a developer-controlled upload key; the fail-fast signed publish path is `gradlew.bat playReleaseBundle` after local/secure signing configuration is present. See `RELEASE.md`.
 
 Detailed smoke-test steps are in `TESTING.md`.
 
@@ -158,9 +162,9 @@ Examples: `feature/dark-mode`, `feature/instagram-provider`, `feature/multi-prov
 
 ## Next milestone
 
-Bluesky is complete and verified after its physical-device and direct-link gates. LinkedIn is **BLOCKED / NOT CLEARED** because no current official public deterministic permalink → embed/oEmbed resolver was found that fits the zero-login / zero-OAuth / zero-backend boundary. Facebook remains frozen as **In pausa / unsupported** and PR #4 remains unmerged.
+Provider expansion is closed for the first public release: TikTok, Instagram, Threads, YouTube, Reddit, Pinterest, X and Bluesky are verified. Facebook, LinkedIn and Mastodon remain blocked under their documented constraints; Snapchat is out of scope.
 
-The next provider-expansion milestone is **Mastodon**. Re-check the current official per-instance oEmbed mechanism and multi-instance/domain-validation constraints, then implement only if the single-public-status path remains zero-login, zero-backend, zero-scraping and zero-cost. A richer read-only comments experience remains deferred under the project's zero-cost boundary.
+The active milestone is **Google Play release-readiness**. The first slice adds release-variant lint/AAB CI coverage, secure upload-key plumbing and a fail-fast publish configuration gate. Network/WebView hardening, launcher/store assets, licensing/privacy documentation and the signed release-candidate smoke gate remain separate follow-up milestones.
 
 ## Non-goals
 
