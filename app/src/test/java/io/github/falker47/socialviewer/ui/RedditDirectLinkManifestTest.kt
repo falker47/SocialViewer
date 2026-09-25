@@ -16,7 +16,7 @@ class RedditDirectLinkManifestTest {
             filter.hosts.any { it in REDDIT_HOSTS }
         }
 
-        assertEquals(2, redditFilters.size)
+        assertEquals(1, redditFilters.size)
 
         val redditComFilter = redditFilters.single {
             it.hosts == setOf("reddit.com", "www.reddit.com")
@@ -36,12 +36,6 @@ class RedditDirectLinkManifestTest {
         )
         assertTrue(redditComFilter.pathPrefixes.isEmpty())
         assertTrue(redditComFilter.literalPaths.isEmpty())
-
-        val reddItFilter = redditFilters.single { it.hosts == setOf("redd.it") }
-        assertEquals(setOf("https"), reddItFilter.schemes)
-        assertEquals(setOf("/..*"), reddItFilter.pathPatterns)
-        assertTrue(reddItFilter.pathPrefixes.isEmpty())
-        assertTrue(reddItFilter.literalPaths.isEmpty())
 
         val manifestHosts = redditFilters.flatMapTo(linkedSetOf()) { it.hosts }
         val settingsHosts = DIRECT_LINK_PROVIDERS
@@ -64,7 +58,6 @@ class RedditDirectLinkManifestTest {
             "https://www.reddit.com/r/android/s/AbC123_xYz/",
             "https://reddit.com/u/example_user/s/AbC123_xYz/",
             "https://www.reddit.com/user/example_user/s/AbC123_xYz/",
-            "https://redd.it/1abc234",
         )
 
         claimed.forEach { url ->
@@ -91,6 +84,7 @@ class RedditDirectLinkManifestTest {
             "https://www.reddit.com/r/android/comments/",
             "https://www.reddit.com/r/android/comments/1abc234/example_post/def567/child/",
             "https://redd.it/",
+            "https://redd.it/1abc234",
             "https://old.reddit.com/r/android/comments/1abc234/example_post/",
             "https://new.reddit.com/r/android/comments/1abc234/example_post/",
             "https://m.reddit.com/r/android/comments/1abc234/example_post/",
