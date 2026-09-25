@@ -88,5 +88,33 @@ class BlueskyUrlPolicyTest {
                 "/profile/not_a_handle/post/3l6oveex3ii2l",
             ),
         )
+        assertFalse(
+            BlueskyUrlPolicy.supports(
+                "https",
+                "bsky.app",
+                "/profile/example.123/post/3l6oveex3ii2l",
+            ),
+        )
+        assertFalse(
+            BlueskyUrlPolicy.supports(
+                "https",
+                "bsky.app",
+                "/profile/éxample.com/post/3l6oveex3ii2l",
+            ),
+        )
+        assertFalse(
+            BlueskyUrlPolicy.supports(
+                "https",
+                "bsky.app",
+                "/profile/bsky.app/post/ünicode",
+            ),
+        )
+        assertFalse(
+            BlueskyUrlPolicy.supports(
+                "https",
+                "bsky.app",
+                "/profile/did:key:zExample/post/3l6oveex3ii2l",
+            ),
+        )
     }
 }
