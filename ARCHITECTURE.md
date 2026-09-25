@@ -10,7 +10,7 @@ Reason: provider integrations are the volatile part of the system. The Android s
 
 A provider should prefer documented public embed/oEmbed mechanisms. If a platform requires authentication or blocks public embedding for a piece of content, Social Viewer reports that limitation instead of scraping around it.
 
-Threads uses Meta's current tokenless `https://graph.threads.com/oembed` endpoint for public post URLs. Facebook remains frozen as **In pausa / unsupported** because its real-world opaque share aliases could not be resolved reliably without leaving this boundary; the experimental PR #4 stays unmerged. YouTube uses the official Data API only for the mandatory pre-embed status check and the official privacy-enhanced IFrame player for playback.
+Threads uses Meta's current tokenless `https://graph.threads.com/oembed` endpoint for public post URLs. Reddit uses the official `https://www.reddit.com/oembed` surface for public post and single-comment permalinks; Reddit short/share aliases are followed only to recover a supported canonical HTTPS permalink. Facebook remains frozen as **In pausa / unsupported** because its real-world opaque share aliases could not be resolved reliably without leaving this boundary; the experimental PR #4 stays unmerged. YouTube uses the official Data API only for the mandatory pre-embed status check and the official privacy-enhanced IFrame player for playback.
 
 ## AD-003 — Privacy-minimal local state
 
@@ -28,7 +28,7 @@ If favorites/history ever become a feature, they must be explicitly opt-in and m
 
 ## AD-004 — WebView is an implementation detail
 
-`SocialContent` carries renderable embed HTML plus a provider document base URL. TikTok uses its official dedicated player; Instagram and Threads use Meta's official tokenless oEmbed markup; YouTube uses the official privacy-enhanced IFrame player at `youtube-nocookie.com`. All render through the shared WebView without moving provider retrieval logic into the Android shell.
+`SocialContent` carries renderable embed HTML plus a provider document base URL. TikTok uses its official dedicated player; Instagram and Threads use Meta's official tokenless oEmbed markup; Reddit uses official Reddit Embed/oEmbed markup; YouTube uses the official privacy-enhanced IFrame player at `youtube-nocookie.com`. All render through the shared WebView without moving provider retrieval logic into the Android shell.
 
 Threads does not require a new renderer hierarchy: the existing provider-aware document base URL remains sufficient. Third-party cookies stay disabled, provider first-party preferences may persist locally, and main-frame navigation stays blocked.
 
@@ -40,7 +40,7 @@ Canonical Threads `/@user/post/...` paths remain paste/Share-only on the current
 
 On Android 12+, `DomainVerificationManager` is the source of truth. The Android shell maps declared hosts to provider-oriented states (**Attiva / Parziale / Da configurare**) and treats the global link-handling permission as a gate. Settings presents one compact **Apertura diretta** area with provider breakdown and a single **Configura** action that opens Android's real **Open by default** screen.
 
-First-party provider apps and the browser may compete for the same domains, so Social Viewer does not imply exclusive ownership. `ACTION_SEND` and manual paste remain fallbacks; the preferred product flow remains tap-on-link → Social Viewer → resolve/render when Android is configured accordingly. YouTube intentionally stays manual-paste/Android-Share-only in its first slice; no YouTube domain `ACTION_VIEW` filters are declared.
+First-party provider apps and the browser may compete for the same domains, so Social Viewer does not imply exclusive ownership. `ACTION_SEND` and manual paste remain fallbacks; the preferred product flow remains tap-on-link → Social Viewer → resolve/render when Android is configured accordingly. YouTube and Reddit intentionally stay manual-paste/Android-Share-only in their current slices; no YouTube or Reddit domain `ACTION_VIEW` filters are declared. The UI labels this section specifically as direct-link capability rather than total provider support.
 
 
 ## AD-006 — YouTube provider-native surface compromise
@@ -52,3 +52,10 @@ Social Viewer does not build feeds or recommendations. For YouTube only, provide
 Current policy requires a Made For Kids lookup for every embedded video. The provider calls `videos.list?part=snippet,status` before creating `SocialContent`. It requires `privacyStatus=public`, `embeddable=true`, and an explicit `madeForKids=false`. MFK videos fail closed before any YouTube player is loaded and the user can open the original URL instead.
 
 The Data API key is a build-time credential/configuration dependency, never a repository secret. Android package/certificate identity headers are attached so the key can be application-restricted, while API restrictions should still limit it to YouTube Data API v3.
+
+
+## AD-007 — Comment surfaces remain provider-specific
+
+The current product boundary renders one explicitly shared item. Reddit Embeds can represent either a post or one explicitly linked comment, but a post embed does not become a comment-tree client. Loading a post's comment listing would require a distinct Reddit Data API integration with registered OAuth access and its own policy/rate-limit handling. That work must be evaluated as a separate feature rather than inferred from the existing oEmbed provider.
+
+The same rule applies across providers: comment viewing is enabled only when a provider exposes a documented, supportable mechanism that can remain read-only and bounded to the current item. Social Viewer must not simulate comments by scraping provider pages or by relaxing main-frame navigation into a general social browser.
