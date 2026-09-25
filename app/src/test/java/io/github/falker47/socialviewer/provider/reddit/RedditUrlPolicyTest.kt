@@ -46,6 +46,39 @@ class RedditUrlPolicyTest {
     }
 
     @Test
+    fun acceptsBareCommentsSinglePostTargetUsedByReddItRedirects() {
+        assertEquals(
+            "https://www.reddit.com/comments/18u7q0v/",
+            RedditUrlPolicy.canonicalPermalink(
+                "https",
+                "www.reddit.com",
+                "/comments/18u7q0v/",
+            ),
+        )
+        assertTrue(
+            RedditUrlPolicy.supports(
+                "https",
+                "reddit.com",
+                "/comments/18u7q0v",
+            ),
+        )
+        assertFalse(
+            RedditUrlPolicy.supports(
+                "https",
+                "www.reddit.com",
+                "/comments/",
+            ),
+        )
+        assertFalse(
+            RedditUrlPolicy.supports(
+                "https",
+                "www.reddit.com",
+                "/comments/18u7q0v/extra/",
+            ),
+        )
+    }
+
+    @Test
     fun recognizesOnlyBoundedShareAndShortAliasesForRedirectResolution() {
         assertTrue(
             RedditUrlPolicy.requiresRedirectResolution(
