@@ -10,38 +10,60 @@ import android.os.Looper
 import android.view.View
 import android.webkit.CookieManager
 import android.webkit.WebStorage
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material.icons.outlined.ChevronRight
+import androidx.compose.material.icons.outlined.Code
+import androidx.compose.material.icons.outlined.DarkMode
+import androidx.compose.material.icons.outlined.DeleteOutline
+import androidx.compose.material.icons.outlined.Devices
+import androidx.compose.material.icons.outlined.ErrorOutline
+import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.LightMode
+import androidx.compose.material.icons.outlined.OpenInNew
+import androidx.compose.material.icons.outlined.Public
+import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.outlined.Shield
+import androidx.compose.material.icons.outlined.WarningAmber
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.AssistChip
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -55,8 +77,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
@@ -73,16 +93,22 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.CompositingStrategy
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import io.github.falker47.socialviewer.R
 import io.github.falker47.socialviewer.domain.SocialContent
 import io.github.falker47.socialviewer.provider.ProviderRegistry
@@ -90,6 +116,7 @@ import io.github.falker47.socialviewer.util.UrlExtractor
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlin.math.sqrt
 
 sealed interface ViewerState {
     data object Home : ViewerState
@@ -254,44 +281,24 @@ fun SocialViewerApp(
         }
     }
 
-    MaterialTheme(
-        colorScheme = if (darkTheme) darkColorScheme() else lightColorScheme(),
-    ) {
+    SocialViewerTheme(darkTheme = darkTheme) {
         ApplySystemBars(context = context, darkTheme = darkTheme)
         Box(modifier = Modifier.fillMaxSize()) {
             Scaffold(
                 snackbarHost = { SnackbarHost(snackbarHostState) },
                 topBar = {
-                    when (screen) {
-                        AppScreen.Settings -> {
-                            TopAppBar(
-                                title = { Text("Impostazioni") },
-                                navigationIcon = {
-                                    IconButton(onClick = { screen = AppScreen.Viewer }) {
-                                        Icon(
-                                            painter = painterResource(R.drawable.ic_arrow_back_24),
-                                            contentDescription = "Indietro",
-                                        )
-                                    }
-                                },
-                            )
-                        }
-
-                        AppScreen.Viewer -> {
-                            TopAppBar(
-                                title = { Text("Social Viewer") },
-                                actions = {
-                                    if (state == ViewerState.Home) {
-                                        IconButton(onClick = { screen = AppScreen.Settings }) {
-                                            Icon(
-                                                painter = painterResource(R.drawable.ic_settings_24),
-                                                contentDescription = "Impostazioni",
-                                            )
-                                        }
-                                    }
-                                },
-                            )
-                        }
+                    if (screen == AppScreen.Settings) {
+                        TopAppBar(
+                            title = { Text("Impostazioni") },
+                            navigationIcon = {
+                                IconButton(onClick = { screen = AppScreen.Viewer }) {
+                                    Icon(
+                                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                        contentDescription = "Indietro",
+                                    )
+                                }
+                            },
+                        )
                     }
                 },
             ) { padding ->
@@ -322,6 +329,9 @@ fun SocialViewerApp(
                             }
                         },
                         appVersion = appVersionName(context),
+                        onOpenSource = {
+                            openExternal(context, "https://github.com/falker47/SocialViewer")
+                        },
                         modifier = Modifier.padding(padding),
                     )
 
@@ -337,6 +347,7 @@ fun SocialViewerApp(
                             onPasteAndOpen = ::pasteAndOpen,
                             onOpen = ::openManualField,
                             onConfigureDirectLinks = ::launchDirectLinkSettings,
+                            onOpenSettings = { screen = AppScreen.Settings },
                             onInputTargetChanged = { inputTarget = it },
                             onDirectLinkTargetChanged = { directLinkTarget = it },
                             modifier = Modifier.padding(padding),
@@ -370,6 +381,9 @@ fun SocialViewerApp(
                             title = current.title,
                             message = current.message,
                             onBack = { state = ViewerState.Home },
+                            onRetry = current.url?.let { url ->
+                                { state = ViewerState.Loading(url) }
+                            },
                             onOpenOriginal = current.url?.let { url ->
                                 { openExternal(context, url) }
                             },
@@ -409,70 +423,210 @@ private fun HomeScreen(
     onPasteAndOpen: () -> Unit,
     onOpen: () -> Unit,
     onConfigureDirectLinks: () -> Unit,
+    onOpenSettings: () -> Unit,
     onInputTargetChanged: (Rect) -> Unit,
     onDirectLinkTargetChanged: (Rect) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 24.dp, vertical = 28.dp),
-    ) {
-        Text(
-            "Apri un contenuto",
-            style = MaterialTheme.typography.headlineSmall,
-        )
-        Spacer(Modifier.height(20.dp))
+    BoxWithConstraints(modifier = modifier.fillMaxSize()) {
+        val compactHeight = maxHeight < 640.dp
 
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .onGloballyPositioned { onInputTargetChanged(it.boundsInRoot()) },
-        ) {
-            OutlinedTextField(
-                value = value,
-                onValueChange = onValueChange,
-                placeholder = { Text("Incolla un link") },
-                singleLine = true,
-                isError = error != null,
-                supportingText = error?.let { message ->
-                    { Text(message) }
-                },
-                trailingIcon = {
-                    IconButton(onClick = onPasteAndOpen) {
-                        Icon(
-                            painter = painterResource(R.drawable.ic_content_paste_24),
-                            contentDescription = "Incolla e apri",
-                        )
-                    }
-                },
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Uri,
-                    imeAction = ImeAction.Go,
-                ),
-                keyboardActions = KeyboardActions(onGo = { onOpen() }),
-                modifier = Modifier.fillMaxWidth(),
-            )
-            Spacer(Modifier.height(12.dp))
-            Button(
-                onClick = onOpen,
-                modifier = Modifier.fillMaxWidth(),
+        if (compactHeight) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 24.dp, vertical = 20.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                Text("Apri")
+                Spacer(Modifier.height(8.dp))
+                HomePrimaryContent(
+                    value = value,
+                    error = error,
+                    onValueChange = onValueChange,
+                    onPasteAndOpen = onPasteAndOpen,
+                    onOpen = onOpen,
+                    onInputTargetChanged = onInputTargetChanged,
+                )
+                Spacer(Modifier.height(32.dp))
+                HomeUtilities(
+                    directLinkState = directLinkState,
+                    onConfigureDirectLinks = onConfigureDirectLinks,
+                    onOpenSettings = onOpenSettings,
+                    onDirectLinkTargetChanged = onDirectLinkTargetChanged,
+                )
+            }
+        } else {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 24.dp, vertical = 20.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Spacer(Modifier.height(24.dp))
+                    HomePrimaryContent(
+                        value = value,
+                        error = error,
+                        onValueChange = onValueChange,
+                        onPasteAndOpen = onPasteAndOpen,
+                        onOpen = onOpen,
+                        onInputTargetChanged = onInputTargetChanged,
+                    )
+                }
+
+                HomeUtilities(
+                    directLinkState = directLinkState,
+                    onConfigureDirectLinks = onConfigureDirectLinks,
+                    onOpenSettings = onOpenSettings,
+                    onDirectLinkTargetChanged = onDirectLinkTargetChanged,
+                )
+                Spacer(Modifier.height(4.dp))
             }
         }
+    }
+}
 
-        Spacer(Modifier.height(24.dp))
+@Composable
+private fun HomePrimaryContent(
+    value: String,
+    error: String?,
+    onValueChange: (String) -> Unit,
+    onPasteAndOpen: () -> Unit,
+    onOpen: () -> Unit,
+    onInputTargetChanged: (Rect) -> Unit,
+) {
+    FocusFrameMark(
+        modifier = Modifier.size(72.dp),
+        color = MaterialTheme.colorScheme.primary,
+    )
+    Spacer(Modifier.height(18.dp))
+    Text(
+        "Social Viewer",
+        style = MaterialTheme.typography.headlineLarge.copy(
+            fontWeight = FontWeight.SemiBold,
+            letterSpacing = (-0.5).sp,
+        ),
+    )
+    Spacer(Modifier.height(6.dp))
+    Text(
+        "Apri il contenuto, non il feed.",
+        style = MaterialTheme.typography.bodyLarge,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+    Spacer(Modifier.height(32.dp))
 
-        DirectLinkCard(
-            state = directLinkState,
-            onConfigure = onConfigureDirectLinks,
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .onGloballyPositioned { onInputTargetChanged(it.boundsInRoot()) },
+    ) {
+        OutlinedTextField(
+            value = value,
+            onValueChange = onValueChange,
+            placeholder = { Text("Incolla un link pubblico…") },
+            singleLine = true,
+            isError = error != null,
+            supportingText = error?.let { message -> { Text(message) } },
+            trailingIcon = {
+                IconButton(onClick = onPasteAndOpen) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_content_paste_24),
+                        contentDescription = "Incolla e apri",
+                    )
+                }
+            },
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Uri,
+                imeAction = ImeAction.Go,
+            ),
+            keyboardActions = KeyboardActions(onGo = { onOpen() }),
+            shape = RoundedCornerShape(18.dp),
+            modifier = Modifier.fillMaxWidth(),
+        )
+        Spacer(Modifier.height(12.dp))
+        Button(
+            onClick = onOpen,
+            shape = RoundedCornerShape(16.dp),
             modifier = Modifier
                 .fillMaxWidth()
-                .onGloballyPositioned { onDirectLinkTargetChanged(it.boundsInRoot()) },
-        )
+                .height(54.dp),
+        ) {
+            Text("Apri")
+        }
     }
+
+    Spacer(Modifier.height(22.dp))
+    SupportedProvidersStrip()
+}
+
+@Composable
+private fun SupportedProvidersStrip() {
+    val providers = listOf(
+        "tiktok" to "TikTok",
+        "instagram" to "Instagram",
+        "threads" to "Threads",
+        "youtube" to "YouTube",
+        "reddit" to "Reddit",
+        "pinterest" to "Pinterest",
+        "x" to "X",
+        "bluesky" to "Bluesky",
+    )
+
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(
+            "Link supportati",
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Spacer(Modifier.height(10.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            providers.forEach { (providerId, label) ->
+                ProviderMark(
+                    providerId = providerId,
+                    contentDescription = label,
+                    modifier = Modifier.size(22.dp),
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun HomeUtilities(
+    directLinkState: DirectLinkHandlingState,
+    onConfigureDirectLinks: () -> Unit,
+    onOpenSettings: () -> Unit,
+    onDirectLinkTargetChanged: (Rect) -> Unit,
+) {
+    DirectLinkCard(
+        state = directLinkState,
+        onConfigure = onConfigureDirectLinks,
+        modifier = Modifier
+            .fillMaxWidth()
+            .onGloballyPositioned { onDirectLinkTargetChanged(it.boundsInRoot()) },
+    )
+    Spacer(Modifier.height(10.dp))
+    HomeNavigationRow(
+        icon = Icons.Outlined.Settings,
+        title = "Impostazioni",
+        subtitle = "Aspetto, privacy e configurazione",
+        onClick = onOpenSettings,
+        modifier = Modifier.fillMaxWidth(),
+    )
 }
 
 @Composable
@@ -481,55 +635,64 @@ private fun DirectLinkCard(
     onConfigure: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val providerNames = state.providers.joinToString(" e ") { it.definition.displayName }
-    val title = when {
-        state.allProvidersActive -> "Apertura diretta attiva"
-        state.anyProviderConfigured -> "Apertura diretta parziale"
-        else -> "Apertura diretta"
+    val status = when {
+        state.allProvidersActive -> "Configurata"
+        state.anyProviderConfigured -> "Parziale"
+        else -> "Da completare"
     }
-    val body = when {
-        state.allProvidersActive ->
-            "I link $providerNames supportati possono aprirsi direttamente in Social Viewer."
-
-        state.anyProviderConfigured ->
-            "Alcuni link sono già configurati. Completa l'impostazione in Android."
-
-        else ->
-            "Apri i link $providerNames supportati direttamente in Social Viewer."
+    val icon = when {
+        state.allProvidersActive -> Icons.Outlined.CheckCircle
+        state.anyProviderConfigured -> Icons.Outlined.WarningAmber
+        else -> Icons.Outlined.Public
     }
-
-    Card(
+    HomeNavigationRow(
+        icon = icon,
+        title = "Apertura diretta",
+        subtitle = status,
+        onClick = onConfigure,
         modifier = modifier,
+    )
+}
+
+@Composable
+private fun HomeNavigationRow(
+    icon: ImageVector,
+    title: String,
+    subtitle: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Card(
+        modifier = modifier.clickable(onClick = onClick),
+        shape = RoundedCornerShape(18.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f),
         ),
     ) {
-        Column(modifier = Modifier.padding(18.dp)) {
-            Text(
-                title,
-                style = MaterialTheme.typography.titleMedium,
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(24.dp),
             )
-            Spacer(Modifier.height(6.dp))
-            Text(
-                body,
-                style = MaterialTheme.typography.bodyMedium,
-            )
-            if (!state.allProvidersActive) {
-                Spacer(Modifier.height(14.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        directLinkSummaryLabel(state),
-                        style = MaterialTheme.typography.labelLarge,
-                        modifier = Modifier.weight(1f),
-                    )
-                    TextButton(onClick = onConfigure) {
-                        Text("Configura")
-                    }
-                }
+            Spacer(Modifier.size(14.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(title, style = MaterialTheme.typography.titleMedium)
+                Text(
+                    subtitle,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
+            Icon(
+                imageVector = Icons.Outlined.ChevronRight,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
 }
@@ -544,155 +707,106 @@ private fun SettingsScreen(
     xEmbedConsentGranted: Boolean,
     onRevokeXEmbedConsent: () -> Unit,
     appVersion: String,
+    onOpenSource: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var confirmClear by remember { mutableStateOf(false) }
-
     Column(
         modifier = modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = 24.dp, vertical = 20.dp),
+            .padding(horizontal = 20.dp, vertical = 16.dp),
     ) {
-        SettingsSectionTitle("APERTURA DIRETTA")
-        Spacer(Modifier.height(12.dp))
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text("Apertura diretta", style = MaterialTheme.typography.titleMedium)
-                Text(
-                    directLinkSummaryLabel(directLinkState),
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-            }
-            OutlinedButton(onClick = onConfigureDirectLinks) {
-                Text("Configura")
-            }
-        }
-        Spacer(Modifier.height(12.dp))
-        directLinkState.providers.forEach { providerState ->
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 3.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    providerState.definition.displayName,
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.weight(1f),
-                )
-                Text(
-                    directLinkProviderStatusLabel(providerState.status),
-                    style = MaterialTheme.typography.labelLarge,
-                )
-            }
-        }
-        Spacer(Modifier.height(8.dp))
-        Text(
-            "Qui compaiono solo i provider configurabili per l'apertura diretta. " +
-                "YouTube, Reddit e X restano disponibili tramite Incolla o Condividi.",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+        SettingsSectionTitle("Apertura diretta")
         Spacer(Modifier.height(10.dp))
-        Text(
-            "NON ATTIVO",
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 3.dp),
-            verticalAlignment = Alignment.CenterVertically,
+        Card(
+            shape = RoundedCornerShape(18.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f),
+            ),
         ) {
-            Text(
-                "Facebook",
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.weight(1f),
-            )
-            AssistChip(
-                onClick = {},
-                enabled = false,
-                label = { Text("In pausa") },
-            )
-        }
-        Spacer(Modifier.height(10.dp))
-        Text(
-            "Android decide quali domini aprono Social Viewer. Le app ufficiali o il browser " +
-                "possono competere per gli stessi link.",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-
-        Spacer(Modifier.height(24.dp))
-        HorizontalDivider()
-        Spacer(Modifier.height(24.dp))
-
-        SettingsSectionTitle("ASPETTO")
-        Spacer(Modifier.height(12.dp))
-        Text("Tema", style = MaterialTheme.typography.titleMedium)
-        Spacer(Modifier.height(6.dp))
-        ThemeMode.entries.forEach { mode ->
-            ThemeModeOption(
-                label = mode.displayLabel,
-                selected = themeMode == mode,
-                onSelect = { onThemeModeChange(mode) },
-            )
-        }
-
-        Spacer(Modifier.height(24.dp))
-        HorizontalDivider()
-        Spacer(Modifier.height(24.dp))
-
-        SettingsSectionTitle("PRIVACY E DATI DEL SITO")
-        Spacer(Modifier.height(12.dp))
-        Text("Dati dei provider", style = MaterialTheme.typography.titleMedium)
-        Spacer(Modifier.height(4.dp))
-        Text(
-            "Cookie e preferenze dei provider sono conservati localmente.",
-            style = MaterialTheme.typography.bodyMedium,
-        )
-        Spacer(Modifier.height(14.dp))
-        OutlinedButton(onClick = { confirmClear = true }) {
-            Text("Cancella dati del sito")
-        }
-        if (xEmbedConsentGranted) {
-            Spacer(Modifier.height(18.dp))
-            Text("Contenuti X", style = MaterialTheme.typography.titleSmall)
-            Spacer(Modifier.height(4.dp))
-            Text(
-                "Caricamento autorizzato. La scelta viene ricordata sul dispositivo.",
-                style = MaterialTheme.typography.bodyMedium,
-            )
-            TextButton(onClick = onRevokeXEmbedConsent) {
-                Text("Revoca autorizzazione")
+            directLinkState.providers.forEachIndexed { index, providerState ->
+                ProviderSettingsRow(providerState, onConfigureDirectLinks)
+                if (index < directLinkState.providers.lastIndex) {
+                    HorizontalDivider(
+                        modifier = Modifier.padding(start = 58.dp),
+                        color = MaterialTheme.colorScheme.outlineVariant,
+                    )
+                }
             }
         }
-
-        Spacer(Modifier.height(24.dp))
-        HorizontalDivider()
-        Spacer(Modifier.height(24.dp))
-
-        SettingsSectionTitle("INFORMAZIONI")
         Spacer(Modifier.height(12.dp))
-        Text("Social Viewer", style = MaterialTheme.typography.titleMedium)
-        Text(
-            "Versione $appVersion",
-            style = MaterialTheme.typography.bodyMedium,
-        )
-        Spacer(Modifier.height(16.dp))
-        Text("Privacy", style = MaterialTheme.typography.titleSmall)
-        Spacer(Modifier.height(4.dp))
-        Text(
-            "Nessun account Social Viewer, cronologia o analytics.",
-            style = MaterialTheme.typography.bodyMedium,
-        )
+        DirectLinkHowToCard()
+        Spacer(Modifier.height(28.dp))
+        SettingsSectionTitle("Aspetto")
+        Spacer(Modifier.height(10.dp))
+        ThemeSegmentedControl(themeMode, onThemeModeChange)
+        Spacer(Modifier.height(28.dp))
+        SettingsSectionTitle("Privacy e dati")
+        Spacer(Modifier.height(10.dp))
+        Card(
+            shape = RoundedCornerShape(18.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f),
+            ),
+        ) {
+            SettingsActionRow(
+                icon = Icons.Outlined.Shield,
+                title = "Privacy",
+                subtitle = "Nessun account Social Viewer, cronologia o analytics.",
+            )
+            HorizontalDivider(
+                modifier = Modifier.padding(start = 58.dp),
+                color = MaterialTheme.colorScheme.outlineVariant,
+            )
+            SettingsActionRow(
+                icon = Icons.Outlined.DeleteOutline,
+                title = "Cancella dati dei siti",
+                subtitle = "Rimuove cookie e preferenze locali dei provider.",
+                onClick = { confirmClear = true },
+            )
+            if (xEmbedConsentGranted) {
+                HorizontalDivider(
+                    modifier = Modifier.padding(start = 58.dp),
+                    color = MaterialTheme.colorScheme.outlineVariant,
+                )
+                SettingsActionRow(
+                    icon = Icons.Outlined.CheckCircle,
+                    title = "Autorizzazione X",
+                    subtitle = "Autorizzata sul dispositivo",
+                    actionLabel = "Revoca",
+                    onClick = onRevokeXEmbedConsent,
+                )
+            }
+        }
+        Spacer(Modifier.height(28.dp))
+        SettingsSectionTitle("Informazioni")
+        Spacer(Modifier.height(10.dp))
+        Card(
+            shape = RoundedCornerShape(18.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f),
+            ),
+        ) {
+            SettingsActionRow(
+                icon = Icons.Outlined.Info,
+                title = "Social Viewer",
+                subtitle = "Versione " + appVersion,
+            )
+            HorizontalDivider(
+                modifier = Modifier.padding(start = 58.dp),
+                color = MaterialTheme.colorScheme.outlineVariant,
+            )
+            SettingsActionRow(
+                icon = Icons.Outlined.Code,
+                title = "Codice sorgente",
+                subtitle = "GitHub",
+                trailingIcon = Icons.Outlined.OpenInNew,
+                onClick = onOpenSource,
+            )
+        }
+        Spacer(Modifier.height(24.dp))
     }
-
     if (confirmClear) {
         AlertDialog(
             onDismissRequest = { confirmClear = false },
@@ -704,9 +818,7 @@ private fun SettingsScreen(
                 )
             },
             dismissButton = {
-                TextButton(onClick = { confirmClear = false }) {
-                    Text("Annulla")
-                }
+                TextButton(onClick = { confirmClear = false }) { Text("Annulla") }
             },
             confirmButton = {
                 TextButton(
@@ -714,36 +826,197 @@ private fun SettingsScreen(
                         confirmClear = false
                         onClearSiteData()
                     },
-                ) {
-                    Text("Cancella")
-                }
+                ) { Text("Cancella") }
             },
         )
     }
 }
 
 @Composable
-private fun ThemeModeOption(
-    label: String,
-    selected: Boolean,
-    onSelect: () -> Unit,
+private fun ProviderSettingsRow(
+    providerState: DirectLinkProviderState,
+    onClick: () -> Unit,
 ) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onSelect)
-            .padding(vertical = 4.dp),
+        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 13.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        RadioButton(
-            selected = selected,
-            onClick = onSelect,
+        ProviderMark(
+            providerId = providerState.definition.providerId,
+            contentDescription = providerState.definition.displayName,
+            modifier = Modifier.size(26.dp),
         )
+        Spacer(Modifier.size(16.dp))
         Text(
-            label,
+            providerState.definition.displayName,
             style = MaterialTheme.typography.bodyLarge,
-            modifier = Modifier.padding(start = 8.dp),
+            modifier = Modifier.weight(1f),
         )
+        ProviderStatusBadge(providerState.status)
+        Spacer(Modifier.size(6.dp))
+        Icon(
+            imageVector = Icons.Outlined.ChevronRight,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.size(20.dp),
+        )
+    }
+}
+
+@Composable
+private fun ProviderStatusBadge(status: DirectLinkProviderStatus) {
+    val background = when (status) {
+        DirectLinkProviderStatus.ACTIVE -> MaterialTheme.colorScheme.primaryContainer
+        DirectLinkProviderStatus.PARTIAL -> MaterialTheme.colorScheme.secondaryContainer
+        DirectLinkProviderStatus.NEEDS_SETUP -> MaterialTheme.colorScheme.surface
+    }
+    val foreground = when (status) {
+        DirectLinkProviderStatus.ACTIVE -> MaterialTheme.colorScheme.onPrimaryContainer
+        DirectLinkProviderStatus.PARTIAL -> MaterialTheme.colorScheme.onSecondaryContainer
+        DirectLinkProviderStatus.NEEDS_SETUP -> MaterialTheme.colorScheme.onSurfaceVariant
+    }
+    Surface(
+        color = background,
+        contentColor = foreground,
+        shape = RoundedCornerShape(999.dp),
+    ) {
+        Text(
+            directLinkProviderStatusLabel(status),
+            style = MaterialTheme.typography.labelMedium,
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+        )
+    }
+}
+
+@Composable
+private fun ThemeSegmentedControl(
+    themeMode: ThemeMode,
+    onThemeModeChange: (ThemeMode) -> Unit,
+) {
+    val options = listOf(
+        Triple(ThemeMode.System, "Sistema", Icons.Outlined.Devices),
+        Triple(ThemeMode.Light, "Chiaro", Icons.Outlined.LightMode),
+        Triple(ThemeMode.Dark, "Scuro", Icons.Outlined.DarkMode),
+    )
+    Row(
+        modifier = Modifier.fillMaxWidth()
+            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(16.dp))
+            .padding(2.dp),
+    ) {
+        options.forEach { (mode, label, icon) ->
+            val selected = themeMode == mode
+            Surface(
+                modifier = Modifier.weight(1f).clickable { onThemeModeChange(mode) },
+                shape = RoundedCornerShape(13.dp),
+                color = if (selected) MaterialTheme.colorScheme.primaryContainer else Color.Transparent,
+                contentColor = if (selected) {
+                    MaterialTheme.colorScheme.onPrimaryContainer
+                } else {
+                    MaterialTheme.colorScheme.onSurfaceVariant
+                },
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 11.dp),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(imageVector = icon, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.size(6.dp))
+                    Text(label, style = MaterialTheme.typography.labelLarge)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun DirectLinkHowToCard() {
+    Surface(
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.38f),
+        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 14.dp),
+            verticalAlignment = Alignment.Top,
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.Info,
+                contentDescription = null,
+                modifier = Modifier.size(22.dp),
+            )
+            Spacer(Modifier.size(12.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    "Come si attiva",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold,
+                )
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    "• Configura\n• Aggiungi link\n• Seleziona i domini disponibili",
+                    style = MaterialTheme.typography.bodySmall,
+                )
+                Spacer(Modifier.height(7.dp))
+                Text(
+                    "Se possiedi l’app ufficiale, questa potrebbe avere priorità rispetto a Social Viewer.",
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun SettingsActionRow(
+    icon: ImageVector,
+    title: String,
+    subtitle: String? = null,
+    actionLabel: String? = null,
+    trailingIcon: ImageVector? = null,
+    onClick: (() -> Unit)? = null,
+) {
+    val interactionModifier = if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier
+    Row(
+        modifier = Modifier.fillMaxWidth().then(interactionModifier)
+            .padding(horizontal = 16.dp, vertical = 14.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.size(24.dp),
+        )
+        Spacer(Modifier.size(18.dp))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(title, style = MaterialTheme.typography.bodyLarge)
+            if (subtitle != null) {
+                Spacer(Modifier.height(2.dp))
+                Text(
+                    subtitle,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+        if (actionLabel != null) {
+            Text(
+                actionLabel,
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.primary,
+            )
+        } else if (trailingIcon != null) {
+            Icon(
+                imageVector = trailingIcon,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(20.dp),
+            )
+        }
     }
 }
 
@@ -751,8 +1024,9 @@ private fun ThemeModeOption(
 private fun SettingsSectionTitle(text: String) {
     Text(
         text,
-        style = MaterialTheme.typography.labelLarge,
-        color = MaterialTheme.colorScheme.primary,
+        style = MaterialTheme.typography.titleSmall,
+        color = MaterialTheme.colorScheme.onSurface,
+        fontWeight = FontWeight.SemiBold,
     )
 }
 
@@ -771,7 +1045,7 @@ private fun directLinkSummaryLabel(state: DirectLinkHandlingState): String {
 
 private fun directLinkProviderStatusLabel(status: DirectLinkProviderStatus): String =
     when (status) {
-        DirectLinkProviderStatus.ACTIVE -> "Attiva"
+        DirectLinkProviderStatus.ACTIVE -> "Attivo"
         DirectLinkProviderStatus.PARTIAL -> "Parziale"
         DirectLinkProviderStatus.NEEDS_SETUP -> "Da configurare"
     }
@@ -786,16 +1060,17 @@ private fun CoachMarkOverlay(
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val scrimColor = Color.Black.copy(alpha = 0.62f)
+
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         val density = LocalDensity.current
         val containerHeightPx = with(density) { maxHeight.toPx() }
-        val navigationBarBottomPadding =
-            WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
-        val alignment = if (target.center.y < containerHeightPx / 2f) {
-            Alignment.BottomCenter
-        } else {
-            Alignment.TopCenter
-        }
+        val targetIsUpper = target.center.y < containerHeightPx / 2f
+        val calloutGap = 54.dp
+        val calloutGapPx = with(density) { calloutGap.toPx() }
+        val targetBottomDp = with(density) { target.bottom.toDp() }
+        val bottomDistanceToTargetTopDp =
+            with(density) { (containerHeightPx - target.top).toDp() }
+
         Canvas(
             modifier = Modifier
                 .fillMaxSize()
@@ -820,6 +1095,13 @@ private fun CoachMarkOverlay(
             )
         }
 
+        CoachMarkArrow(
+            target = target,
+            calloutBelowTarget = targetIsUpper,
+            gapPx = calloutGapPx,
+            modifier = Modifier.fillMaxSize(),
+        )
+
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -832,16 +1114,12 @@ private fun CoachMarkOverlay(
 
         Surface(
             modifier = Modifier
-                .align(alignment)
+                .align(if (targetIsUpper) Alignment.TopCenter else Alignment.BottomCenter)
                 .padding(
                     start = 20.dp,
                     end = 20.dp,
-                    top = if (alignment == Alignment.TopCenter) 92.dp else 20.dp,
-                    bottom = if (alignment == Alignment.BottomCenter) {
-                        navigationBarBottomPadding + if (step == 1) 56.dp else 28.dp
-                    } else {
-                        20.dp
-                    },
+                    top = if (targetIsUpper) targetBottomDp + calloutGap else 20.dp,
+                    bottom = if (targetIsUpper) 20.dp else bottomDistanceToTargetTopDp + calloutGap,
                 )
                 .widthIn(max = 520.dp),
             shape = RoundedCornerShape(20.dp),
@@ -875,8 +1153,8 @@ private fun CoachMarkOverlay(
                     )
                     Spacer(Modifier.height(8.dp))
                     Text(
-                        "Dopo la configurazione, tocca un link compatibile su WhatsApp o nel browser: " +
-                            "si aprirà in Social Viewer.",
+                        "Configura Android una volta: poi i link compatibili possono aprirsi " +
+                            "direttamente in Social Viewer.",
                         style = MaterialTheme.typography.bodyMedium,
                     )
                     Spacer(Modifier.height(18.dp))
@@ -895,6 +1173,101 @@ private fun CoachMarkOverlay(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun CoachMarkArrow(
+    target: Rect,
+    calloutBelowTarget: Boolean,
+    gapPx: Float,
+    modifier: Modifier = Modifier,
+) {
+    val color = MaterialTheme.colorScheme.primary
+
+    Canvas(modifier = modifier) {
+        val strokeWidth = 2.5.dp.toPx()
+        val arrowHalfWidth = 6.dp.toPx()
+        val arrowDepth = 9.dp.toPx()
+
+        val start: Offset
+        val control: Offset
+        val end: Offset
+
+        if (calloutBelowTarget) {
+            start = Offset(
+                x = target.center.x + 34.dp.toPx(),
+                y = target.bottom + gapPx - 6.dp.toPx(),
+            )
+            control = Offset(
+                x = target.center.x + 54.dp.toPx(),
+                y = target.bottom + gapPx * 0.48f,
+            )
+            end = Offset(
+                x = target.center.x + 8.dp.toPx(),
+                y = target.bottom + 8.dp.toPx(),
+            )
+        } else {
+            start = Offset(
+                x = target.center.x - 34.dp.toPx(),
+                y = target.top - gapPx + 6.dp.toPx(),
+            )
+            control = Offset(
+                x = target.center.x - 54.dp.toPx(),
+                y = target.top - gapPx * 0.48f,
+            )
+            end = Offset(
+                x = target.center.x - 8.dp.toPx(),
+                y = target.top - 8.dp.toPx(),
+            )
+        }
+
+        val path = Path().apply {
+            moveTo(start.x, start.y)
+            quadraticBezierTo(control.x, control.y, end.x, end.y)
+        }
+
+        drawPath(
+            path = path,
+            color = color,
+            style = Stroke(width = strokeWidth, cap = StrokeCap.Round),
+        )
+
+        val tangentX = end.x - control.x
+        val tangentY = end.y - control.y
+        val tangentLength = sqrt(tangentX * tangentX + tangentY * tangentY)
+            .coerceAtLeast(1f)
+        val unitX = tangentX / tangentLength
+        val unitY = tangentY / tangentLength
+        val perpendicularX = -unitY
+        val perpendicularY = unitX
+        val baseCenter = Offset(
+            x = end.x - unitX * arrowDepth,
+            y = end.y - unitY * arrowDepth,
+        )
+        val left = Offset(
+            x = baseCenter.x + perpendicularX * arrowHalfWidth,
+            y = baseCenter.y + perpendicularY * arrowHalfWidth,
+        )
+        val right = Offset(
+            x = baseCenter.x - perpendicularX * arrowHalfWidth,
+            y = baseCenter.y - perpendicularY * arrowHalfWidth,
+        )
+
+        drawLine(
+            color = color,
+            start = end,
+            end = left,
+            strokeWidth = strokeWidth,
+            cap = StrokeCap.Round,
+        )
+        drawLine(
+            color = color,
+            start = end,
+            end = right,
+            strokeWidth = strokeWidth,
+            cap = StrokeCap.Round,
+        )
     }
 }
 
@@ -940,57 +1313,79 @@ private fun XConsentScreen(
     modifier: Modifier = Modifier,
 ) {
     Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(24.dp),
-        verticalArrangement = Arrangement.Center,
+        modifier = modifier.fillMaxSize().padding(24.dp),
     ) {
-        Text(
-            "Caricare il contenuto da X?",
-            style = MaterialTheme.typography.headlineSmall,
+        IconButton(onClick = onBack) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = "Indietro",
+            )
+        }
+        Spacer(Modifier.height(28.dp))
+        Icon(
+            imageVector = Icons.Outlined.Shield,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.size(44.dp),
         )
+        Spacer(Modifier.height(18.dp))
+        Text("Caricare il contenuto da X?", style = MaterialTheme.typography.headlineSmall)
         Spacer(Modifier.height(12.dp))
         Text(
             "X può ricevere dati tecnici del dispositivo e della visualizzazione quando " +
                 "carichiamo un post incorporato. Social Viewer blocca i cookie di terze parti " +
-                "e usa dnt=true per disattivare l'uso dell'embed per personalizzazione.",
+                "e usa dnt=true per disattivare l’uso dell’embed per personalizzazione.",
             style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Spacer(Modifier.height(10.dp))
         Text(
-            "Questa scelta verrà ricordata sul dispositivo, quindi i prossimi post X si " +
-                "apriranno direttamente. Puoi revocarla in Impostazioni > Privacy e dati del sito.",
+            "La scelta viene ricordata sul dispositivo e può essere revocata nelle impostazioni.",
             style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        Spacer(Modifier.height(20.dp))
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-            OutlinedButton(onClick = onBack) {
-                Text("Indietro")
-            }
-            OutlinedButton(onClick = onOpenOriginal) {
-                Text("Apri originale")
-            }
-        }
+        Spacer(Modifier.height(28.dp))
+        Button(onClick = onLoadX, modifier = Modifier.fillMaxWidth()) { Text("Carica post X") }
         Spacer(Modifier.height(10.dp))
-        Button(
-            onClick = onLoadX,
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            Text("Carica post X")
+        OutlinedButton(onClick = onOpenOriginal, modifier = Modifier.fillMaxWidth()) {
+            Icon(
+                imageVector = Icons.Outlined.OpenInNew,
+                contentDescription = null,
+                modifier = Modifier.size(18.dp),
+            )
+            Spacer(Modifier.size(8.dp))
+            Text("Apri originale")
         }
     }
 }
 
 @Composable
 private fun LoadingScreen(modifier: Modifier = Modifier) {
-    Box(
+    val transition = rememberInfiniteTransition(label = "focus-frame")
+    val pulse by transition.animateFloat(
+        initialValue = 0.45f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 850),
+            repeatMode = RepeatMode.Reverse,
+        ),
+        label = "focus-frame-alpha",
+    )
+    Column(
         modifier = modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center,
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        CircularProgressIndicator()
+        FocusFrameMark(
+            modifier = Modifier.size(72.dp).graphicsLayer { alpha = pulse },
+            color = MaterialTheme.colorScheme.primary,
+        )
+        Spacer(Modifier.height(20.dp))
+        Text(
+            "Apertura del contenuto…",
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }
 
@@ -1003,30 +1398,55 @@ private fun PlayerScreen(
 ) {
     Column(modifier = modifier.fillMaxSize()) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 12.dp, vertical = 8.dp),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 6.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            TextButton(onClick = onBack) { Text("Indietro") }
-            Column(Modifier.weight(1f)) {
-                Text(content.providerName, style = MaterialTheme.typography.labelLarge)
-                content.authorName?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
+            IconButton(onClick = onBack) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Indietro",
+                )
             }
-            TextButton(onClick = onOpenOriginal) { Text("Originale ↗") }
+            Column(modifier = Modifier.weight(1f).padding(horizontal = 8.dp)) {
+                Text(content.providerName, style = MaterialTheme.typography.labelLarge, maxLines = 1)
+                content.authorName?.let {
+                    Text(
+                        it,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                    )
+                }
+            }
+            OutlinedButton(
+                onClick = onOpenOriginal,
+                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
+            ) {
+                Text("Originale")
+                Spacer(Modifier.size(6.dp))
+                Icon(
+                    imageVector = Icons.Outlined.OpenInNew,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp),
+                )
+            }
         }
-
         Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
-                .background(Color.Black),
+            modifier = Modifier.fillMaxWidth().weight(1f)
+                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.32f))
+                .padding(start = 12.dp, end = 12.dp, bottom = 12.dp),
+            contentAlignment = Alignment.TopCenter,
         ) {
-            EmbedWebView(
-                html = content.embedHtml,
-                baseUrl = content.documentBaseUrl,
-                modifier = Modifier.fillMaxSize(),
-            )
+            Box(
+                modifier = Modifier.fillMaxWidth().fillMaxHeight()
+                    .widthIn(max = 840.dp).background(Color.Black),
+            ) {
+                EmbedWebView(
+                    html = content.embedHtml,
+                    baseUrl = content.documentBaseUrl,
+                    modifier = Modifier.fillMaxSize(),
+                )
+            }
         }
     }
 }
@@ -1036,26 +1456,47 @@ private fun ErrorScreen(
     title: String,
     message: String,
     onBack: () -> Unit,
+    onRetry: (() -> Unit)?,
     onOpenOriginal: (() -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
     Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(24.dp),
+        modifier = modifier.fillMaxSize().padding(28.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
+        Icon(
+            imageVector = Icons.Outlined.ErrorOutline,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.size(52.dp),
+        )
+        Spacer(Modifier.height(18.dp))
         Text(title, style = MaterialTheme.typography.headlineSmall)
         Spacer(Modifier.height(8.dp))
-        Text(message)
-        Spacer(Modifier.height(20.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            OutlinedButton(onClick = onBack) { Text("Indietro") }
-            if (onOpenOriginal != null) {
-                Button(onClick = onOpenOriginal) { Text("Apri originale") }
+        Text(
+            message,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Spacer(Modifier.height(24.dp))
+        if (onRetry != null) {
+            Button(onClick = onRetry, modifier = Modifier.fillMaxWidth()) { Text("Riprova") }
+        }
+        if (onOpenOriginal != null) {
+            Spacer(Modifier.height(10.dp))
+            OutlinedButton(onClick = onOpenOriginal, modifier = Modifier.fillMaxWidth()) {
+                Text("Originale")
+                Spacer(Modifier.size(6.dp))
+                Icon(
+                    imageVector = Icons.Outlined.OpenInNew,
+                    contentDescription = null,
+                    modifier = Modifier.size(17.dp),
+                )
             }
         }
+        Spacer(Modifier.height(6.dp))
+        TextButton(onClick = onBack) { Text("Torna all’inizio") }
     }
 }
 
