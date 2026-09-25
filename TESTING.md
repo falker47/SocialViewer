@@ -252,16 +252,16 @@ Verified:
 
 Run this after CI is green on `feature/reddit-direct-links`. The provider/rendering path itself is unchanged.
 
-1. Configure Android **Open by default** for Social Viewer and select `reddit.com`, `www.reddit.com` and `redd.it` where Android allows it.
+1. Configure Android **Open by default** for Social Viewer and select `reddit.com` and `www.reddit.com` where Android allows it.
 2. Tap a canonical public post permalink from another app/browser. It must open Social Viewer directly and render the post.
 3. Tap a direct single-comment permalink. It must open Social Viewer directly and render the explicitly linked comment.
 4. Tap a real root `/s/{token}` share URL. It must open Social Viewer directly, resolve through the existing safe redirect gate and render normally.
-5. Tap a real `https://redd.it/{id}` short permalink. It must open Social Viewer directly and render normally.
-6. If available, tap a real contextual `/r/{context}/s/{token}` share URL. It must open directly and resolve through the existing provider redirect gate.
-7. Settings must reflect Android's real Reddit state: **Attivo** when all three declared hosts are selected, **Parziale** when only some are selected, and **Da configurare** when none are selected or global link handling is disabled.
-8. Tap a normal subreddit URL such as `https://www.reddit.com/r/android/` and a user/profile URL such as `https://www.reddit.com/user/example/`. Neither may open Social Viewer. Home, search, `r/all`, `r/popular`, wiki, mod tools, messages and settings are likewise out of scope.
+5. If available, tap a real contextual `/r/{context}/s/{token}` share URL. It must open directly and resolve through the existing provider redirect gate.
+6. Settings must reflect Android's real Reddit state: **Attivo** when both declared hosts are selected, **Parziale** when only one is selected, and **Da configurare** when neither is selected or global link handling is disabled.
+7. Tap a normal subreddit URL such as `https://www.reddit.com/r/android/` and a user/profile URL such as `https://www.reddit.com/user/example/`. Neither may open Social Viewer. Home, search, `r/all`, `r/popular`, wiki, mod tools, messages and settings are likewise out of scope.
+8. Tap a real `https://redd.it/{id}` short permalink and confirm Social Viewer does **not** intercept it. Physical testing showed this family cannot currently reach Reddit's oEmbed-compatible canonical permalink without an additional Reddit API or page-metadata resolver, so it is deliberately unsupported.
 9. Verify one already-active direct-link provider still opens normally (for example TikTok, Instagram, Pinterest or Bluesky).
-10. Verify Reddit manual paste and Android Share still work, including a supported permalink on a non-declared legacy host such as `old.reddit.com` if convenient.
+10. Verify Reddit manual paste and Android Share still work for the supported permalink and `/s/` families, including a supported permalink on a non-declared legacy host such as `old.reddit.com` if convenient.
 11. If the first-party Reddit app or browser owns a declared domain, treat that as Android association competition: change **Open by default** ownership for the test rather than changing Social Viewer routing.
 
 Record PASS only if useful Reddit content opens directly, out-of-scope Reddit navigation stays unclaimed, Settings matches Android's actual host selection, and the existing Reddit provider plus one other direct-link provider regress cleanly.
