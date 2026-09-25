@@ -1396,56 +1396,80 @@ private fun PlayerScreen(
     onOpenOriginal: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Column(modifier = modifier.fillMaxSize()) {
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 6.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            IconButton(onClick = onBack) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Indietro",
-                )
-            }
-            Column(modifier = Modifier.weight(1f).padding(horizontal = 8.dp)) {
-                Text(content.providerName, style = MaterialTheme.typography.labelLarge, maxLines = 1)
-                content.authorName?.let {
+    var embedReady by remember(
+        content.providerId,
+        content.canonicalUrl,
+        content.embedHtml,
+    ) {
+        mutableStateOf(false)
+    }
+
+    Box(modifier = modifier.fillMaxSize()) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                IconButton(onClick = onBack) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Indietro",
+                    )
+                }
+                Column(modifier = Modifier.weight(1f).padding(horizontal = 8.dp)) {
                     Text(
-                        it,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        content.providerName,
+                        style = MaterialTheme.typography.labelLarge,
                         maxLines = 1,
+                    )
+                    content.authorName?.let {
+                        Text(
+                            it,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                        )
+                    }
+                }
+                OutlinedButton(
+                    onClick = onOpenOriginal,
+                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
+                ) {
+                    Text("Originale")
+                    Spacer(Modifier.size(6.dp))
+                    Icon(
+                        imageVector = Icons.Outlined.OpenInNew,
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp),
                     )
                 }
             }
-            OutlinedButton(
-                onClick = onOpenOriginal,
-                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
+            Box(
+                modifier = Modifier.fillMaxWidth().weight(1f)
+                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.32f))
+                    .padding(start = 12.dp, end = 12.dp, bottom = 12.dp),
+                contentAlignment = Alignment.TopCenter,
             ) {
-                Text("Originale")
-                Spacer(Modifier.size(6.dp))
-                Icon(
-                    imageVector = Icons.Outlined.OpenInNew,
-                    contentDescription = null,
-                    modifier = Modifier.size(16.dp),
-                )
+                Box(
+                    modifier = Modifier.fillMaxWidth().fillMaxHeight()
+                        .widthIn(max = 840.dp).background(Color.Black),
+                ) {
+                    EmbedWebView(
+                        html = content.embedHtml,
+                        baseUrl = content.documentBaseUrl,
+                        modifier = Modifier.fillMaxSize(),
+                        onContentReady = { embedReady = true },
+                    )
+                }
             }
         }
-        Box(
-            modifier = Modifier.fillMaxWidth().weight(1f)
-                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.32f))
-                .padding(start = 12.dp, end = 12.dp, bottom = 12.dp),
-            contentAlignment = Alignment.TopCenter,
-        ) {
-            Box(
-                modifier = Modifier.fillMaxWidth().fillMaxHeight()
-                    .widthIn(max = 840.dp).background(Color.Black),
+
+        if (!embedReady) {
+            Surface(
+                modifier = Modifier.fillMaxSize(),
+                color = MaterialTheme.colorScheme.background,
             ) {
-                EmbedWebView(
-                    html = content.embedHtml,
-                    baseUrl = content.documentBaseUrl,
-                    modifier = Modifier.fillMaxSize(),
-                )
+                LoadingScreen()
             }
         }
     }
