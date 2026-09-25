@@ -115,6 +115,7 @@ private sealed interface ManualLinkResult {
 
 private const val PREFS_NAME = "social_viewer_ui"
 private const val PREF_ONBOARDING_COMPLETE = "onboarding_complete"
+private const val PREF_X_EMBED_CONSENT_GRANTED = "x_embed_consent_granted"
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -125,10 +126,20 @@ fun SocialViewerApp(
     resumeToken: Int,
     onIncomingConsumed: () -> Unit,
 ) {
+    val uiPrefs = remember {
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    }
     val initialIncoming = incomingUrl?.takeIf { it.isNotBlank() }
+    val initialXEmbedConsentGranted =
+        uiPrefs.getBoolean(PREF_X_EMBED_CONSENT_GRANTED, false)
+    var xEmbedConsentGranted by remember {
+        mutableStateOf(initialXEmbedConsentGranted)
+    }
     var state by remember {
         mutableStateOf<ViewerState>(
-            initialIncoming?.let { viewerStateBeforeResolve(it, registry) } ?: ViewerState.Home,
+            initialIncoming?.let {
+                viewerStateBeforeResolve(it, registry, initialXEmbedConsentGranted)
+            } ?: ViewerState.Home,
         )
     }
     var screen by remember { mutableStateOf(AppScreen.Viewer) }
@@ -139,9 +150,6 @@ fun SocialViewerApp(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
-    val uiPrefs = remember {
-        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-    }
     var themeMode by remember { mutableStateOf(readThemeMode(uiPrefs)) }
     val darkTheme = themeMode.resolveDark(isSystemInDarkTheme())
     var onboardingStep by remember {
@@ -161,7 +169,7 @@ fun SocialViewerApp(
         manualUrl = url
         manualError = null
         screen = AppScreen.Viewer
-        state = viewerStateBeforeResolve(url, registry)
+        state = viewerStateBeforeResolve(url, registry, xEmbedConsentGranted)
     }
 
     fun attemptManualOpen(rawValue: String) {
@@ -303,6 +311,16 @@ fun SocialViewerApp(
                                 }
                             }
                         },
+                        xEmbedConsentGranted = xEmbedConsentGranted,
+                        onRevokeXEmbedConsent = {
+                            xEmbedConsentGranted = false
+                            uiPrefs.edit().remove(PREF_X_EMBED_CONSENT_GRANTED).apply()
+                            scope.launch {
+                                snackbarHostState.showSnackbar(
+                                    "Autorizzazione X revocata",
+                                )
+                            }
+                        },
                         appVersion = appVersionName(context),
                         modifier = Modifier.padding(padding),
                     )
@@ -327,7 +345,13 @@ fun SocialViewerApp(
                         is ViewerState.XConsent -> XConsentScreen(
                             onBack = { state = ViewerState.Home },
                             onOpenOriginal = { openExternal(context, current.url) },
-                            onLoadX = { state = ViewerState.Loading(current.url) },
+                            onLoadX = {
+                                xEmbedConsentGranted = true
+                                uiPrefs.edit()
+                                    .putBoolean(PREF_X_EMBED_CONSENT_GRANTED, true)
+                                    .apply()
+                                state = ViewerState.Loading(current.url)
+                            },
                             modifier = Modifier.padding(padding),
                         )
 
@@ -517,6 +541,8 @@ private fun SettingsScreen(
     onThemeModeChange: (ThemeMode) -> Unit,
     onConfigureDirectLinks: () -> Unit,
     onClearSiteData: () -> Unit,
+    xEmbedConsentGranted: Boolean,
+    onRevokeXEmbedConsent: () -> Unit,
     appVersion: String,
     modifier: Modifier = Modifier,
 ) {
@@ -633,6 +659,18 @@ private fun SettingsScreen(
         Spacer(Modifier.height(14.dp))
         OutlinedButton(onClick = { confirmClear = true }) {
             Text("Cancella dati del sito")
+        }
+        if (xEmbedConsentGranted) {
+            Spacer(Modifier.height(18.dp))
+            Text("Contenuti X", style = MaterialTheme.typography.titleSmall)
+            Spacer(Modifier.height(4.dp))
+            Text(
+                "Caricamento autorizzato. La scelta viene ricordata sul dispositivo.",
+                style = MaterialTheme.typography.bodyMedium,
+            )
+            TextButton(onClick = onRevokeXEmbedConsent) {
+                Text("Revoca autorizzazione")
+            }
         }
 
         Spacer(Modifier.height(24.dp))
@@ -886,8 +924,9 @@ private fun ApplySystemBars(
 private fun viewerStateBeforeResolve(
     url: String,
     registry: ProviderRegistry,
+    xEmbedConsentGranted: Boolean,
 ): ViewerState =
-    if (registry.providerFor(url)?.id == "x") {
+    if (registry.providerFor(url)?.id == "x" && !xEmbedConsentGranted) {
         ViewerState.XConsent(url)
     } else {
         ViewerState.Loading(url)
@@ -912,17 +951,15 @@ private fun XConsentScreen(
         )
         Spacer(Modifier.height(12.dp))
         Text(
-            "Per mostrare questo post, Social Viewer contatterà X tramite i suoi strumenti " +
-                "ufficiali di incorporamento. X può ricevere dati tecnici come indirizzo IP, " +
-                "informazioni su browser/dispositivo e dati relativi alla pagina che incorpora " +
-                "il contenuto, e può usare cookie o altre tecnologie di archiviazione.",
+            "X può ricevere dati tecnici del dispositivo e della visualizzazione quando " +
+                "carichiamo un post incorporato. Social Viewer blocca i cookie di terze parti " +
+                "e usa dnt=true per disattivare l'uso dell'embed per personalizzazione.",
             style = MaterialTheme.typography.bodyMedium,
         )
         Spacer(Modifier.height(10.dp))
         Text(
-            "Social Viewer blocca i cookie di terze parti e richiede dnt=true: X documenta " +
-                "questa opzione come esclusione dell'uso dell'embed per suggerimenti e annunci " +
-                "personalizzati. Non è richiesto un account o login X.",
+            "Questa scelta verrà ricordata sul dispositivo, quindi i prossimi post X si " +
+                "apriranno direttamente. Puoi revocarla in Impostazioni > Privacy e dati del sito.",
             style = MaterialTheme.typography.bodyMedium,
         )
         Spacer(Modifier.height(20.dp))
