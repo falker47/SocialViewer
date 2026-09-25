@@ -593,7 +593,7 @@ private fun SettingsScreen(
         Spacer(Modifier.height(8.dp))
         Text(
             "Qui compaiono solo i provider configurabili per l'apertura diretta. " +
-                "YouTube, Reddit e X restano disponibili tramite Incolla o Condividi.",
+                "YouTube, Reddit, X e Bluesky restano disponibili tramite Incolla o Condividi.",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
