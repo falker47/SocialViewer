@@ -38,5 +38,11 @@ jobs:
       - name: Make Gradle wrapper executable
         run: chmod +x gradlew
 
-      - name: Run unit tests and assemble debug
-        run: ./gradlew --no-daemon testDebugUnitTest assembleDebug
+      - name: Run deterministic unit tests
+        run: ./gradlew --no-daemon testDebugUnitTest
+
+      - name: Lint release variant
+        run: ./gradlew --no-daemon lintRelease
+
+      - name: Assemble debug and verify release AAB packaging
+        run: ./gradlew --no-daemon assembleDebug bundleRelease
