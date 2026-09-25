@@ -9,7 +9,7 @@ class DirectLinkHandlingTest {
     @Test
     fun providerHostMappingIncludesAllDeclaredDirectLinkProviders() {
         assertEquals(
-            listOf("tiktok", "instagram", "threads", "pinterest", "bluesky"),
+            listOf("tiktok", "instagram", "threads", "reddit", "pinterest", "bluesky"),
             DIRECT_LINK_PROVIDERS.map { it.providerId },
         )
         assertEquals(
@@ -31,6 +31,10 @@ class DirectLinkHandlingTest {
             DIRECT_LINK_PROVIDERS.first { it.providerId == "threads" }.hosts,
         )
         assertEquals(
+            setOf("reddit.com", "www.reddit.com"),
+            DIRECT_LINK_PROVIDERS.first { it.providerId == "reddit" }.hosts,
+        )
+        assertEquals(
             setOf("pinterest.com", "www.pinterest.com"),
             DIRECT_LINK_PROVIDERS.first { it.providerId == "pinterest" }.hosts,
         )
@@ -50,7 +54,7 @@ class DirectLinkHandlingTest {
         )
 
         assertTrue(state.allProvidersActive)
-        assertEquals(5, state.activeProviderCount)
+        assertEquals(6, state.activeProviderCount)
         assertTrue(state.providers.all { it.status == DirectLinkProviderStatus.ACTIVE })
     }
 
@@ -80,6 +84,30 @@ class DirectLinkHandlingTest {
         assertEquals(
             DirectLinkProviderStatus.NEEDS_SETUP,
             state.providers.first { it.definition.providerId == "pinterest" }.status,
+        )
+    }
+
+    @Test
+    fun redditStateIsPartialUntilAllDeclaredRedditHostsAreApproved() {
+        val state = buildDirectLinkHandlingState(
+            platformStateAvailable = true,
+            linkHandlingAllowed = true,
+            approvedHosts = setOf("reddit.com"),
+        )
+
+        val reddit = state.providers.first { it.definition.providerId == "reddit" }
+        assertEquals(DirectLinkProviderStatus.PARTIAL, reddit.status)
+        assertEquals(setOf("reddit.com"), reddit.approvedHosts)
+
+        val completedState = buildDirectLinkHandlingState(
+            platformStateAvailable = true,
+            linkHandlingAllowed = true,
+            approvedHosts = setOf("reddit.com", "www.reddit.com"),
+        )
+
+        assertEquals(
+            DirectLinkProviderStatus.ACTIVE,
+            completedState.providers.first { it.definition.providerId == "reddit" }.status,
         )
     }
 

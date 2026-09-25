@@ -51,6 +51,14 @@ internal val DIRECT_LINK_PROVIDERS = listOf(
         ),
     ),
     DirectLinkProviderDefinition(
+        providerId = "reddit",
+        displayName = "Reddit",
+        hosts = linkedSetOf(
+            "reddit.com",
+            "www.reddit.com",
+        ),
+    ),
+    DirectLinkProviderDefinition(
         providerId = "pinterest",
         displayName = "Pinterest",
         hosts = linkedSetOf(

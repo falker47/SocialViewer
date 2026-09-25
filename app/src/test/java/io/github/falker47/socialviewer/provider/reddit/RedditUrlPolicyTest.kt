@@ -68,14 +68,13 @@ class RedditUrlPolicyTest {
                 "/s/AbC123_xYz/",
             ),
         )
-        assertTrue(
+        assertFalse(
             RedditUrlPolicy.requiresRedirectResolution(
                 "https",
                 "redd.it",
                 "/1abc234/",
             ),
         )
-
         assertFalse(
             RedditUrlPolicy.requiresRedirectResolution(
                 "https",

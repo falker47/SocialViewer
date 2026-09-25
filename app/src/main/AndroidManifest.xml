@@ -66,6 +66,31 @@
                 <data android:scheme="https" android:host="www.threads.net" android:pathPrefix="/t/" />
             </intent-filter>
 
+            <!--
+                Reddit direct links are limited to single-content routes that can be expressed
+                safely with the legacy pathPattern matcher used across minSdk 26+. Generic
+                subreddit/profile/feed surfaces are intentionally not claimed.
+            -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="https" android:host="reddit.com" />
+                <data android:scheme="https" android:host="www.reddit.com" />
+
+                <!-- Canonical post permalink, with optional slug or one explicit comment. -->
+                <data android:pathPattern="/r/..*/comments/..*/" />
+                <data android:pathPattern="/r/..*/comments/..*/..*/" />
+                <data android:pathPattern="/r/..*/comments/..*/..*/..*/" />
+
+                <!-- Reddit share aliases already resolved safely inside RedditProvider. -->
+                <data android:pathPattern="/s/..*" />
+                <data android:pathPattern="/r/..*/s/..*" />
+                <data android:pathPattern="/u/..*/s/..*" />
+                <data android:pathPattern="/user/..*/s/..*" />
+            </intent-filter>
+
             <!-- Only single-Pin Pinterest paths are claimed. pin.it aliases stay paste/Share-only. -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
