@@ -50,6 +50,14 @@ internal val DIRECT_LINK_PROVIDERS = listOf(
             "www.threads.net",
         ),
     ),
+    DirectLinkProviderDefinition(
+        providerId = "pinterest",
+        displayName = "Pinterest",
+        hosts = linkedSetOf(
+            "pinterest.com",
+            "www.pinterest.com",
+        ),
+    ),
 )
 
 internal data class DirectLinkProviderState(
