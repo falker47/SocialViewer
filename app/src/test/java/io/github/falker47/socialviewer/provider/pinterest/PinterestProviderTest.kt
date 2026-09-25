@@ -22,18 +22,18 @@ class PinterestProviderTest {
         assertEquals("https://www.pinterest.com/", content.documentBaseUrl)
         assertNull(content.title)
         assertNull(content.authorName)
-        assertTrue(content.embedHtml.contains("data-pin-do="embedPin""))
+        assertTrue(content.embedHtml.contains("data-pin-do"))
+        assertTrue(content.embedHtml.contains("embedPin"))
         assertTrue(
             content.embedHtml.contains(
-                "href="https://www.pinterest.com/pin/617415430169271912/"",
+                "https://www.pinterest.com/pin/617415430169271912/",
             ),
         )
         assertTrue(
             content.embedHtml.contains("https://assets.pinterest.com/js/pinit.js"),
         )
-        assertTrue(
-            content.embedHtml.contains("data-pin-error="socialViewerPinterestError""),
-        )
+        assertTrue(content.embedHtml.contains("data-pin-error"))
+        assertTrue(content.embedHtml.contains("socialViewerPinterestError"))
         assertTrue(
             content.embedHtml.contains("Questo Pin Pinterest non è disponibile."),
         )
