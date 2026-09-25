@@ -9,7 +9,7 @@ object RedditUrlPolicy {
         "m.reddit.com",
     )
 
-    private val redirectHosts = directHosts + "redd.it"
+    private val redirectHosts = directHosts
 
     fun supports(
         scheme: String?,
@@ -69,10 +69,6 @@ object RedditUrlPolicy {
         if (normalizedHost !in redirectHosts) return false
 
         val segments = pathSegments(path)
-
-        if (normalizedHost == "redd.it") {
-            return segments.size == 1 && isValidThingId(segments[0])
-        }
 
         if (segments.size == 2 &&
             segments[0].equals("s", ignoreCase = true) &&
