@@ -78,6 +78,7 @@ android {
     val playUploadSigning = if (hasCompletePlayUploadSigningConfig) {
         signingConfigs.create("playUpload") {
             storeFile = rootProject.file(playUploadStoreFile!!)
+            storeType = "JKS"
             storePassword = playUploadStorePassword
             keyAlias = playUploadKeyAlias
             keyPassword = playUploadKeyPassword
