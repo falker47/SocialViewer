@@ -26,6 +26,8 @@ For a new app, prefer the Google-generated app-signing key. Do not commit or exp
 
 Signing material is optional for ordinary development and CI. It becomes mandatory only for a publishable Play bundle.
 
+The release signing config intentionally uses a **JKS** upload keystore. AGP 9.4 otherwise defaults the signing store type to PKCS12, so the repository sets `storeType = "JKS"` explicitly.
+
 Copy `keystore.properties.example` to the gitignored `keystore.properties` file and fill in:
 
 ```properties
@@ -36,6 +38,8 @@ PLAY_UPLOAD_KEY_PASSWORD=...
 ```
 
 The same four values may instead be supplied as Gradle properties or environment variables.
+
+If a signing password contains characters that are unsafe to persist through a Java `.properties` file/encoding path, keep only the non-secret path + alias in `keystore.properties` and inject `PLAY_UPLOAD_STORE_PASSWORD` / `PLAY_UPLOAD_KEY_PASSWORD` through the current process environment for the publish build. Never put the password on the command line.
 
 The repository already ignores:
 
@@ -110,7 +114,7 @@ Before uploading, confirm the exact generated filename rather than assuming it.
 
 After this repository plumbing is green:
 
-1. Generate and securely back up a dedicated RSA upload key / keystore.
+1. Generate and securely back up a dedicated RSA JKS upload key / keystore.
 2. Configure the four `PLAY_UPLOAD_*` values locally.
 3. Build the signed AAB with `playReleaseBundle` using the existing non-empty YouTube Data API key. For a local signed-release playback check, the API-key restriction may additionally authorize package `io.github.falker47.socialviewer` with the upload-key SHA-1.
 4. In Play Console, create the Social Viewer app, accept the Play App Signing terms and keep the default Google-generated app-signing key. The initial Create app form does not define the Android package; the uploaded bundle carries the frozen application ID.
