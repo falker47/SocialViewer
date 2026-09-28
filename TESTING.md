@@ -381,5 +381,5 @@ Run this after CI is green on `feature/direct-link-cleanup`.
 8. Reddit: tap one canonical `www.reddit.com` post and one supported legacy-host post such as `old.reddit.com` or `m.reddit.com`. Both must open directly. A subreddit/profile URL on those same hosts must remain unclaimed.
 9. Existing Instagram, Threads shorthand and Bluesky direct opening must still work.
 10. X and canonical Threads `/@user/post/...` remain manual paste / Android Share only; do not broaden them in this gate.
-11. Return to SocialViewer Settings and confirm provider states/counts match Android's actual domain selection, including YouTube as a direct-link provider.
+11. Return to SocialViewer Settings and confirm provider states/counts match Android's actual domain selection. YouTube must remain excluded from the direct-link provider count.
 12. Record PASS only if the bounded positive routes open directly, negative navigation routes remain outside SocialViewer, wildcard host state is represented correctly, and no provider regression is observed.
