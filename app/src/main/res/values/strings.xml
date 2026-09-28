@@ -18,13 +18,10 @@
     <string name="status_partial">Partial</string>
     <string name="status_to_complete">Needs setup</string>
     <string name="section_language">Language</string>
-    <string name="app_language">App language</string>
-    <string name="language_system_default">System default</string>
-    <string name="language_device_default">Uses device language</string>
-    <string name="language_automatic_format">%1$s · automatic</string>
-    <string name="theme_system_effective_format">System · %1$s</string>
     <string name="language_english">English</string>
     <string name="language_italian">Italiano</string>
+    <string name="language_code_it" translatable="false">IT</string>
+    <string name="language_code_en" translatable="false">EN</string>
     <string name="direct_link_opening">Direct link opening</string>
     <string name="section_appearance">Appearance</string>
     <string name="section_privacy_data">Privacy &amp; data</string>
@@ -42,7 +39,6 @@
     <string name="clear_provider_data_body">Provider cookies and preferences will be removed. Providers may ask for cookie preferences again.</string>
     <string name="cancel">Cancel</string>
     <string name="clear">Clear</string>
-    <string name="theme_system">System</string>
     <string name="theme_light">Light</string>
     <string name="theme_dark">Dark</string>
     <string name="how_to_enable">How to enable</string>
