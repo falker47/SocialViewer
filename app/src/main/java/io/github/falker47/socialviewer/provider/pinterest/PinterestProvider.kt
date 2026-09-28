@@ -144,7 +144,7 @@ internal fun pinterestPinCandidatesFromBody(body: String): List<String> {
     val normalized = buildList {
         add(body.replace("\\/", "/").replace("&amp;", "&"))
         runCatching {
-            URLDecoder.decode(body, StandardCharsets.UTF_8)
+            URLDecoder.decode(body, StandardCharsets.UTF_8.name())
                 .replace("\\/", "/")
                 .replace("&amp;", "&")
         }.getOrNull()?.let(::add)
