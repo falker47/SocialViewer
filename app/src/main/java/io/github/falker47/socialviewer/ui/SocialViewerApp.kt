@@ -50,7 +50,6 @@ import androidx.compose.material.icons.outlined.ChevronRight
 import androidx.compose.material.icons.outlined.Code
 import androidx.compose.material.icons.outlined.DarkMode
 import androidx.compose.material.icons.outlined.DeleteOutline
-import androidx.compose.material.icons.outlined.Devices
 import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.LightMode
@@ -84,6 +83,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -102,8 +102,10 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -140,7 +142,6 @@ private sealed interface ManualLinkResult {
     data class Invalid(val message: String, val displayValue: String) : ManualLinkResult
 }
 
-private const val PREFS_NAME = "social_viewer_ui"
 private const val PREF_ONBOARDING_COMPLETE = "onboarding_complete"
 private const val PREF_X_EMBED_CONSENT_GRANTED = "x_embed_consent_granted"
 
@@ -154,7 +155,7 @@ fun SocialViewerApp(
     onIncomingConsumed: () -> Unit,
 ) {
     val uiPrefs = remember {
-        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        context.getSharedPreferences(UI_PREFS_NAME, Context.MODE_PRIVATE)
     }
     val initialIncoming = incomingUrl?.takeIf { it.isNotBlank() }
     val initialXEmbedConsentGranted =
@@ -169,7 +170,7 @@ fun SocialViewerApp(
             } ?: ViewerState.Home,
         )
     }
-    var screen by remember { mutableStateOf(AppScreen.Viewer) }
+    var screen by rememberSaveable { mutableStateOf(AppScreen.Viewer) }
     var manualUrl by remember { mutableStateOf(initialIncoming.orEmpty()) }
     var manualError by remember { mutableStateOf<String?>(null) }
     var directLinkState by remember { mutableStateOf(queryDirectLinkHandlingState(context)) }
@@ -177,8 +178,11 @@ fun SocialViewerApp(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
-    var themeMode by remember { mutableStateOf(readThemeMode(uiPrefs)) }
-    val darkTheme = themeMode.resolveDark(isSystemInDarkTheme())
+    val systemDarkAtLaunch = isSystemInDarkTheme()
+    var themeMode by remember {
+        mutableStateOf(readThemeMode(uiPrefs, systemDarkAtLaunch))
+    }
+    val darkTheme = themeMode.isDark
     var onboardingStep by remember {
         mutableStateOf(
             if (uiPrefs.getBoolean(PREF_ONBOARDING_COMPLETE, false)) null else 1,
@@ -200,7 +204,7 @@ fun SocialViewerApp(
     }
 
     fun attemptManualOpen(rawValue: String) {
-        when (val result = validateManualLink(rawValue, registry)) {
+        when (val result = validateManualLink(rawValue, registry, context)) {
             is ManualLinkResult.Valid -> {
                 manualUrl = result.url
                 start(result.url)
@@ -217,7 +221,7 @@ fun SocialViewerApp(
     fun pasteAndOpen() {
         val clipboardText = readClipboardText(context)
         if (clipboardText.isNullOrBlank()) {
-            manualError = "Nessun link negli appunti."
+            manualError = context.getString(R.string.error_no_link_clipboard)
             return
         }
         attemptManualOpen(clipboardText)
@@ -257,8 +261,11 @@ fun SocialViewerApp(
         } catch (t: Throwable) {
             val copy = viewerErrorCopyFor(t)
             ViewerState.Error(
-                title = copy.title,
-                message = copy.message,
+                title = context.getString(copy.titleRes),
+                message = context.getString(
+                    copy.messageRes,
+                    *copy.messageArgs.toTypedArray(),
+                ),
                 url = loading.url,
             )
         }
@@ -273,10 +280,10 @@ fun SocialViewerApp(
             awaitingLinkSettings = false
             when {
                 refreshedState.allProvidersActive && !previousState.allProvidersActive ->
-                    snackbarHostState.showSnackbar("Apertura diretta attivata")
+                    snackbarHostState.showSnackbar(context.getString(R.string.snackbar_direct_links_enabled))
 
                 refreshedState.activeProviderCount > previousState.activeProviderCount ->
-                    snackbarHostState.showSnackbar("Apertura diretta aggiornata")
+                    snackbarHostState.showSnackbar(context.getString(R.string.snackbar_direct_links_updated))
             }
         }
     }
@@ -289,12 +296,12 @@ fun SocialViewerApp(
                 topBar = {
                     if (screen == AppScreen.Settings) {
                         TopAppBar(
-                            title = { Text("Impostazioni") },
+                            title = { Text(stringResource(R.string.settings_title)) },
                             navigationIcon = {
                                 IconButton(onClick = { screen = AppScreen.Viewer }) {
                                     Icon(
                                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                        contentDescription = "Indietro",
+                                        contentDescription = stringResource(R.string.back),
                                     )
                                 }
                             },
@@ -306,6 +313,9 @@ fun SocialViewerApp(
                     AppScreen.Settings -> SettingsScreen(
                         directLinkState = directLinkState,
                         themeMode = themeMode,
+                        onLanguageChange = { selectedLanguage ->
+                            setAppLanguage(context, selectedLanguage)
+                        },
                         onThemeModeChange = { selectedMode ->
                             themeMode = selectedMode
                             writeThemeMode(uiPrefs, selectedMode)
@@ -314,7 +324,7 @@ fun SocialViewerApp(
                         onClearSiteData = {
                             clearProviderSiteData(context) {
                                 scope.launch {
-                                    snackbarHostState.showSnackbar("Dati dei provider cancellati")
+                                    snackbarHostState.showSnackbar(context.getString(R.string.snackbar_provider_data_cleared))
                                 }
                             }
                         },
@@ -324,7 +334,7 @@ fun SocialViewerApp(
                             uiPrefs.edit().remove(PREF_X_EMBED_CONSENT_GRANTED).apply()
                             scope.launch {
                                 snackbarHostState.showSnackbar(
-                                    "Autorizzazione X revocata",
+                                    context.getString(R.string.snackbar_x_authorization_revoked),
                                 )
                             }
                         },
@@ -508,7 +518,7 @@ private fun HomePrimaryContent(
     )
     Spacer(Modifier.height(18.dp))
     Text(
-        "Social Viewer",
+        stringResource(R.string.app_name),
         style = MaterialTheme.typography.headlineLarge.copy(
             fontWeight = FontWeight.SemiBold,
             letterSpacing = (-0.5).sp,
@@ -516,7 +526,7 @@ private fun HomePrimaryContent(
     )
     Spacer(Modifier.height(6.dp))
     Text(
-        "Apri il contenuto, non il feed.",
+        stringResource(R.string.home_tagline),
         style = MaterialTheme.typography.bodyLarge,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
@@ -530,7 +540,7 @@ private fun HomePrimaryContent(
         OutlinedTextField(
             value = value,
             onValueChange = onValueChange,
-            placeholder = { Text("Incolla un link pubblico…") },
+            placeholder = { Text(stringResource(R.string.home_paste_placeholder)) },
             singleLine = true,
             isError = error != null,
             supportingText = error?.let { message -> { Text(message) } },
@@ -538,7 +548,7 @@ private fun HomePrimaryContent(
                 IconButton(onClick = onPasteAndOpen) {
                     Icon(
                         painter = painterResource(R.drawable.ic_content_paste_24),
-                        contentDescription = "Incolla e apri",
+                        contentDescription = stringResource(R.string.paste_and_open),
                     )
                 }
             },
@@ -558,7 +568,7 @@ private fun HomePrimaryContent(
                 .fillMaxWidth()
                 .height(54.dp),
         ) {
-            Text("Apri")
+            Text(stringResource(R.string.open))
         }
     }
 
@@ -584,7 +594,7 @@ private fun SupportedProvidersStrip() {
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(
-            "Link supportati",
+            stringResource(R.string.supported_links),
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -622,8 +632,8 @@ private fun HomeUtilities(
     Spacer(Modifier.height(10.dp))
     HomeNavigationRow(
         icon = Icons.Outlined.Settings,
-        title = "Impostazioni",
-        subtitle = "Aspetto, privacy e configurazione",
+        title = stringResource(R.string.settings_title),
+        subtitle = stringResource(R.string.settings_subtitle),
         onClick = onOpenSettings,
         modifier = Modifier.fillMaxWidth(),
     )
@@ -636,9 +646,9 @@ private fun DirectLinkCard(
     modifier: Modifier = Modifier,
 ) {
     val status = when {
-        state.allProvidersActive -> "Configurata"
-        state.anyProviderConfigured -> "Parziale"
-        else -> "Da completare"
+        state.allProvidersActive -> stringResource(R.string.status_configured)
+        state.anyProviderConfigured -> stringResource(R.string.status_partial)
+        else -> stringResource(R.string.status_to_complete)
     }
     val icon = when {
         state.allProvidersActive -> Icons.Outlined.CheckCircle
@@ -647,7 +657,7 @@ private fun DirectLinkCard(
     }
     HomeNavigationRow(
         icon = icon,
-        title = "Apertura diretta",
+        title = stringResource(R.string.direct_link_opening),
         subtitle = status,
         onClick = onConfigure,
         modifier = modifier,
@@ -701,6 +711,7 @@ private fun HomeNavigationRow(
 private fun SettingsScreen(
     directLinkState: DirectLinkHandlingState,
     themeMode: ThemeMode,
+    onLanguageChange: (AppLanguage) -> Unit,
     onThemeModeChange: (ThemeMode) -> Unit,
     onConfigureDirectLinks: () -> Unit,
     onClearSiteData: () -> Unit,
@@ -711,13 +722,23 @@ private fun SettingsScreen(
     modifier: Modifier = Modifier,
 ) {
     var confirmClear by remember { mutableStateOf(false) }
+    val currentLanguage = AppLanguage.fromLanguageTag(
+        LocalConfiguration.current.locales[0].language,
+    )
     Column(
         modifier = modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 20.dp, vertical = 16.dp),
     ) {
-        SettingsSectionTitle("Apertura diretta")
+        QuickPreferencesRow(
+            currentLanguage = currentLanguage,
+            themeMode = themeMode,
+            onLanguageChange = onLanguageChange,
+            onThemeModeChange = onThemeModeChange,
+        )
+        Spacer(Modifier.height(22.dp))
+        SettingsSectionTitle(stringResource(R.string.direct_link_opening))
         Spacer(Modifier.height(10.dp))
         Card(
             shape = RoundedCornerShape(18.dp),
@@ -738,11 +759,7 @@ private fun SettingsScreen(
         Spacer(Modifier.height(12.dp))
         DirectLinkHowToCard()
         Spacer(Modifier.height(28.dp))
-        SettingsSectionTitle("Aspetto")
-        Spacer(Modifier.height(10.dp))
-        ThemeSegmentedControl(themeMode, onThemeModeChange)
-        Spacer(Modifier.height(28.dp))
-        SettingsSectionTitle("Privacy e dati")
+        SettingsSectionTitle(stringResource(R.string.section_privacy_data))
         Spacer(Modifier.height(10.dp))
         Card(
             shape = RoundedCornerShape(18.dp),
@@ -752,8 +769,8 @@ private fun SettingsScreen(
         ) {
             SettingsActionRow(
                 icon = Icons.Outlined.Shield,
-                title = "Privacy",
-                subtitle = "Nessun account Social Viewer, cronologia o analytics.",
+                title = stringResource(R.string.privacy_title),
+                subtitle = stringResource(R.string.privacy_no_account),
             )
             HorizontalDivider(
                 modifier = Modifier.padding(start = 58.dp),
@@ -761,8 +778,8 @@ private fun SettingsScreen(
             )
             SettingsActionRow(
                 icon = Icons.Outlined.DeleteOutline,
-                title = "Cancella dati dei siti",
-                subtitle = "Rimuove cookie e preferenze locali dei provider.",
+                title = stringResource(R.string.clear_site_data),
+                subtitle = stringResource(R.string.clear_site_data_subtitle),
                 onClick = { confirmClear = true },
             )
             if (xEmbedConsentGranted) {
@@ -772,15 +789,15 @@ private fun SettingsScreen(
                 )
                 SettingsActionRow(
                     icon = Icons.Outlined.CheckCircle,
-                    title = "Autorizzazione X",
-                    subtitle = "Autorizzata sul dispositivo",
-                    actionLabel = "Revoca",
+                    title = stringResource(R.string.x_authorization),
+                    subtitle = stringResource(R.string.authorized_on_device),
+                    actionLabel = stringResource(R.string.revoke),
                     onClick = onRevokeXEmbedConsent,
                 )
             }
         }
         Spacer(Modifier.height(28.dp))
-        SettingsSectionTitle("Informazioni")
+        SettingsSectionTitle(stringResource(R.string.section_about))
         Spacer(Modifier.height(10.dp))
         Card(
             shape = RoundedCornerShape(18.dp),
@@ -790,8 +807,8 @@ private fun SettingsScreen(
         ) {
             SettingsActionRow(
                 icon = Icons.Outlined.Info,
-                title = "Social Viewer",
-                subtitle = "Versione " + appVersion,
+                title = stringResource(R.string.app_name),
+                subtitle = stringResource(R.string.version_format, appVersion),
             )
             HorizontalDivider(
                 modifier = Modifier.padding(start = 58.dp),
@@ -799,7 +816,7 @@ private fun SettingsScreen(
             )
             SettingsActionRow(
                 icon = Icons.Outlined.Code,
-                title = "Codice sorgente",
+                title = stringResource(R.string.source_code),
                 subtitle = "GitHub",
                 trailingIcon = Icons.Outlined.OpenInNew,
                 onClick = onOpenSource,
@@ -810,15 +827,12 @@ private fun SettingsScreen(
     if (confirmClear) {
         AlertDialog(
             onDismissRequest = { confirmClear = false },
-            title = { Text("Cancellare i dati dei provider?") },
+            title = { Text(stringResource(R.string.clear_provider_data_title)) },
             text = {
-                Text(
-                    "Verranno rimossi cookie e preferenze dei provider. " +
-                        "I provider potrebbero chiederti nuovamente le preferenze sui cookie.",
-                )
+                Text(stringResource(R.string.clear_provider_data_body))
             },
             dismissButton = {
-                TextButton(onClick = { confirmClear = false }) { Text("Annulla") }
+                TextButton(onClick = { confirmClear = false }) { Text(stringResource(R.string.cancel)) }
             },
             confirmButton = {
                 TextButton(
@@ -826,7 +840,7 @@ private fun SettingsScreen(
                         confirmClear = false
                         onClearSiteData()
                     },
-                ) { Text("Cancella") }
+                ) { Text(stringResource(R.string.clear)) }
             },
         )
     }
@@ -890,42 +904,139 @@ private fun ProviderStatusBadge(status: DirectLinkProviderStatus) {
 }
 
 @Composable
-private fun ThemeSegmentedControl(
+private fun QuickPreferencesRow(
+    currentLanguage: AppLanguage,
     themeMode: ThemeMode,
+    onLanguageChange: (AppLanguage) -> Unit,
     onThemeModeChange: (ThemeMode) -> Unit,
 ) {
-    val options = listOf(
-        Triple(ThemeMode.System, "Sistema", Icons.Outlined.Devices),
-        Triple(ThemeMode.Light, "Chiaro", Icons.Outlined.LightMode),
-        Triple(ThemeMode.Dark, "Scuro", Icons.Outlined.DarkMode),
-    )
-    Row(
-        modifier = Modifier.fillMaxWidth()
-            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(16.dp))
-            .padding(2.dp),
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f),
+        ),
     ) {
-        options.forEach { (mode, label, icon) ->
-            val selected = themeMode == mode
-            Surface(
-                modifier = Modifier.weight(1f).clickable { onThemeModeChange(mode) },
-                shape = RoundedCornerShape(13.dp),
-                color = if (selected) MaterialTheme.colorScheme.primaryContainer else Color.Transparent,
-                contentColor = if (selected) {
-                    MaterialTheme.colorScheme.onPrimaryContainer
-                } else {
-                    MaterialTheme.colorScheme.onSurfaceVariant
-                },
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            QuickPreferenceColumn(
+                title = stringResource(R.string.section_language),
+                modifier = Modifier.weight(1f),
             ) {
                 Row(
-                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 11.dp),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                        .border(
+                            1.dp,
+                            MaterialTheme.colorScheme.outlineVariant,
+                            RoundedCornerShape(11.dp),
+                        )
+                        .padding(2.dp),
                 ) {
-                    Icon(imageVector = icon, contentDescription = null, modifier = Modifier.size(18.dp))
-                    Spacer(Modifier.size(6.dp))
-                    Text(label, style = MaterialTheme.typography.labelLarge)
+                    CompactPreferenceSegment(
+                        selected = currentLanguage == AppLanguage.Italian,
+                        onClick = { onLanguageChange(AppLanguage.Italian) },
+                        modifier = Modifier.weight(1f),
+                    ) {
+                        Text(
+                            stringResource(R.string.language_code_it),
+                            style = MaterialTheme.typography.labelLarge,
+                        )
+                    }
+                    CompactPreferenceSegment(
+                        selected = currentLanguage == AppLanguage.English,
+                        onClick = { onLanguageChange(AppLanguage.English) },
+                        modifier = Modifier.weight(1f),
+                    ) {
+                        Text(
+                            stringResource(R.string.language_code_en),
+                            style = MaterialTheme.typography.labelLarge,
+                        )
+                    }
                 }
             }
+
+            QuickPreferenceColumn(
+                title = stringResource(R.string.section_appearance),
+                modifier = Modifier.weight(1f),
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth()
+                        .border(
+                            1.dp,
+                            MaterialTheme.colorScheme.outlineVariant,
+                            RoundedCornerShape(11.dp),
+                        )
+                        .padding(2.dp),
+                ) {
+                    CompactPreferenceSegment(
+                        selected = themeMode == ThemeMode.Light,
+                        onClick = { onThemeModeChange(ThemeMode.Light) },
+                        modifier = Modifier.weight(1f),
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.LightMode,
+                            contentDescription = stringResource(R.string.theme_light),
+                            modifier = Modifier.size(18.dp),
+                        )
+                    }
+                    CompactPreferenceSegment(
+                        selected = themeMode == ThemeMode.Dark,
+                        onClick = { onThemeModeChange(ThemeMode.Dark) },
+                        modifier = Modifier.weight(1f),
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.DarkMode,
+                            contentDescription = stringResource(R.string.theme_dark),
+                            modifier = Modifier.size(18.dp),
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun QuickPreferenceColumn(
+    title: String,
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit,
+) {
+    Column(modifier = modifier) {
+        Text(
+            title,
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.SemiBold,
+        )
+        Spacer(Modifier.height(6.dp))
+        content()
+    }
+}
+
+@Composable
+private fun CompactPreferenceSegment(
+    selected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit,
+) {
+    Surface(
+        modifier = modifier.clickable(onClick = onClick),
+        shape = RoundedCornerShape(10.dp),
+        color = if (selected) MaterialTheme.colorScheme.primaryContainer else Color.Transparent,
+        contentColor = if (selected) {
+            MaterialTheme.colorScheme.onPrimaryContainer
+        } else {
+            MaterialTheme.colorScheme.onSurfaceVariant
+        },
+    ) {
+        Box(
+            modifier = Modifier.height(32.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            content()
         }
     }
 }
@@ -951,18 +1062,18 @@ private fun DirectLinkHowToCard() {
             Spacer(Modifier.size(12.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    "Come si attiva",
+                    stringResource(R.string.how_to_enable),
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.SemiBold,
                 )
                 Spacer(Modifier.height(6.dp))
                 Text(
-                    "• Configura\n• Aggiungi link\n• Seleziona i domini disponibili",
+                    stringResource(R.string.how_to_enable_steps),
                     style = MaterialTheme.typography.bodySmall,
                 )
                 Spacer(Modifier.height(7.dp))
                 Text(
-                    "Se possiedi l’app ufficiale, questa potrebbe avere priorità rispetto a Social Viewer.",
+                    stringResource(R.string.official_app_priority),
                     style = MaterialTheme.typography.bodySmall,
                 )
             }
@@ -1030,24 +1141,32 @@ private fun SettingsSectionTitle(text: String) {
     )
 }
 
+@Composable
 private fun directLinkSummaryLabel(state: DirectLinkHandlingState): String {
     if (!state.platformStateAvailable) {
-        return "Configura nelle impostazioni Android"
+        return stringResource(R.string.direct_links_configure_android)
     }
 
     val total = state.providers.size
     return when {
-        state.allProvidersActive -> "Attiva per tutti i provider"
-        state.activeProviderCount == 0 && !state.anyProviderConfigured -> "Da configurare"
-        else -> "${state.activeProviderCount} di $total provider con apertura diretta attiva"
+        state.allProvidersActive -> stringResource(R.string.direct_links_all_active)
+        state.activeProviderCount == 0 && !state.anyProviderConfigured ->
+            stringResource(R.string.direct_links_needs_setup)
+
+        else -> stringResource(
+            R.string.direct_links_count_format,
+            state.activeProviderCount,
+            total,
+        )
     }
 }
 
+@Composable
 private fun directLinkProviderStatusLabel(status: DirectLinkProviderStatus): String =
     when (status) {
-        DirectLinkProviderStatus.ACTIVE -> "Attivo"
-        DirectLinkProviderStatus.PARTIAL -> "Parziale"
-        DirectLinkProviderStatus.NEEDS_SETUP -> "Da configurare"
+        DirectLinkProviderStatus.ACTIVE -> stringResource(R.string.status_active)
+        DirectLinkProviderStatus.PARTIAL -> stringResource(R.string.status_partial)
+        DirectLinkProviderStatus.NEEDS_SETUP -> stringResource(R.string.status_needs_setup)
     }
 
 @Composable
@@ -1129,12 +1248,12 @@ private fun CoachMarkOverlay(
             Column(modifier = Modifier.padding(20.dp)) {
                 if (step == 1) {
                     Text(
-                        "Apri un link",
+                        stringResource(R.string.onboarding_open_link_title),
                         style = MaterialTheme.typography.titleLarge,
                     )
                     Spacer(Modifier.height(8.dp))
                     Text(
-                        "Incolla un link pubblico supportato: Social Viewer lo aprirà subito.",
+                        stringResource(R.string.onboarding_open_link_body),
                         style = MaterialTheme.typography.bodyMedium,
                     )
                     Spacer(Modifier.height(18.dp))
@@ -1143,18 +1262,17 @@ private fun CoachMarkOverlay(
                         horizontalArrangement = Arrangement.End,
                     ) {
                         Button(onClick = onNext) {
-                            Text("Avanti")
+                            Text(stringResource(R.string.next))
                         }
                     }
                 } else {
                     Text(
-                        "Apri i link con un tocco",
+                        stringResource(R.string.onboarding_direct_title),
                         style = MaterialTheme.typography.titleLarge,
                     )
                     Spacer(Modifier.height(8.dp))
                     Text(
-                        "Configura Android una volta: poi i link compatibili possono aprirsi " +
-                            "direttamente in Social Viewer.",
+                        stringResource(R.string.onboarding_direct_body),
                         style = MaterialTheme.typography.bodyMedium,
                     )
                     Spacer(Modifier.height(18.dp))
@@ -1163,11 +1281,11 @@ private fun CoachMarkOverlay(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         TextButton(onClick = onSkip) {
-                            Text("Non ora")
+                            Text(stringResource(R.string.not_now))
                         }
                         Spacer(Modifier.weight(1f))
                         Button(onClick = onConfigure) {
-                            Text("Configura apertura diretta")
+                            Text(stringResource(R.string.configure_direct_opening))
                         }
                     }
                 }
@@ -1318,7 +1436,7 @@ private fun XConsentScreen(
         IconButton(onClick = onBack) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "Indietro",
+                contentDescription = stringResource(R.string.back),
             )
         }
         Spacer(Modifier.height(28.dp))
@@ -1329,23 +1447,21 @@ private fun XConsentScreen(
             modifier = Modifier.size(44.dp),
         )
         Spacer(Modifier.height(18.dp))
-        Text("Caricare il contenuto da X?", style = MaterialTheme.typography.headlineSmall)
+        Text(stringResource(R.string.x_consent_title), style = MaterialTheme.typography.headlineSmall)
         Spacer(Modifier.height(12.dp))
         Text(
-            "X può ricevere dati tecnici del dispositivo e della visualizzazione quando " +
-                "carichiamo un post incorporato. Social Viewer blocca i cookie di terze parti " +
-                "e usa dnt=true per disattivare l’uso dell’embed per personalizzazione.",
+            stringResource(R.string.x_consent_body),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Spacer(Modifier.height(10.dp))
         Text(
-            "La scelta viene ricordata sul dispositivo e può essere revocata nelle impostazioni.",
+            stringResource(R.string.x_consent_remembered),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Spacer(Modifier.height(28.dp))
-        Button(onClick = onLoadX, modifier = Modifier.fillMaxWidth()) { Text("Carica post X") }
+        Button(onClick = onLoadX, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.load_x_post)) }
         Spacer(Modifier.height(10.dp))
         OutlinedButton(onClick = onOpenOriginal, modifier = Modifier.fillMaxWidth()) {
             Icon(
@@ -1354,7 +1470,7 @@ private fun XConsentScreen(
                 modifier = Modifier.size(18.dp),
             )
             Spacer(Modifier.size(8.dp))
-            Text("Apri originale")
+            Text(stringResource(R.string.open_original))
         }
     }
 }
@@ -1382,7 +1498,7 @@ private fun LoadingScreen(modifier: Modifier = Modifier) {
         )
         Spacer(Modifier.height(20.dp))
         Text(
-            "Apertura del contenuto…",
+            stringResource(R.string.loading_content),
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -1413,7 +1529,7 @@ private fun PlayerScreen(
                 IconButton(onClick = onBack) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Indietro",
+                        contentDescription = stringResource(R.string.back),
                     )
                 }
                 Column(modifier = Modifier.weight(1f).padding(horizontal = 8.dp)) {
@@ -1435,7 +1551,7 @@ private fun PlayerScreen(
                     onClick = onOpenOriginal,
                     contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
                 ) {
-                    Text("Originale")
+                    Text(stringResource(R.string.original))
                     Spacer(Modifier.size(6.dp))
                     Icon(
                         imageVector = Icons.Outlined.OpenInNew,
@@ -1505,12 +1621,12 @@ private fun ErrorScreen(
         )
         Spacer(Modifier.height(24.dp))
         if (onRetry != null) {
-            Button(onClick = onRetry, modifier = Modifier.fillMaxWidth()) { Text("Riprova") }
+            Button(onClick = onRetry, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.retry)) }
         }
         if (onOpenOriginal != null) {
             Spacer(Modifier.height(10.dp))
             OutlinedButton(onClick = onOpenOriginal, modifier = Modifier.fillMaxWidth()) {
-                Text("Originale")
+                Text(stringResource(R.string.original))
                 Spacer(Modifier.size(6.dp))
                 Icon(
                     imageVector = Icons.Outlined.OpenInNew,
@@ -1520,13 +1636,14 @@ private fun ErrorScreen(
             }
         }
         Spacer(Modifier.height(6.dp))
-        TextButton(onClick = onBack) { Text("Torna all’inizio") }
+        TextButton(onClick = onBack) { Text(stringResource(R.string.back_to_home)) }
     }
 }
 
 private fun validateManualLink(
     rawValue: String,
     registry: ProviderRegistry,
+    context: Context,
 ): ManualLinkResult {
     val trimmed = rawValue.trim()
     val extracted = UrlExtractor.firstHttpUrl(trimmed)
@@ -1534,7 +1651,7 @@ private fun validateManualLink(
 
     if (candidate.isBlank()) {
         return ManualLinkResult.Invalid(
-            message = "Nessun link negli appunti.",
+            message = context.getString(R.string.error_no_link_clipboard),
             displayValue = "",
         )
     }
@@ -1542,14 +1659,14 @@ private fun validateManualLink(
     val uri = Uri.parse(candidate)
     if (!uri.scheme.equals("https", ignoreCase = true) || uri.host.isNullOrBlank()) {
         return ManualLinkResult.Invalid(
-            message = "Questo non sembra un link valido.",
+            message = context.getString(R.string.error_invalid_link),
             displayValue = candidate,
         )
     }
 
     if (registry.providerFor(candidate) == null) {
         return ManualLinkResult.Invalid(
-            message = "Questo servizio non è ancora supportato.",
+            message = context.getString(R.string.error_unsupported_service),
             displayValue = candidate,
         )
     }

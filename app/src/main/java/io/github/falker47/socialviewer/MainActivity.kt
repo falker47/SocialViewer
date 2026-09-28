@@ -2,7 +2,7 @@ package io.github.falker47.socialviewer
 
 import android.content.Intent
 import android.os.Bundle
-import androidx.activity.ComponentActivity
+import androidx.appcompat.app.AppCompatActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -18,10 +18,11 @@ import io.github.falker47.socialviewer.provider.tiktok.TikTokProvider
 import io.github.falker47.socialviewer.provider.x.XProvider
 import io.github.falker47.socialviewer.provider.youtube.YouTubeProvider
 import io.github.falker47.socialviewer.ui.SocialViewerApp
+import io.github.falker47.socialviewer.ui.initializeAppLanguage
 import io.github.falker47.socialviewer.util.UrlExtractor
 import io.github.falker47.socialviewer.util.googleAndroidApiClientHeaders
 
-class MainActivity : ComponentActivity() {
+class MainActivity : AppCompatActivity() {
     private var incomingUrl by mutableStateOf<String?>(null)
     private var resumeToken by mutableStateOf(0)
 
@@ -45,6 +46,7 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        initializeAppLanguage(this)
         super.onCreate(savedInstanceState)
         incomingUrl = extractUrl(intent)
 

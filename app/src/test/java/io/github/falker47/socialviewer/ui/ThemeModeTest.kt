@@ -7,27 +7,23 @@ import org.junit.Test
 
 class ThemeModeTest {
     @Test
-    fun missingOrUnknownPreferenceDefaultsToSystem() {
-        assertEquals(ThemeMode.System, ThemeMode.fromStorage(null))
-        assertEquals(ThemeMode.System, ThemeMode.fromStorage("unknown"))
+    fun missingOrLegacyPreferenceResolvesFromSystemOnce() {
+        assertEquals(ThemeMode.Light, ThemeMode.fromStorage(null, systemDark = false))
+        assertEquals(ThemeMode.Dark, ThemeMode.fromStorage(null, systemDark = true))
+        assertEquals(ThemeMode.Light, ThemeMode.fromStorage("system", systemDark = false))
+        assertEquals(ThemeMode.Dark, ThemeMode.fromStorage("system", systemDark = true))
     }
 
     @Test
     fun storedValuesRoundTripToExpectedModes() {
         ThemeMode.entries.forEach { mode ->
-            assertEquals(mode, ThemeMode.fromStorage(mode.storageValue))
+            assertEquals(mode, ThemeMode.fromStorage(mode.storageValue, systemDark = !mode.isDark))
         }
     }
 
     @Test
-    fun systemModeFollowsAndroidTheme() {
-        assertFalse(ThemeMode.System.resolveDark(systemDark = false))
-        assertTrue(ThemeMode.System.resolveDark(systemDark = true))
-    }
-
-    @Test
-    fun explicitModesOverrideAndroidTheme() {
-        assertFalse(ThemeMode.Light.resolveDark(systemDark = true))
-        assertTrue(ThemeMode.Dark.resolveDark(systemDark = false))
+    fun explicitModesAreStable() {
+        assertFalse(ThemeMode.Light.isDark)
+        assertTrue(ThemeMode.Dark.isDark)
     }
 }

@@ -1,4 +1,4 @@
-# Social Viewer — device smoke test
+# SocialViewer — device smoke test
 
 This checklist is the gate for changes that touch UI, intents, WebView behavior, direct-link handling, or providers.
 
@@ -39,7 +39,7 @@ Use either a physical phone or emulator. For provider/player verification, prefe
 
 Expected Home:
 
-- `Social Viewer`
+- `SocialViewer`
 - `Apri un contenuto`
 - provider-generic URL field with trailing clipboard icon
 - `Apri`
@@ -52,7 +52,7 @@ Clear app data before this test.
 1. Coach mark 1 highlights the manual-open controls.
 2. Its card stays visibly above the Android navigation area in both gesture navigation and classic three-button navigation.
 3. `Avanti` moves to step 2.
-4. Coach mark 2 highlights `Apertura diretta` and explains generically that supported links can open directly in Social Viewer after Android configuration.
+4. Coach mark 2 highlights `Apertura diretta` and explains generically that supported links can open directly in SocialViewer after Android configuration.
 5. `Non ora` completes onboarding without blocking the app.
 6. Relaunch: coach marks must not return.
 7. Repeat with fresh app data and choose `Configura apertura diretta`; Android's **Open by default** screen must open.
@@ -97,25 +97,25 @@ Do not use a private, removed, login-only, or age-gated item as the first smoke 
 
 ## 8. Direct-link handling
 
-Inside Social Viewer tap `Configura`.
+Inside SocialViewer tap `Configura`.
 
 On Android's **Open by default** screen enable supported-link handling and select the TikTok, Instagram, Reddit and Bluesky domains Android offers for the app.
 
 After returning:
 
-- Social Viewer reads the real Android domain state;
+- SocialViewer reads the real Android domain state;
 - Settings shows one compact **Apertura diretta** section with separate provider state, including Reddit and Bluesky;
 - a provider may show **Parziale** when only some of its declared hosts are selected;
 - `Apertura diretta attiva` appears on Home only when all declared provider hosts are approved;
 - the first transition to fully active shows `Apertura diretta attivata`.
 
-Then tap one supported TikTok link, one supported Instagram post/Reel link, one declared Reddit single-content link and one Bluesky post permalink from WhatsApp or a browser. For Reddit, also tap a normal subreddit and a user profile and confirm Social Viewer does not intercept them. For Bluesky, also tap a plain `https://bsky.app/profile/<handle>` URL and confirm Social Viewer does not intercept the profile.
+Then tap one supported TikTok link, one supported Instagram post/Reel link, one declared Reddit single-content link and one Bluesky post permalink from WhatsApp or a browser. For Reddit, also tap a normal subreddit and a user profile and confirm SocialViewer does not intercept them. For Bluesky, also tap a plain `https://bsky.app/profile/<handle>` URL and confirm SocialViewer does not intercept the profile.
 
-Expected: when Android is associated with Social Viewer for that domain, Social Viewer opens directly and starts resolving/rendering without first flashing Home. If a first-party app/browser owns the domain instead, change the association in Android rather than treating Social Viewer as a silent default.
+Expected: when Android is associated with SocialViewer for that domain, SocialViewer opens directly and starts resolving/rendering without first flashing Home. If a first-party app/browser owns the domain instead, change the association in Android rather than treating SocialViewer as a silent default.
 
 ## 9. Share-sheet fallback
 
-Share a public TikTok URL as text from another app and choose **Social Viewer**.
+Share a public TikTok URL as text from another app and choose **SocialViewer**.
 
 Expected: the app starts resolving the URL. This path is supported but intentionally not promoted in the primary UI.
 
@@ -124,11 +124,11 @@ Expected: the app starts resolving the URL. This path is supported but intention
 Open Settings → **Aspetto** and verify:
 
 1. On a fresh install, **Sistema** is selected by default.
-2. With **Sistema**, switch Android between light and dark theme; Social Viewer must follow the system theme.
-3. Select **Chiaro** while Android is dark; the Social Viewer chrome must remain light.
-4. Select **Scuro** while Android is light; the Social Viewer chrome must remain dark.
+2. With **Sistema**, switch Android between light and dark theme; SocialViewer must follow the system theme.
+3. Select **Chiaro** while Android is dark; the SocialViewer chrome must remain light.
+4. Select **Scuro** while Android is light; the SocialViewer chrome must remain dark.
 5. Fully close and relaunch the app; the selected mode must persist.
-6. In dark mode inspect Home, top bar, URL input, direct-link card, Settings, the clear-site-data dialog, snackbar, Loading, Error, and the chrome above the player. No Social Viewer surface should remain accidentally light.
+6. In dark mode inspect Home, top bar, URL input, direct-link card, Settings, the clear-site-data dialog, snackbar, Loading, Error, and the chrome above the player. No SocialViewer surface should remain accidentally light.
 7. Verify both coach marks remain readable against the scrim in dark mode. A fresh app-data run with Android dark + default **Sistema** is sufficient.
 8. Open a TikTok and confirm the remote player itself is not recolored; its black player background remains unchanged.
 9. Re-run clipboard paste/open and direct-link configuration to confirm no regression in those flows.
@@ -168,9 +168,9 @@ Run this only after CI is green on `feature/multi-provider-ui`.
 4. Manual playback: open one known-public TikTok item, one public Instagram post and one public Instagram Reel. All must render as before.
 5. Instagram unavailable/private: confirm the user-facing error is `Questo contenuto Instagram non è disponibile.` and does not expose the expected HTTP 400 detail. Unexpected provider failures must still use the generic error title rather than being mislabeled as normal unavailability.
 6. Direct-link settings: open **Impostazioni → Apertura diretta → Configura**. Confirm Android's real **Open by default** screen opens.
-7. Select/approve TikTok and Instagram domains where Android allows it. Return to Social Viewer and confirm the provider breakdown reflects the real state (**Attiva / Parziale / Da configurare**) rather than a fake toggle.
-8. Direct TikTok: tap a supported TikTok link from another app/browser and confirm Social Viewer resolves it directly when Android is associated with Social Viewer for that domain.
-9. Direct Instagram: tap a supported `/p/` or `/reel/` link from another app/browser and confirm Social Viewer resolves it directly when Android is associated with Social Viewer for that domain.
+7. Select/approve TikTok and Instagram domains where Android allows it. Return to SocialViewer and confirm the provider breakdown reflects the real state (**Attiva / Parziale / Da configurare**) rather than a fake toggle.
+8. Direct TikTok: tap a supported TikTok link from another app/browser and confirm SocialViewer resolves it directly when Android is associated with SocialViewer for that domain.
+9. Direct Instagram: tap a supported `/p/` or `/reel/` link from another app/browser and confirm SocialViewer resolves it directly when Android is associated with SocialViewer for that domain.
 10. Fallbacks: manual paste still works for both providers; Android Share-to-Social-Viewer still resolves a supported shared link.
 11. Fresh-install onboarding: both coach marks remain the same two-step flow; their copy mentions TikTok + Instagram and the second CTA opens Android's real direct-link settings.
 12. Appearance regression: exercise **Sistema / Chiaro / Scuro** and inspect Home, Settings, onboarding, loading/error chrome and player surroundings.
@@ -189,16 +189,16 @@ Run this only after CI is green on `feature/threads-provider`.
    .\sync-test-branch.ps1 feature/threads-provider
    ```
 2. Build/run on the physical phone used for the existing provider gates.
-3. Public permalink: open one known-public `https://www.threads.com/@<username>/post/<shortcode>/`. It must render a single Threads post without requiring a Social Viewer account or a Threads login.
+3. Public permalink: open one known-public `https://www.threads.com/@<username>/post/<shortcode>/`. It must render a single Threads post without requiring a SocialViewer account or a Threads login.
 4. Shorthand: open one real public `https://www.threads.com/t/<shortcode>/`. It must render through the same provider path.
 5. Legacy compatibility: if you have a real `threads.net` post or `/t/` URL, open it and confirm it normalizes to the current Threads integration rather than being rejected as an unsupported provider.
 6. Unavailable/private/removed: test one known unavailable item. Expected user-facing result is `Questo contenuto Threads non è disponibile.`; no raw expected HTTP 400/404 detail should be shown.
 7. Cookie/login surface: note whether the official embed shows any provider-controlled consent or login UI. Do not sign in. Rendering of the public test post must not depend on a Threads account.
-8. Repeated viewing/site data: open two public Threads posts in sequence, return Home, then reopen one. Confirm there is no Social Viewer history/feed surface and no unnecessary repeated consent caused by WebView disposal.
+8. Repeated viewing/site data: open two public Threads posts in sequence, return Home, then reopen one. Confirm there is no SocialViewer history/feed surface and no unnecessary repeated consent caused by WebView disposal.
 9. Clear site data: Settings → **Cancella dati del sito** → confirm. Reopen Threads; provider preferences may legitimately be requested again.
-10. Direct link: in Android **Open by default**, associate Social Viewer with Threads domains where Android allows it. Tap a real Threads shorthand `/t/` link from another app/browser. It should open directly in Social Viewer. Canonical `/@user/post/...` is intentionally paste/Share-only on this Android baseline.
+10. Direct link: in Android **Open by default**, associate SocialViewer with Threads domains where Android allows it. Tap a real Threads shorthand `/t/` link from another app/browser. It should open directly in SocialViewer. Canonical `/@user/post/...` is intentionally paste/Share-only on this Android baseline.
 11. Settings: TikTok, Instagram and Threads are the active/configurable provider rows. Facebook is shown separately as **In pausa** and is not included in the active-provider count.
-12. Main-frame boundary: tap author/profile or other navigational links inside the Threads embed. Social Viewer must not become a Threads browser; main-frame navigation must stay blocked.
+12. Main-frame boundary: tap author/profile or other navigational links inside the Threads embed. SocialViewer must not become a Threads browser; main-frame navigation must stay blocked.
 13. Appearance: exercise **Sistema / Chiaro / Scuro** with a Threads item loaded and inspect Home, Settings, loading/error chrome and player surroundings.
 14. TikTok regression: open one canonical public TikTok video and one vm/vt short link if convenient; playback must remain unchanged.
 15. Instagram regression: open one public Instagram post and one public Reel; both must remain unchanged.
@@ -221,14 +221,14 @@ Run this only after CI is green on `feature/youtube-provider`.
 7. Mobile URL: test `https://m.youtube.com/watch?v=<videoId>`.
 8. Optional live alias: test one public `/live/<videoId>` if available. No live chat or browsing surface should be added.
 9. Tracking parameters: repeat a shared URL containing `si`, `utm_*`, or other harmless query parameters. Video-ID extraction must remain stable.
-10. Made For Kids gate: use a known MFK video. Expected: **Contenuto non supportato** with copy explaining that videos intended for children are not opened in Social Viewer; the YouTube IFrame must not be loaded. **Apri originale** remains available.
+10. Made For Kids gate: use a known MFK video. Expected: **Contenuto non supportato** with copy explaining that videos intended for children are not opened in SocialViewer; the YouTube IFrame must not be loaded. **Apri originale** remains available.
 11. Unavailable/private/non-embeddable: confirm clean **Contenuto non disponibile** handling where the Data API exposes the restriction. Do not attempt to bypass login, age, region, Content ID, or uploader embedding restrictions.
-12. Player surface: controls remain native; autoplay is off; provider-native related-video/advertising surfaces are accepted. Social Viewer must not overlay, hide, restyle, or intercept them.
-13. Privacy-enhanced host: confirm player network/rendering uses `youtube-nocookie.com`. Note whether playback works with Social Viewer's existing third-party-cookie block; do not relax the cookie policy unless this fails repeatably.
+12. Player surface: controls remain native; autoplay is off; provider-native related-video/advertising surfaces are accepted. SocialViewer must not overlay, hide, restyle, or intercept them.
+13. Privacy-enhanced host: confirm player network/rendering uses `youtube-nocookie.com`. Note whether playback works with SocialViewer's existing third-party-cookie block; do not relax the cookie policy unless this fails repeatably.
 14. Referrer/client identity: if the player reports error 153, capture Logcat and the exact URL. The WebView document base URL must provide a Referer; do not work around 153 by disabling identity requirements.
-15. Routing: YouTube is intentionally **manual paste / Android Share only** in this milestone. Do not expect YouTube links to appear under Android Open by default for Social Viewer.
+15. Routing: YouTube is intentionally **manual paste / Android Share only** in this milestone. Do not expect YouTube links to appear under Android Open by default for SocialViewer.
 16. Navigation boundary: YouTube logo/channel/related actions must not turn the app shell into an unrestricted YouTube browser. Provider-native behavior inside the official player is allowed.
-17. Appearance: check System / Light / Dark around the player; the player itself must not be recolored.
+17. Appearance: check Light / Dark around the player; the player itself must not be recolored.
 18. Regression: re-run one TikTok canonical item, one Instagram post + Reel, and one Threads permalink or /t/ item. Their provider code and behavior must remain unchanged.
 19. Record PASS only if the Data API preflight, public watch/short/Shorts playback, MFK fail-closed behavior, privacy-enhanced player, and existing-provider regressions all pass.
 
@@ -240,10 +240,10 @@ Physical-device gate completed successfully on 2026-09-25 for `feature/reddit-pr
 Verified:
 
 1. Public Reddit post permalink renders as one Reddit item through the official oEmbed/Embeds path.
-2. A public single-comment permalink renders as that explicitly linked comment; Social Viewer does not open a comment tree.
+2. A public single-comment permalink renders as that explicitly linked comment; SocialViewer does not open a comment tree.
 3. A real Reddit `/s/` share alias resolves to a supported canonical HTTPS Reddit permalink and then renders normally.
-4. Removed/unavailable behavior remains bounded and does not turn Social Viewer into an unrestricted Reddit browser.
-5. System / Light / Dark rendering is acceptable around the Reddit embed.
+4. Removed/unavailable behavior remains bounded and does not turn SocialViewer into an unrestricted Reddit browser.
+5. Light / Dark rendering is acceptable around the Reddit embed.
 6. TikTok, Instagram, Threads and YouTube regressions pass.
 7. The original Reddit provider gate did not include Android direct opening; the direct-link extension below is a separate gate.
 8. Settings copy distinguishes the number of providers with direct-link handling from the total number of supported providers.
@@ -252,17 +252,17 @@ Verified:
 
 Run this after CI is green on `feature/reddit-direct-links`. The provider/rendering path itself is unchanged.
 
-1. Configure Android **Open by default** for Social Viewer and select `reddit.com` and `www.reddit.com` where Android allows it.
-2. Tap a canonical public post permalink from another app/browser. It must open Social Viewer directly and render the post.
-3. Tap a direct single-comment permalink. It must open Social Viewer directly and render the explicitly linked comment.
-4. Tap a real root `/s/{token}` share URL. It must open Social Viewer directly, resolve through the existing safe redirect gate and render normally.
+1. Configure Android **Open by default** for SocialViewer and select `reddit.com` and `www.reddit.com` where Android allows it.
+2. Tap a canonical public post permalink from another app/browser. It must open SocialViewer directly and render the post.
+3. Tap a direct single-comment permalink. It must open SocialViewer directly and render the explicitly linked comment.
+4. Tap a real root `/s/{token}` share URL. It must open SocialViewer directly, resolve through the existing safe redirect gate and render normally.
 5. If available, tap a real contextual `/r/{context}/s/{token}` share URL. It must open directly and resolve through the existing provider redirect gate.
 6. Settings must reflect Android's real Reddit state: **Attivo** when both declared hosts are selected, **Parziale** when only one is selected, and **Da configurare** when neither is selected or global link handling is disabled.
-7. Tap a normal subreddit URL such as `https://www.reddit.com/r/android/` and a user/profile URL such as `https://www.reddit.com/user/example/`. Neither may open Social Viewer. Home, search, `r/all`, `r/popular`, wiki, mod tools, messages and settings are likewise out of scope.
-8. Tap a real `https://redd.it/{id}` short permalink. Social Viewer must **not claim the initial redd.it URL directly**. A browser may visibly open first, follow Reddit's redirect to a declared `reddit.com` permalink, and then hand that redirected URL to Social Viewer; this opportunistic browser-mediated handoff is acceptable but is not counted as first-class redd.it direct-link support and may vary by browser/device.
+7. Tap a normal subreddit URL such as `https://www.reddit.com/r/android/` and a user/profile URL such as `https://www.reddit.com/user/example/`. Neither may open SocialViewer. Home, search, `r/all`, `r/popular`, wiki, mod tools, messages and settings are likewise out of scope.
+8. Tap a real `https://redd.it/{id}` short permalink. SocialViewer must **not claim the initial redd.it URL directly**. A browser may visibly open first, follow Reddit's redirect to a declared `reddit.com` permalink, and then hand that redirected URL to SocialViewer; this opportunistic browser-mediated handoff is acceptable but is not counted as first-class redd.it direct-link support and may vary by browser/device.
 9. Verify one already-active direct-link provider still opens normally (for example TikTok, Instagram, Pinterest or Bluesky).
 10. Verify Reddit manual paste and Android Share still work for the supported permalink and `/s/` families, including a supported permalink on a non-declared legacy host such as `old.reddit.com` if convenient.
-11. If the first-party Reddit app or browser owns a declared domain, treat that as Android association competition: change **Open by default** ownership for the test rather than changing Social Viewer routing.
+11. If the first-party Reddit app or browser owns a declared domain, treat that as Android association competition: change **Open by default** ownership for the test rather than changing SocialViewer routing.
 
 Record PASS only if useful Reddit content opens directly, out-of-scope Reddit navigation stays unclaimed, Settings matches Android's actual host selection, and the existing Reddit provider plus one other direct-link provider regress cleanly.
 
@@ -280,7 +280,7 @@ Verified:
 3. A real `pin.it` share alias that resolves through Pinterest's `/sent/` share path normalizes to the same single Pin and renders correctly.
 4. A nonexistent Pin exits the loading state and shows `Questo Pin Pinterest non è disponibile.` rather than leaving an indefinite black surface.
 5. Canonical Pinterest `/pin/` direct-link handling works through Android Open by default.
-6. System / Light / Dark sanity passed around the Pinterest embed.
+6. Light / Dark sanity passed around the Pinterest embed.
 7. TikTok, Instagram, Threads, YouTube and Reddit regressions all passed after the Pinterest changes.
 8. Board, profile, feed and arbitrary Pinterest navigation remain outside the provider boundary.
 9. `pin.it` and regional hosts remain manual-paste / Android-Share-only; the manifest claims only canonical Pinterest hosts and `/pin/` paths.
@@ -290,13 +290,13 @@ Verified:
 
 The shared loading-overlay polish must be verified on a physical device before merge.
 
-1. Open a public Reddit post that previously exposed brief pre-widget text. The branded Social Viewer loading surface must remain visible until the final Reddit card is ready; no raw blockquote/text fragment should flash.
+1. Open a public Reddit post that previously exposed brief pre-widget text. The branded SocialViewer loading surface must remain visible until the final Reddit card is ready; no raw blockquote/text fragment should flash.
 2. Repeat with one Instagram post/Reel and one Threads post. Provider oEmbed markup must not become visible before the transformed embed.
 3. Open one TikTok and one YouTube video. Their existing official players must still appear normally and remain interactive after the native overlay clears.
 4. Open Pinterest, X and Bluesky once each. Their provider-specific loading/error behavior must remain reachable; the native overlay must not remain stuck indefinitely.
 5. Exercise one unavailable/failed provider case. After the bounded WebView fallback, any provider-owned status/error surface must be allowed to appear rather than leaving a permanent loading overlay.
 6. Rotate or resize once while loading and once after reveal. The current item must remain active and must not return to Home.
-7. Re-run System / Light / Dark around the loading transition. The overlay must use the Social Viewer theme and must not expose an accidental white/unstyled frame.
+7. Re-run Light / Dark around the loading transition. The overlay must use the SocialViewer theme and must not expose an accidental white/unstyled frame.
 
 Record PASS only if the transition is visually atomic across the representative providers and there is no playback, navigation, consent, or rotation regression.
 
@@ -316,7 +316,7 @@ Verified:
 7. Settings → Privacy and site data → **Revoca autorizzazione** clears the local X embed-consent decision; the next X load shows the notice again.
 8. Third-party cookies remain blocked; `dnt=true`, `hide_thread=true` and `omit_script=true` are requested from X oEmbed.
 9. X remains manual-paste / Android-Share-only in this slice; no X ACTION_VIEW filters are declared because the supported status route cannot be constrained safely enough on the minSdk-26 manifest matcher.
-10. System / Light / Dark sanity passed.
+10. Light / Dark sanity passed.
 11. TikTok, Instagram, Threads, YouTube, Reddit and Pinterest regressions all passed after the X changes.
 12. Facebook PR #4 and the Reddit loading-transition polish item were not modified.
 
@@ -334,8 +334,8 @@ Verified:
 5. No Bluesky login, OAuth, API key, backend, scraping, remote browser or billing-dependent service is required.
 6. Strict URL policy rejects profiles, feeds, extra path segments, HTTP URLs, lookalike domains, invalid handles/DIDs and invalid record keys.
 7. User-managed Android direct-link handling is enabled for `bsky.app` single-post paths through `/profile/.*/post/.*`.
-8. On a physical device, a real Bluesky post permalink opens directly in Social Viewer after enabling `bsky.app` under Open by default.
-9. A plain Bluesky profile URL `https://bsky.app/profile/{handle}` is not intercepted by Social Viewer.
+8. On a physical device, a real Bluesky post permalink opens directly in SocialViewer after enabling `bsky.app` under Open by default.
+9. A plain Bluesky profile URL `https://bsky.app/profile/{handle}` is not intercepted by SocialViewer.
 10. Third-party cookies remain blocked and main-frame navigation remains blocked.
 11. TikTok, Instagram, Threads, YouTube, Reddit, Pinterest and X regressions all passed before the final direct-link patch; the direct-link patch is isolated to Bluesky manifest/state handling and passed CI plus the final physical direct-link/profile-non-interception check.
 12. Facebook PR #4 and the Reddit loading-transition polish item were not modified.
