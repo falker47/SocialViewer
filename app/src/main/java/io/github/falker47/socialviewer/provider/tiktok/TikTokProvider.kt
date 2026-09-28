@@ -8,9 +8,6 @@ import org.json.JSONObject
 
 class TikTokProvider(
     private val http: UrlConnectionHttpClient = UrlConnectionHttpClient(),
-    private val firstLoadPlaybackHint: () -> String = {
-        "TikTok needs a cookie choice on first use. Complete the cookie prompt in the player, then retry if needed."
-    },
 ) : SocialProvider {
     override val id: String = "tiktok"
     override val displayName: String = "TikTok"
@@ -57,10 +54,12 @@ class TikTokProvider(
             title = json.optString("title").takeIf { it.isNotBlank() },
             authorName = json.optString("author_name").takeIf { it.isNotBlank() },
             documentBaseUrl = "https://www.tiktok.com/",
-            embedHtml = playerHtml(
-                postId = postId,
-                firstLoadPlaybackHint = firstLoadPlaybackHint(),
-            ),
+            embedHtml = playerHtml(postId),
+            // TikTok's first WebView load can enter PLAYBACK_ERROR 3001 while its own
+            // first-party cookie-consent choice is unresolved. Once that choice creates
+            // TikTok's consent cookie, the shared WebView automatically reloads this
+            // document exactly once so the same player initializes with the saved choice.
+            reloadOnCookieName = "cookie-consent",
         )
     }
 
@@ -77,13 +76,7 @@ class TikTokProvider(
         return null
     }
 
-    internal fun playerHtml(
-        postId: String,
-        firstLoadPlaybackHint: String = "TikTok needs a cookie choice on first use. Complete the cookie prompt in the player, then retry if needed.",
-    ): String {
-        val quotedFirstLoadPlaybackHint = JSONObject.quote(firstLoadPlaybackHint)
-
-        return """
+    internal fun playerHtml(postId: String): String = """
         <!doctype html>
         <html>
           <head>
@@ -122,28 +115,12 @@ class TikTokProvider(
                 border-radius: 50%;
                 animation: spin .8s linear infinite;
               }
-              #player-error {
-                position: absolute;
-                top: 12px;
-                left: 12px;
-                right: 12px;
-                z-index: 3;
-                display: none;
-                padding: 10px 12px;
-                border-radius: 10px;
-                background: rgba(0, 0, 0, .82);
-                color: #fff;
-                text-align: center;
-                font: 13px sans-serif;
-                pointer-events: none;
-              }
               @keyframes spin { to { transform: rotate(360deg); } }
             </style>
           </head>
           <body>
             <div id="stage">
               <div id="loader" aria-label="Caricamento"></div>
-              <div id="player-error" role="status"></div>
               <iframe
                 id="player"
                 src="https://www.tiktok.com/player/v1/$postId?controls=1&progress_bar=1&play_button=1&volume_control=1&fullscreen_button=1&timestamp=1&autoplay=0&muted=0&rel=0&native_context_menu=0"
@@ -156,15 +133,9 @@ class TikTokProvider(
               (function () {
                 const player = document.getElementById('player');
                 const loader = document.getElementById('loader');
-                const playerError = document.getElementById('player-error');
-                const firstLoadPlaybackHint = $quotedFirstLoadPlaybackHint;
                 let revealed = false;
-                let playerReady = false;
-                let waitingForConsent = false;
 
                 function reveal() {
-                  playerError.style.display = 'none';
-                  waitingForConsent = false;
                   if (revealed) return;
                   revealed = true;
                   player.style.opacity = '1';
@@ -172,7 +143,6 @@ class TikTokProvider(
                 }
 
                 player.addEventListener('load', function () {
-                  // Avoid exposing the iframe's intermediate layout while TikTok initializes.
                   window.setTimeout(reveal, 250);
                 });
 
@@ -181,42 +151,28 @@ class TikTokProvider(
                   if (!data || !data['x-tiktok-player']) return;
 
                   if (data.type === 'onPlayerReady') {
-                    playerReady = true;
                     reveal();
                     return;
                   }
 
                   if (data.type === 'onPlayerError') {
                     const value = data.value || {};
-                    const errorCode = value.errorCode === undefined ? 'unknown' : value.errorCode;
-                    const errorType = value.errorType || 'UNKNOWN';
-
-                    console.warn('TikTok player error', errorCode, errorType);
-
-                    // Physical-device verification showed that TikTok can emit 3001 on
-                    // the very first player load while its own cookie-consent surface is
-                    // still unresolved. Keep TikTok's iframe fully interactive and give
-                    // the user context instead of treating that transient state as a
-                    // terminal SocialViewer error.
-                    if (!playerReady && errorCode === 3001) {
-                      waitingForConsent = true;
-                      player.style.opacity = '1';
-                      loader.style.display = 'none';
-                      playerError.textContent = firstLoadPlaybackHint;
-                      playerError.style.display = 'block';
-                    }
+                    console.warn(
+                      'TikTok player error',
+                      value.errorCode === undefined ? 'unknown' : value.errorCode,
+                      value.errorType || 'UNKNOWN'
+                    );
+                    // Keep TikTok's own cookie-consent UI visible and interactive.
+                    // Native WebView cookie monitoring handles the one-time reload after
+                    // the user's consent choice is persisted.
+                    reveal();
                   }
                 });
 
-                // Safety fallback for unusual WebView/player builds. Do not hide the
-                // first-load consent hint while TikTok is waiting for the user's choice.
-                window.setTimeout(function () {
-                  if (!waitingForConsent) reveal();
-                }, 6000);
+                window.setTimeout(reveal, 6000);
               })();
             </script>
           </body>
         </html>
     """.trimIndent()
-    }
 }
