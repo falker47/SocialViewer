@@ -32,7 +32,7 @@
     <string name="clear_provider_data_title">Cancellare i dati dei provider?</string>
     <string name="clear_provider_data_body">Verranno rimossi cookie e preferenze dei provider. I provider potrebbero chiederti nuovamente le preferenze sui cookie.</string>
     <string name="cancel">Annulla</string>
-    <string name="delete">Cancella</string>
+    <string name="clear">Cancella</string>
     <string name="theme_system">Sistema</string>
     <string name="theme_light">Chiaro</string>
     <string name="theme_dark">Scuro</string>
