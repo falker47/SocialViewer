@@ -21,7 +21,9 @@ internal object PinItDiagnostics {
         vararg fields: Pair<String, Any?>,
     ) {
         if (!BuildConfig.DEBUG) return
-        Log.i(TAG, line(stage, *fields))
+        runCatching {
+            Log.i(TAG, line(stage, *fields))
+        }
     }
 
     fun error(
@@ -30,15 +32,17 @@ internal object PinItDiagnostics {
         throwable: Throwable,
     ) {
         if (!BuildConfig.DEBUG) return
-        Log.e(
-            TAG,
-            line(
-                stage,
-                "url" to safeUrl(url),
-                "exception" to throwable.javaClass.name,
-                "message" to throwable.message,
-            ),
-        )
+        runCatching {
+            Log.e(
+                TAG,
+                line(
+                    stage,
+                    "url" to safeUrl(url),
+                    "exception" to throwable.javaClass.name,
+                    "message" to throwable.message,
+                ),
+            )
+        }
     }
 
     internal fun line(
