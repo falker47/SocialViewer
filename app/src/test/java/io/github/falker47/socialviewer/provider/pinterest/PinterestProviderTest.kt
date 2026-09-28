@@ -80,6 +80,8 @@ class PinterestProviderTest {
             canonical,
         )
         assertEquals("https://pin.it/AbC123_xYz", http.resolvedUrl)
+        assertTrue(http.resolveHeaders?.get("User-Agent")?.startsWith("Mozilla/5.0") == true)
+        assertEquals("en-US,en;q=0.9", http.resolveHeaders?.get("Accept-Language"))
     }
 
     @Test(expected = IllegalArgumentException::class)
@@ -109,8 +111,14 @@ class PinterestProviderTest {
     ) : UrlConnectionHttpClient() {
         var resolvedUrl: String? = null
 
-        override fun resolveFinalUrl(url: String): String {
+        var resolveHeaders: Map<String, String>? = null
+
+        override fun resolveFinalUrl(
+            url: String,
+            headers: Map<String, String>,
+        ): String {
             resolvedUrl = url
+            resolveHeaders = headers
             return finalUrl
         }
     }
