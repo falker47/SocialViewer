@@ -19,7 +19,7 @@ class RedditDirectLinkManifestTest {
         assertEquals(1, redditFilters.size)
 
         val redditComFilter = redditFilters.single {
-            it.hosts == setOf("reddit.com", "www.reddit.com")
+            it.hosts == setOf("reddit.com", "*.reddit.com")
         }
         assertEquals(setOf("https"), redditComFilter.schemes)
         assertEquals(
@@ -43,9 +43,7 @@ class RedditDirectLinkManifestTest {
             .hosts
 
         assertEquals(settingsHosts, manifestHosts)
-        assertFalse("old.reddit.com" in manifestHosts)
-        assertFalse("new.reddit.com" in manifestHosts)
-        assertFalse("m.reddit.com" in manifestHosts)
+        assertTrue("*.reddit.com" in manifestHosts)
     }
 
     @Test
@@ -58,6 +56,9 @@ class RedditDirectLinkManifestTest {
             "https://www.reddit.com/r/android/s/AbC123_xYz/",
             "https://reddit.com/u/example_user/s/AbC123_xYz/",
             "https://www.reddit.com/user/example_user/s/AbC123_xYz/",
+            "https://old.reddit.com/r/android/comments/1abc234/example_post/",
+            "https://new.reddit.com/r/android/comments/1abc234/example_post/",
+            "https://m.reddit.com/r/android/comments/1abc234/example_post/",
         )
 
         claimed.forEach { url ->
@@ -85,9 +86,8 @@ class RedditDirectLinkManifestTest {
             "https://www.reddit.com/r/android/comments/1abc234/example_post/def567/child/",
             "https://redd.it/",
             "https://redd.it/1abc234",
-            "https://old.reddit.com/r/android/comments/1abc234/example_post/",
-            "https://new.reddit.com/r/android/comments/1abc234/example_post/",
-            "https://m.reddit.com/r/android/comments/1abc234/example_post/",
+            "https://old.reddit.com/r/android/",
+            "https://m.reddit.com/user/example_user/",
         )
 
         notClaimed.forEach { url ->
@@ -102,7 +102,7 @@ class RedditDirectLinkManifestTest {
         val path = uri.path ?: "/"
 
         return viewFilters().any { filter ->
-            host in filter.hosts &&
+            filter.hosts.any { manifestHost -> hostMatches(manifestHost, host) } &&
                 scheme in filter.schemes &&
                 when {
                     filter.literalPaths.isNotEmpty() ->
@@ -118,6 +118,14 @@ class RedditDirectLinkManifestTest {
                 }
         }
     }
+
+    private fun hostMatches(manifestHost: String, actualHost: String): Boolean =
+        if (manifestHost.startsWith("*.")) {
+            actualHost.endsWith(manifestHost.removePrefix("*")) &&
+                actualHost != manifestHost.removePrefix("*.")
+        } else {
+            actualHost == manifestHost
+        }
 
     /**
      * Minimal deterministic model of Android PATTERN_SIMPLE_GLOB for the subset used by
