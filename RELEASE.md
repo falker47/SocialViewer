@@ -1,6 +1,6 @@
 # Google Play release workflow
 
-Social Viewer targets **Google Play** as its initial public distribution channel.
+SocialViewer targets **Google Play** as its initial public distribution channel.
 
 ## Fixed release identity
 
@@ -117,7 +117,7 @@ After this repository plumbing is green:
 1. Generate and securely back up a dedicated RSA JKS upload key / keystore.
 2. Configure the four `PLAY_UPLOAD_*` values locally.
 3. Build the signed AAB with `playReleaseBundle` using the existing non-empty YouTube Data API key. For a local signed-release playback check, the API-key restriction may additionally authorize package `io.github.falker47.socialviewer` with the upload-key SHA-1.
-4. In Play Console, create the Social Viewer app, accept the Play App Signing terms and keep the default Google-generated app-signing key. The initial Create app form does not define the Android package; the uploaded bundle carries the frozen application ID.
+4. In Play Console, create the SocialViewer app, accept the Play App Signing terms and keep the default Google-generated app-signing key. The initial Create app form does not define the Android package; the uploaded bundle carries the frozen application ID.
 5. Create an internal-testing release and upload the signed AAB. This establishes the Play package/signing identity; do not roll it out to production.
 6. Open Play Console → App integrity / App signing and read the **app-signing certificate SHA-1**.
 7. Add package `io.github.falker47.socialviewer` + that Play app-signing SHA-1 to the Android restrictions of the YouTube Data API key. Google API-key restrictions can authorize more than one package/certificate pair, so the debug/upload identities may remain only where they are still needed for testing.
