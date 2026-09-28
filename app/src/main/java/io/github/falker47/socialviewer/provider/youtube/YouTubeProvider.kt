@@ -115,7 +115,7 @@ internal fun resolveYouTubeVideo(
     if (status.getBoolean("madeForKids")) {
         throw ProviderPolicyBlockedException(
             providerName = "YouTube",
-            userMessage = "I video YouTube destinati ai bambini non vengono aperti in Social Viewer.",
+            userMessage = "I video YouTube destinati ai bambini non vengono aperti in SocialViewer.",
             technicalDetail = "Video YouTube Made For Kids bloccato prima dell'embed",
         )
     }
