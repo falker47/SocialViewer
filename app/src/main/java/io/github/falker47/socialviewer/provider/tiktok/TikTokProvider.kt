@@ -71,7 +71,7 @@ class TikTokProvider(
         return null
     }
 
-    private fun playerHtml(postId: String): String = """
+    internal fun playerHtml(postId: String): String = """
         <!doctype html>
         <html>
           <head>
@@ -110,12 +110,26 @@ class TikTokProvider(
                 border-radius: 50%;
                 animation: spin .8s linear infinite;
               }
+              #player-error {
+                position: absolute;
+                inset: 0;
+                z-index: 3;
+                display: none;
+                align-items: center;
+                justify-content: center;
+                padding: 24px;
+                background: #000;
+                color: #fff;
+                text-align: center;
+                font: 14px sans-serif;
+              }
               @keyframes spin { to { transform: rotate(360deg); } }
             </style>
           </head>
           <body>
             <div id="stage">
               <div id="loader" aria-label="Caricamento"></div>
+              <div id="player-error" role="status"></div>
               <iframe
                 id="player"
                 src="https://www.tiktok.com/player/v1/$postId?controls=1&progress_bar=1&play_button=1&volume_control=1&fullscreen_button=1&timestamp=1&autoplay=0&muted=0&rel=0&native_context_menu=0"
@@ -128,11 +142,14 @@ class TikTokProvider(
               (function () {
                 const player = document.getElementById('player');
                 const loader = document.getElementById('loader');
+                const playerError = document.getElementById('player-error');
                 let revealed = false;
+                let hadError = false;
 
                 function reveal() {
                   if (revealed) return;
                   revealed = true;
+                  playerError.style.display = 'none';
                   player.style.opacity = '1';
                   loader.style.display = 'none';
                 }
@@ -144,13 +161,31 @@ class TikTokProvider(
 
                 window.addEventListener('message', function (event) {
                   const data = event && event.data;
-                  if (data && data['x-tiktok-player'] && data.type === 'onPlayerReady') {
+                  if (!data || !data['x-tiktok-player']) return;
+
+                  if (data.type === 'onPlayerReady') {
                     reveal();
+                    return;
+                  }
+
+                  if (data.type === 'onPlayerError') {
+                    const value = data.value || {};
+                    const errorCode = value.errorCode === undefined ? 'unknown' : value.errorCode;
+                    const errorType = value.errorType || 'UNKNOWN';
+                    hadError = true;
+                    player.style.opacity = '0';
+                    loader.style.display = 'none';
+                    playerError.textContent =
+                      'TikTok player error ' + errorCode + ' (' + errorType + ')';
+                    playerError.style.display = 'flex';
                   }
                 });
 
-                // Safety fallback for unusual WebView/player builds.
-                window.setTimeout(reveal, 6000);
+                // Safety fallback for unusual WebView/player builds. Do not hide a real
+                // player error; a later onPlayerReady can still recover normally.
+                window.setTimeout(function () {
+                  if (!hadError) reveal();
+                }, 6000);
               })();
             </script>
           </body>
