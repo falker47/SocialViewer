@@ -112,16 +112,18 @@ class TikTokProvider(
               }
               #player-error {
                 position: absolute;
-                inset: 0;
+                top: 12px;
+                left: 12px;
+                right: 12px;
                 z-index: 3;
                 display: none;
-                align-items: center;
-                justify-content: center;
-                padding: 24px;
-                background: #000;
+                padding: 10px 12px;
+                border-radius: 10px;
+                background: rgba(0, 0, 0, .82);
                 color: #fff;
                 text-align: center;
-                font: 14px sans-serif;
+                font: 13px sans-serif;
+                pointer-events: none;
               }
               @keyframes spin { to { transform: rotate(360deg); } }
             </style>
@@ -173,11 +175,11 @@ class TikTokProvider(
                     const errorCode = value.errorCode === undefined ? 'unknown' : value.errorCode;
                     const errorType = value.errorType || 'UNKNOWN';
                     hadError = true;
-                    player.style.opacity = '0';
+                    player.style.opacity = '1';
                     loader.style.display = 'none';
                     playerError.textContent =
                       'TikTok player error ' + errorCode + ' (' + errorType + ')';
-                    playerError.style.display = 'flex';
+                    playerError.style.display = 'block';
                   }
                 });
 
