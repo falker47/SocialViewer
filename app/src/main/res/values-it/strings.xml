@@ -20,6 +20,8 @@
     <string name="app_language">Lingua dell’app</string>
     <string name="language_system_default">Predefinita di sistema</string>
     <string name="language_device_default">Usa la lingua del dispositivo</string>
+    <string name="language_automatic_format">%1$s · automatico</string>
+    <string name="theme_system_effective_format">Sistema · %1$s</string>
     <string name="language_english">English</string>
     <string name="language_italian">Italiano</string>
     <string name="direct_link_opening">Apertura diretta</string>
