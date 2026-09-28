@@ -26,10 +26,7 @@ internal val DIRECT_LINK_PROVIDERS = listOf(
         displayName = "TikTok",
         hosts = linkedSetOf(
             "tiktok.com",
-            "www.tiktok.com",
-            "m.tiktok.com",
-            "vm.tiktok.com",
-            "vt.tiktok.com",
+            "*.tiktok.com",
         ),
     ),
     DirectLinkProviderDefinition(
@@ -55,7 +52,7 @@ internal val DIRECT_LINK_PROVIDERS = listOf(
         displayName = "Reddit",
         hosts = linkedSetOf(
             "reddit.com",
-            "www.reddit.com",
+            "*.reddit.com",
         ),
     ),
     DirectLinkProviderDefinition(
@@ -64,6 +61,17 @@ internal val DIRECT_LINK_PROVIDERS = listOf(
         hosts = linkedSetOf(
             "pinterest.com",
             "www.pinterest.com",
+            "pin.it",
+        ),
+    ),
+    DirectLinkProviderDefinition(
+        providerId = "youtube",
+        displayName = "YouTube",
+        hosts = linkedSetOf(
+            "youtube.com",
+            "www.youtube.com",
+            "m.youtube.com",
+            "youtu.be",
         ),
     ),
     DirectLinkProviderDefinition(
