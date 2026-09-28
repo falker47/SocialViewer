@@ -5,12 +5,18 @@ import io.github.falker47.socialviewer.domain.SocialContent
 import io.github.falker47.socialviewer.network.UrlConnectionHttpClient
 import io.github.falker47.socialviewer.provider.SocialProvider
 import java.net.URI
+import java.net.URLDecoder
+import java.nio.charset.StandardCharsets
 
 private const val PINTEREST_DOCUMENT_BASE_URL = "https://www.pinterest.com/"
 private const val PINTEREST_WIDGET_SCRIPT = "https://assets.pinterest.com/js/pinit.js"
 private const val PINTEREST_REDIRECT_USER_AGENT =
     "Mozilla/5.0 (Linux; Android 15) AppleWebKit/537.36 " +
         "(KHTML, like Gecko) Chrome/153.0 Mobile Safari/537.36"
+
+private val PINTEREST_PIN_URL_IN_BODY = Regex(
+    """(?i)(?:https:)?//(?:(?:www|[a-z]{2})\.)?pinterest\.com/pin/[^"'<>\\\s]+""",
+)
 
 class PinterestProvider(
     private val http: UrlConnectionHttpClient = UrlConnectionHttpClient(),
@@ -47,26 +53,63 @@ internal fun canonicalPinterestUrlFor(
         "URL Pinterest non supportata"
     }
 
-    // Pinterest short links can vary their redirect response by client/User-Agent.
-    // Resolve them with a normal mobile-browser identity, then keep the existing
-    // strict final-target validation before any content is rendered.
-    val finalUrl = http.resolveFinalUrl(
+    // pin.it may finish as a normal HTTP redirect or as a lightweight landing page
+    // containing the final Pinterest Pin URL. Resolve both shapes, but accept only
+    // a URL that still passes the strict single-Pin policy.
+    val response = http.get(
         url = rawUrl,
         headers = mapOf(
             "User-Agent" to PINTEREST_REDIRECT_USER_AGENT,
             "Accept-Language" to "en-US,en;q=0.9",
         ),
     )
-    val finalUri = runCatching { URI(finalUrl) }
-        .getOrElse { throw IllegalArgumentException("Redirect Pinterest non valido", it) }
 
-    return PinterestUrlPolicy.canonicalPinUrl(
-        scheme = finalUri.scheme,
-        host = finalUri.host,
-        path = finalUri.path,
-    ) ?: throw IllegalArgumentException(
+    if (response.statusCode !in 200..399) {
+        throw IllegalArgumentException(
+            "HTTP ${response.statusCode} durante la risoluzione del link Pinterest",
+        )
+    }
+
+    canonicalPinterestUrlOrNull(response.finalUrl)?.let { return it }
+
+    pinterestPinCandidatesFromBody(response.body)
+        .firstNotNullOfOrNull(::canonicalPinterestUrlOrNull)
+        ?.let { return it }
+
+    throw IllegalArgumentException(
         "Il link di condivisione Pinterest non ha risolto a un Pin pubblico supportato",
     )
+}
+
+private fun canonicalPinterestUrlOrNull(url: String): String? {
+    val uri = runCatching { URI(url) }.getOrNull() ?: return null
+    return PinterestUrlPolicy.canonicalPinUrl(
+        scheme = uri.scheme,
+        host = uri.host,
+        path = uri.path,
+    )
+}
+
+internal fun pinterestPinCandidatesFromBody(body: String): List<String> {
+    if (body.isBlank()) return emptyList()
+
+    val normalized = buildList {
+        add(body.replace("\\/", "/").replace("&amp;", "&"))
+        runCatching {
+            URLDecoder.decode(body, StandardCharsets.UTF_8)
+                .replace("\\/", "/")
+                .replace("&amp;", "&")
+        }.getOrNull()?.let(::add)
+    }
+
+    return normalized
+        .asSequence()
+        .flatMap { PINTEREST_PIN_URL_IN_BODY.findAll(it).map(MatchResult::value) }
+        .map { candidate ->
+            if (candidate.startsWith("//")) "https:$candidate" else candidate
+        }
+        .distinct()
+        .toList()
 }
 
 internal fun resolveCanonicalPinterest(canonicalUrl: String): SocialContent =
