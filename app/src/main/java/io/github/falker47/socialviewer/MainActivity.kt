@@ -29,7 +29,12 @@ class MainActivity : AppCompatActivity() {
     private val registry by lazy {
         ProviderRegistry(
             providers = listOf(
-                TikTokProvider(UrlConnectionHttpClient()),
+                TikTokProvider(
+                    http = UrlConnectionHttpClient(),
+                    firstLoadPlaybackHint = {
+                        getString(R.string.tiktok_first_load_playback_hint)
+                    },
+                ),
                 InstagramProvider(UrlConnectionHttpClient()),
                 ThreadsProvider(UrlConnectionHttpClient()),
                 RedditProvider(UrlConnectionHttpClient()),
