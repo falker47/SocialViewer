@@ -111,33 +111,6 @@
                     android:pathPattern="/..*" />
             </intent-filter>
 
-            <!-- YouTube single-video routes already supported by YouTubeProvider. -->
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-
-                <data android:scheme="https" android:host="youtube.com" />
-                <data android:scheme="https" android:host="www.youtube.com" />
-                <data android:scheme="https" android:host="m.youtube.com" />
-
-                <data android:path="/watch" />
-                <data android:pathPrefix="/shorts/" />
-                <data android:pathPrefix="/live/" />
-            </intent-filter>
-
-            <!-- youtu.be paths are exactly one 11-character YouTube video ID. -->
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-
-                <data
-                    android:scheme="https"
-                    android:host="youtu.be"
-                    android:pathPattern="/..........." />
-            </intent-filter>
-
             <!-- Only Bluesky single-post paths are claimed; profile pages are not. -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
