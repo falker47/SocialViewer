@@ -17,13 +17,10 @@
     <string name="status_partial">Parziale</string>
     <string name="status_to_complete">Da completare</string>
     <string name="section_language">Lingua</string>
-    <string name="app_language">Lingua dell’app</string>
-    <string name="language_system_default">Predefinita di sistema</string>
-    <string name="language_device_default">Usa la lingua del dispositivo</string>
-    <string name="language_automatic_format">%1$s · automatico</string>
-    <string name="theme_system_effective_format">Sistema · %1$s</string>
     <string name="language_english">English</string>
     <string name="language_italian">Italiano</string>
+    <string name="language_code_it" translatable="false">IT</string>
+    <string name="language_code_en" translatable="false">EN</string>
     <string name="direct_link_opening">Apertura diretta</string>
     <string name="section_appearance">Aspetto</string>
     <string name="section_privacy_data">Privacy e dati</string>
@@ -41,7 +38,6 @@
     <string name="clear_provider_data_body">Verranno rimossi cookie e preferenze dei provider. I provider potrebbero chiederti nuovamente le preferenze sui cookie.</string>
     <string name="cancel">Annulla</string>
     <string name="clear">Cancella</string>
-    <string name="theme_system">Sistema</string>
     <string name="theme_light">Chiaro</string>
     <string name="theme_dark">Scuro</string>
     <string name="how_to_enable">Come si attiva</string>
