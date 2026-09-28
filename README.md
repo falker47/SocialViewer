@@ -1,8 +1,8 @@
-# Social Viewer
+# SocialViewer
 
 Privacy-minimal Android viewer for **single public social-media links**.
 
-Social Viewer is intentionally not a social client: no feed, no Social Viewer account, no viewing history, no recommendations, no analytics, and no backend. A user opens a public link someone explicitly sent them; the app resolves the matching provider and renders that one piece of content.
+SocialViewer is intentionally not a social client: no feed, no SocialViewer account, no viewing history, no recommendations, no analytics, and no backend. A user opens a public link someone explicitly sent them; the app resolves the matching provider and renders that one piece of content.
 
 ## Current baseline — v0.1.1
 
@@ -31,7 +31,7 @@ TikTok, Instagram, Threads, YouTube, Reddit, Pinterest, X and Bluesky playback p
 
 ## Product rule
 
-Social Viewer only handles content that is both public and available through a provider-supported public/embed mechanism. It does not bypass login requirements, age gates, private accounts, removals, or other access controls. It does not create recommendation surfaces of its own; provider-native related/advertising surfaces that cannot be removed through supported controls may remain inside an official player. For YouTube, Made For Kids status is checked before embedding and MFK videos are rejected in-app.
+SocialViewer only handles content that is both public and available through a provider-supported public/embed mechanism. It does not bypass login requirements, age gates, private accounts, removals, or other access controls. It does not create recommendation surfaces of its own; provider-native related/advertising surfaces that cannot be removed through supported controls may remain inside an official player. For YouTube, Made For Kids status is checked before embedding and MFK videos are rejected in-app.
 
 ## Architecture
 
@@ -66,7 +66,7 @@ See `ARCHITECTURE.md` for the current decisions.
 
 ## Privacy model
 
-Social Viewer itself:
+SocialViewer itself:
 
 - has no account system;
 - stores no viewing history;
@@ -83,11 +83,11 @@ The remote social platform/CDN still receives ordinary network metadata required
 
 ## Android direct-link handling
 
-TikTok, Instagram, Threads, Reddit, Pinterest and Bluesky own their web domains, so Social Viewer cannot publish the providers' `assetlinks.json` files and cannot self-verify those domains. YouTube and X remain intentionally outside direct-link handling in their current implementation slices.
+TikTok, Instagram, Threads, Reddit, Pinterest and Bluesky own their web domains, so SocialViewer cannot publish the providers' `assetlinks.json` files and cannot self-verify those domains. YouTube and X remain intentionally outside direct-link handling in their current implementation slices.
 
-The manifest declares TikTok web links, supported Instagram post/Reel paths, only the safely constrainable Threads shorthand `/t/` paths on `threads.com` and legacy `threads.net`, bounded Reddit single-content paths on `reddit.com` / `www.reddit.com`, Pinterest `/pin/` paths on `pinterest.com` / `www.pinterest.com`, and Bluesky single-post paths matching `/profile/.*/post/.*` on `bsky.app`. Reddit direct links cover canonical `/r/{sub}/comments/{id}/...` post/comment permalinks, root `/s/{token}` aliases and contextual `/r|u|user/{context}/s/{token}` aliases without claiming ordinary subreddits, profiles, feeds, search, wiki or settings. `redd.it` is deliberately not claimed after physical testing showed that its bare `/comments/{id}` target cannot be transformed into the oEmbed-compatible canonical permalink without an additional Reddit API or page-metadata extraction. `old.reddit.com`, `new.reddit.com` and `m.reddit.com` remain supported through manual paste/Android Share rather than adding legacy/non-primary hosts to Android's association state. Bluesky's provider-level URL policy remains stricter than the manifest filter and accepts only exact four-segment single-post permalinks, so ordinary `/profile/{identifier}` pages are not claimed. Pinterest regional hosts and opaque `pin.it` aliases remain manual-paste/Share-only. Canonical Threads `/@user/post/...` permalinks remain available through manual paste/Android Share because the minSdk-26 path matcher cannot express that route narrowly without overclaiming profile/feed surfaces. On modern Android versions, the user may explicitly associate Social Viewer with declared provider domains under **Open by default / supported links**. First-party apps or the browser may compete for the same domains.
+The manifest declares TikTok web links, supported Instagram post/Reel paths, only the safely constrainable Threads shorthand `/t/` paths on `threads.com` and legacy `threads.net`, bounded Reddit single-content paths on `reddit.com` / `www.reddit.com`, Pinterest `/pin/` paths on `pinterest.com` / `www.pinterest.com`, and Bluesky single-post paths matching `/profile/.*/post/.*` on `bsky.app`. Reddit direct links cover canonical `/r/{sub}/comments/{id}/...` post/comment permalinks, root `/s/{token}` aliases and contextual `/r|u|user/{context}/s/{token}` aliases without claiming ordinary subreddits, profiles, feeds, search, wiki or settings. `redd.it` is deliberately not claimed after physical testing showed that its bare `/comments/{id}` target cannot be transformed into the oEmbed-compatible canonical permalink without an additional Reddit API or page-metadata extraction. `old.reddit.com`, `new.reddit.com` and `m.reddit.com` remain supported through manual paste/Android Share rather than adding legacy/non-primary hosts to Android's association state. Bluesky's provider-level URL policy remains stricter than the manifest filter and accepts only exact four-segment single-post permalinks, so ordinary `/profile/{identifier}` pages are not claimed. Pinterest regional hosts and opaque `pin.it` aliases remain manual-paste/Share-only. Canonical Threads `/@user/post/...` permalinks remain available through manual paste/Android Share because the minSdk-26 path matcher cannot express that route narrowly without overclaiming profile/feed surfaces. On modern Android versions, the user may explicitly associate SocialViewer with declared provider domains under **Open by default / supported links**. First-party apps or the browser may compete for the same domains.
 
-On Android 12+, Social Viewer reads the real per-domain user state through `DomainVerificationManager`, summarizes it per provider, and opens the Android system screen for changes. It does not expose a fake in-app toggle. Manual paste and Android Share remain fallbacks; they are the current YouTube and X routing modes and remain available for supported Reddit URL/host variants that are intentionally not declared. `redd.it` is not counted as supported under the current Reddit provider boundary. Reddit participates in the direct-link provider count through `reddit.com` and `www.reddit.com`; Bluesky participates through `bsky.app`. Settings explicitly labels the direct-link count so it is not confused with the total number of supported providers.
+On Android 12+, SocialViewer reads the real per-domain user state through `DomainVerificationManager`, summarizes it per provider, and opens the Android system screen for changes. It does not expose a fake in-app toggle. Manual paste and Android Share remain fallbacks; they are the current YouTube and X routing modes and remain available for supported Reddit URL/host variants that are intentionally not declared. `redd.it` is not counted as supported under the current Reddit provider boundary. Reddit participates in the direct-link provider count through `reddit.com` and `www.reddit.com`; Bluesky participates through `bsky.app`. Settings explicitly labels the direct-link count so it is not confused with the total number of supported providers.
 
 ## YouTube Data API configuration
 
