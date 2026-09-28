@@ -75,5 +75,4 @@
     <string name="error_unexpected">Si è verificato un errore inatteso.</string>
     <string name="error_provider_not_configured_format">%1$s non è configurato in questa build.</string>
     <string name="error_youtube_mfk">I video YouTube destinati ai bambini non vengono aperti in SocialViewer.</string>
-    <string name="tiktok_first_load_playback_hint">Al primo utilizzo TikTok richiede una scelta sui cookie. Completa il banner nel player, poi riprova se necessario.</string>
 </resources>
