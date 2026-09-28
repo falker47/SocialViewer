@@ -598,7 +598,7 @@ private fun SupportedProvidersStrip() {
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        Spacer(Modifier.height(6.dp))
+        Spacer(Modifier.height(10.dp))
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly,
@@ -910,66 +910,88 @@ private fun QuickPreferencesRow(
     onLanguageChange: (AppLanguage) -> Unit,
     onThemeModeChange: (ThemeMode) -> Unit,
 ) {
-    Row(
+    Card(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f),
+        ),
     ) {
-        QuickPreferenceCard(
-            title = stringResource(R.string.section_language),
-            modifier = Modifier.weight(1f),
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth()
-                    .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(12.dp))
-                    .padding(2.dp),
+            QuickPreferenceColumn(
+                title = stringResource(R.string.section_language),
+                modifier = Modifier.weight(1f),
             ) {
-                CompactPreferenceSegment(
-                    selected = currentLanguage == AppLanguage.Italian,
-                    onClick = { onLanguageChange(AppLanguage.Italian) },
-                    modifier = Modifier.weight(1f),
+                Row(
+                    modifier = Modifier.fillMaxWidth()
+                        .border(
+                            1.dp,
+                            MaterialTheme.colorScheme.outlineVariant,
+                            RoundedCornerShape(11.dp),
+                        )
+                        .padding(2.dp),
                 ) {
-                    Text(stringResource(R.string.language_code_it), style = MaterialTheme.typography.labelLarge)
-                }
-                CompactPreferenceSegment(
-                    selected = currentLanguage == AppLanguage.English,
-                    onClick = { onLanguageChange(AppLanguage.English) },
-                    modifier = Modifier.weight(1f),
-                ) {
-                    Text(stringResource(R.string.language_code_en), style = MaterialTheme.typography.labelLarge)
+                    CompactPreferenceSegment(
+                        selected = currentLanguage == AppLanguage.Italian,
+                        onClick = { onLanguageChange(AppLanguage.Italian) },
+                        modifier = Modifier.weight(1f),
+                    ) {
+                        Text(
+                            stringResource(R.string.language_code_it),
+                            style = MaterialTheme.typography.labelLarge,
+                        )
+                    }
+                    CompactPreferenceSegment(
+                        selected = currentLanguage == AppLanguage.English,
+                        onClick = { onLanguageChange(AppLanguage.English) },
+                        modifier = Modifier.weight(1f),
+                    ) {
+                        Text(
+                            stringResource(R.string.language_code_en),
+                            style = MaterialTheme.typography.labelLarge,
+                        )
+                    }
                 }
             }
-        }
 
-        QuickPreferenceCard(
-            title = stringResource(R.string.section_appearance),
-            modifier = Modifier.weight(1f),
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth()
-                    .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(12.dp))
-                    .padding(2.dp),
+            QuickPreferenceColumn(
+                title = stringResource(R.string.section_appearance),
+                modifier = Modifier.weight(1f),
             ) {
-                CompactPreferenceSegment(
-                    selected = themeMode == ThemeMode.Light,
-                    onClick = { onThemeModeChange(ThemeMode.Light) },
-                    modifier = Modifier.weight(1f),
+                Row(
+                    modifier = Modifier.fillMaxWidth()
+                        .border(
+                            1.dp,
+                            MaterialTheme.colorScheme.outlineVariant,
+                            RoundedCornerShape(11.dp),
+                        )
+                        .padding(2.dp),
                 ) {
-                    Icon(
-                        imageVector = Icons.Outlined.LightMode,
-                        contentDescription = stringResource(R.string.theme_light),
-                        modifier = Modifier.size(18.dp),
-                    )
-                }
-                CompactPreferenceSegment(
-                    selected = themeMode == ThemeMode.Dark,
-                    onClick = { onThemeModeChange(ThemeMode.Dark) },
-                    modifier = Modifier.weight(1f),
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.DarkMode,
-                        contentDescription = stringResource(R.string.theme_dark),
-                        modifier = Modifier.size(18.dp),
-                    )
+                    CompactPreferenceSegment(
+                        selected = themeMode == ThemeMode.Light,
+                        onClick = { onThemeModeChange(ThemeMode.Light) },
+                        modifier = Modifier.weight(1f),
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.LightMode,
+                            contentDescription = stringResource(R.string.theme_light),
+                            modifier = Modifier.size(18.dp),
+                        )
+                    }
+                    CompactPreferenceSegment(
+                        selected = themeMode == ThemeMode.Dark,
+                        onClick = { onThemeModeChange(ThemeMode.Dark) },
+                        modifier = Modifier.weight(1f),
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.DarkMode,
+                            contentDescription = stringResource(R.string.theme_dark),
+                            modifier = Modifier.size(18.dp),
+                        )
+                    }
                 }
             }
         }
@@ -977,29 +999,19 @@ private fun QuickPreferencesRow(
 }
 
 @Composable
-private fun QuickPreferenceCard(
+private fun QuickPreferenceColumn(
     title: String,
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit,
 ) {
-    Card(
-        modifier = modifier.height(80.dp),
-        shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f),
-        ),
-    ) {
-        Column(
-            modifier = Modifier.fillMaxSize().padding(horizontal = 10.dp, vertical = 8.dp),
-        ) {
-            Text(
-                title,
-                style = MaterialTheme.typography.labelLarge,
-                fontWeight = FontWeight.SemiBold,
-            )
-            Spacer(Modifier.height(10.dp))
-            content()
-        }
+    Column(modifier = modifier) {
+        Text(
+            title,
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.SemiBold,
+        )
+        Spacer(Modifier.height(6.dp))
+        content()
     }
 }
 
