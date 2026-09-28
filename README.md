@@ -25,7 +25,7 @@ Implemented providers:
 - Manual entry remains available; the trailing clipboard button pastes, validates, and opens in one tap.
 - First-run onboarding uses two coach marks on the real Home screen and respects the Android navigation-bar safe area.
 - Home and Settings summarize the real Android direct-link state for TikTok, Instagram, Threads, Reddit, Pinterest and Bluesky; configuration always opens Android's **Open by default** screen.
-- Appearance supports **System / Light / Dark**. System is the default, follows Android's current theme, and the selection is persisted locally.
+- Settings exposes compact **Language** and **Appearance** controls side by side. Language is initialized once from the device locale (`it` → Italian, otherwise English) and can then be switched directly in-app between **IT / EN**. Appearance is initialized once from the device theme and then persists an explicit **Light / Dark** choice; there is no ongoing System theme mode.
 
 TikTok, Instagram, Threads, YouTube, Reddit, Pinterest, X and Bluesky playback plus the shared multi-provider UI are verified. Bluesky completed its physical-device gate for handle/DID permalinks, query canonicalization, unavailable handling, direct opening, profile non-interception and existing-provider regressions.
 
