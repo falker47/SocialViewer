@@ -56,7 +56,7 @@ class PinterestProviderTest {
             "https://www.pinterest.com/pin/617415430169271912/",
             canonical,
         )
-        assertNull(http.resolvedUrl)
+        assertNull(http.requestedUrl)
     }
 
     @Test
@@ -79,9 +79,46 @@ class PinterestProviderTest {
             "https://www.pinterest.com/pin/266556871689003952/",
             canonical,
         )
-        assertEquals("https://pin.it/AbC123_xYz", http.resolvedUrl)
-        assertTrue(http.resolveHeaders?.get("User-Agent")?.startsWith("Mozilla/5.0") == true)
-        assertEquals("en-US,en;q=0.9", http.resolveHeaders?.get("Accept-Language"))
+        assertEquals("https://pin.it/AbC123_xYz", http.requestedUrl)
+        assertTrue(http.requestHeaders?.get("User-Agent")?.startsWith("Mozilla/5.0") == true)
+        assertEquals("en-US,en;q=0.9", http.requestHeaders?.get("Accept-Language"))
+    }
+
+    @Test
+    fun resolvesPinItAliasWhenHttpFinalUrlStaysShortButBodyContainsRegionalPin() {
+        val http = FakeHttpClient(
+            finalUrl = "https://pin.it/1pTjG6L",
+            body =
+                """<html><head><link rel="canonical" """ +
+                    """href="https://it.pinterest.com/pin/1098104321628496170/" />""" +
+                    """</head></html>""",
+        )
+
+        val canonical = canonicalPinterestUrlFor(
+            scheme = "https",
+            host = "pin.it",
+            path = "/1pTjG6L",
+            rawUrl = "https://pin.it/1pTjG6L",
+            http = http,
+        )
+
+        assertEquals(
+            "https://www.pinterest.com/pin/1098104321628496170/",
+            canonical,
+        )
+    }
+
+    @Test
+    fun extractsEscapedPinterestPinCandidatesFromLandingPageBody() {
+        val candidates = pinterestPinCandidatesFromBody(
+            """{"url":"https:\\/\\/it.pinterest.com\\/pin\\/1098104321628496170\\/"}""",
+        )
+
+        assertTrue(
+            candidates.contains(
+                "https://it.pinterest.com/pin/1098104321628496170/",
+            ),
+        )
     }
 
     @Test(expected = IllegalArgumentException::class)
@@ -108,18 +145,23 @@ class PinterestProviderTest {
 
     private class FakeHttpClient(
         private val finalUrl: String,
+        private val body: String = "",
+        private val statusCode: Int = 200,
     ) : UrlConnectionHttpClient() {
-        var resolvedUrl: String? = null
+        var requestedUrl: String? = null
+        var requestHeaders: Map<String, String>? = null
 
-        var resolveHeaders: Map<String, String>? = null
-
-        override fun resolveFinalUrl(
+        override fun get(
             url: String,
             headers: Map<String, String>,
-        ): String {
-            resolvedUrl = url
-            resolveHeaders = headers
-            return finalUrl
+        ): Response {
+            requestedUrl = url
+            requestHeaders = headers
+            return Response(
+                statusCode = statusCode,
+                finalUrl = finalUrl,
+                body = body,
+            )
         }
     }
 }
