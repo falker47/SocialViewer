@@ -310,7 +310,6 @@ fun SocialViewerApp(
             ) { padding ->
                 when (screen) {
                     AppScreen.Settings -> SettingsScreen(
-                        context = context,
                         directLinkState = directLinkState,
                         themeMode = themeMode,
                         onLanguageChange = { selectedLanguage ->
@@ -709,7 +708,6 @@ private fun HomeNavigationRow(
 
 @Composable
 private fun SettingsScreen(
-    context: Context,
     directLinkState: DirectLinkHandlingState,
     themeMode: ThemeMode,
     onLanguageChange: (AppLanguage) -> Unit,
