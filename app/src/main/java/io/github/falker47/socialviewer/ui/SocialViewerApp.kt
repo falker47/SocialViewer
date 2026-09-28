@@ -83,6 +83,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -169,7 +170,7 @@ fun SocialViewerApp(
             } ?: ViewerState.Home,
         )
     }
-    var screen by remember { mutableStateOf(AppScreen.Viewer) }
+    var screen by rememberSaveable { mutableStateOf(AppScreen.Viewer) }
     var manualUrl by remember { mutableStateOf(initialIncoming.orEmpty()) }
     var manualError by remember { mutableStateOf<String?>(null) }
     var directLinkState by remember { mutableStateOf(queryDirectLinkHandlingState(context)) }
@@ -597,7 +598,7 @@ private fun SupportedProvidersStrip() {
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        Spacer(Modifier.height(10.dp))
+        Spacer(Modifier.height(6.dp))
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly,
@@ -736,7 +737,7 @@ private fun SettingsScreen(
             onLanguageChange = onLanguageChange,
             onThemeModeChange = onThemeModeChange,
         )
-        Spacer(Modifier.height(28.dp))
+        Spacer(Modifier.height(22.dp))
         SettingsSectionTitle(stringResource(R.string.direct_link_opening))
         Spacer(Modifier.height(10.dp))
         Card(
@@ -982,14 +983,14 @@ private fun QuickPreferenceCard(
     content: @Composable () -> Unit,
 ) {
     Card(
-        modifier = modifier.height(94.dp),
+        modifier = modifier.height(80.dp),
         shape = RoundedCornerShape(18.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f),
         ),
     ) {
         Column(
-            modifier = Modifier.fillMaxSize().padding(12.dp),
+            modifier = Modifier.fillMaxSize().padding(horizontal = 10.dp, vertical = 8.dp),
         ) {
             Text(
                 title,
@@ -1020,7 +1021,7 @@ private fun CompactPreferenceSegment(
         },
     ) {
         Box(
-            modifier = Modifier.height(36.dp),
+            modifier = Modifier.height(32.dp),
             contentAlignment = Alignment.Center,
         ) {
             content()
