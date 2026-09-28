@@ -8,6 +8,9 @@ import java.net.URI
 
 private const val PINTEREST_DOCUMENT_BASE_URL = "https://www.pinterest.com/"
 private const val PINTEREST_WIDGET_SCRIPT = "https://assets.pinterest.com/js/pinit.js"
+private const val PINTEREST_REDIRECT_USER_AGENT =
+    "Mozilla/5.0 (Linux; Android 15) AppleWebKit/537.36 " +
+        "(KHTML, like Gecko) Chrome/153.0 Mobile Safari/537.36"
 
 class PinterestProvider(
     private val http: UrlConnectionHttpClient = UrlConnectionHttpClient(),
@@ -44,7 +47,16 @@ internal fun canonicalPinterestUrlFor(
         "URL Pinterest non supportata"
     }
 
-    val finalUrl = http.resolveFinalUrl(rawUrl)
+    // Pinterest short links can vary their redirect response by client/User-Agent.
+    // Resolve them with a normal mobile-browser identity, then keep the existing
+    // strict final-target validation before any content is rendered.
+    val finalUrl = http.resolveFinalUrl(
+        url = rawUrl,
+        headers = mapOf(
+            "User-Agent" to PINTEREST_REDIRECT_USER_AGENT,
+            "Accept-Language" to "en-US,en;q=0.9",
+        ),
+    )
     val finalUri = runCatching { URI(finalUrl) }
         .getOrElse { throw IllegalArgumentException("Redirect Pinterest non valido", it) }
 
