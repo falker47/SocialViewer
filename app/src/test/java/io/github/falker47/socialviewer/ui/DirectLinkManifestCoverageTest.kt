@@ -27,33 +27,6 @@ class DirectLinkManifestCoverageTest {
     }
 
     @Test
-    fun youtubeClaimsOnlySupportedSingleVideoRouteFamilies() {
-        val id = "dQw4w9WgXcQ"
-
-        listOf(
-            "https://youtube.com/watch?v=$id",
-            "https://www.youtube.com/watch?v=$id",
-            "https://m.youtube.com/watch?v=$id",
-            "https://www.youtube.com/shorts/$id",
-            "https://www.youtube.com/live/$id",
-            "https://youtu.be/$id",
-        ).forEach { url ->
-            assertTrue("Expected manifest to claim $url", manifestClaims(url))
-        }
-
-        listOf(
-            "https://www.youtube.com/",
-            "https://www.youtube.com/channel/UC123",
-            "https://www.youtube.com/@creator",
-            "https://www.youtube.com/playlist?list=PL123",
-            "https://youtu.be/",
-            "https://youtu.be/not-eleven",
-        ).forEach { url ->
-            assertFalse("Manifest must not claim $url", manifestClaims(url))
-        }
-    }
-
-    @Test
     fun pinterestShortAliasIsClaimedButPinterestNavigationIsNotBroadened() {
         assertTrue(manifestClaims("https://pin.it/AbC123xyz"))
         assertTrue(manifestClaims("https://www.pinterest.com/pin/123456789/"))
@@ -61,6 +34,8 @@ class DirectLinkManifestCoverageTest {
         assertFalse(manifestClaims("https://pin.it/"))
         assertFalse(manifestClaims("https://www.pinterest.com/"))
         assertFalse(manifestClaims("https://www.pinterest.com/example-user/"))
+        assertFalse(manifestClaims("https://www.youtube.com/watch?v=dQw4w9WgXcQ"))
+        assertFalse(manifestClaims("https://youtu.be/dQw4w9WgXcQ"))
     }
 
     @Test
