@@ -8,23 +8,29 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.AndroidView
 
 private const val EMBED_REVEAL_DELAY_MS = 220L
 private const val EMBED_REVEAL_FALLBACK_MS = 13_000L
+private const val COOKIE_POLL_INTERVAL_MS = 200L
 
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
 fun EmbedWebView(
     html: String,
     baseUrl: String,
+    reloadOnCookieName: String? = null,
     modifier: Modifier = Modifier,
     onContentReady: () -> Unit = {},
 ) {
     var webView: WebView? = null
     val currentOnContentReady = rememberUpdatedState(onContentReady)
+    val currentReloadOnCookieName = rememberUpdatedState(reloadOnCookieName)
+    val cookieWatcher = remember { arrayOfNulls<Runnable>(1) }
+    val cookieReloadedDocumentKey = remember { intArrayOf(Int.MIN_VALUE) }
 
     fun revealIfCurrent(view: WebView, documentKey: Int) {
         if (view.tag != documentKey || view.alpha != 0f) return
@@ -94,6 +100,10 @@ fun EmbedWebView(
         update = { view ->
             val documentKey = 31 * baseUrl.hashCode() + html.hashCode()
             if (view.tag != documentKey) {
+                cookieWatcher[0]?.let(view::removeCallbacks)
+                cookieWatcher[0] = null
+                cookieReloadedDocumentKey[0] = Int.MIN_VALUE
+
                 view.tag = documentKey
                 view.alpha = 0f
                 view.isEnabled = false
@@ -104,6 +114,55 @@ fun EmbedWebView(
                     "UTF-8",
                     null,
                 )
+
+                val consentCookieName = currentReloadOnCookieName.value
+                if (
+                    !consentCookieName.isNullOrBlank() &&
+                    !cookieHeaderContains(
+                        CookieManager.getInstance().getCookie(baseUrl),
+                        consentCookieName,
+                    )
+                ) {
+                    val watcher = object : Runnable {
+                        override fun run() {
+                            if (view.tag != documentKey) return
+
+                            val cookieNowPresent = cookieHeaderContains(
+                                CookieManager.getInstance().getCookie(baseUrl),
+                                consentCookieName,
+                            )
+                            if (cookieNowPresent) {
+                                if (cookieReloadedDocumentKey[0] == documentKey) return
+
+                                cookieReloadedDocumentKey[0] = documentKey
+                                cookieWatcher[0] = null
+                                CookieManager.getInstance().flush()
+
+                                // TikTok's first player can remain stuck in PLAYBACK_ERROR 3001
+                                // even after its own consent choice is saved. Rebuild the same
+                                // document once, now with that first-party consent cookie present.
+                                view.alpha = 0f
+                                view.isEnabled = false
+                                view.loadDataWithBaseURL(
+                                    baseUrl,
+                                    html,
+                                    "text/html",
+                                    "UTF-8",
+                                    null,
+                                )
+                                view.postDelayed(
+                                    { revealIfCurrent(view, documentKey) },
+                                    EMBED_REVEAL_FALLBACK_MS,
+                                )
+                                return
+                            }
+
+                            view.postDelayed(this, COOKIE_POLL_INTERVAL_MS)
+                        }
+                    }
+                    cookieWatcher[0] = watcher
+                    view.postDelayed(watcher, COOKIE_POLL_INTERVAL_MS)
+                }
 
                 // Safety fallback: a provider-side script failure must not leave the native
                 // loading overlay permanently stuck. Provider HTML can then surface its own
@@ -118,6 +177,11 @@ fun EmbedWebView(
 
     DisposableEffect(Unit) {
         onDispose {
+            cookieWatcher[0]?.let { watcher ->
+                webView?.removeCallbacks(watcher)
+            }
+            cookieWatcher[0] = null
+
             // Persist provider preferences (including cookie consent) but discard the
             // transient browsing surface itself. We intentionally do not clear cookies,
             // WebStorage, or cache here; clearing them caused TikTok's consent banner to
