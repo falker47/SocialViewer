@@ -228,7 +228,7 @@ Run this only after CI is green on `feature/youtube-provider`.
 14. Referrer/client identity: if the player reports error 153, capture Logcat and the exact URL. The WebView document base URL must provide a Referer; do not work around 153 by disabling identity requirements.
 15. Routing: YouTube is intentionally **manual paste / Android Share only** in this milestone. Do not expect YouTube links to appear under Android Open by default for SocialViewer.
 16. Navigation boundary: YouTube logo/channel/related actions must not turn the app shell into an unrestricted YouTube browser. Provider-native behavior inside the official player is allowed.
-17. Appearance: check System / Light / Dark around the player; the player itself must not be recolored.
+17. Appearance: check Light / Dark around the player; the player itself must not be recolored.
 18. Regression: re-run one TikTok canonical item, one Instagram post + Reel, and one Threads permalink or /t/ item. Their provider code and behavior must remain unchanged.
 19. Record PASS only if the Data API preflight, public watch/short/Shorts playback, MFK fail-closed behavior, privacy-enhanced player, and existing-provider regressions all pass.
 
@@ -243,7 +243,7 @@ Verified:
 2. A public single-comment permalink renders as that explicitly linked comment; SocialViewer does not open a comment tree.
 3. A real Reddit `/s/` share alias resolves to a supported canonical HTTPS Reddit permalink and then renders normally.
 4. Removed/unavailable behavior remains bounded and does not turn SocialViewer into an unrestricted Reddit browser.
-5. System / Light / Dark rendering is acceptable around the Reddit embed.
+5. Light / Dark rendering is acceptable around the Reddit embed.
 6. TikTok, Instagram, Threads and YouTube regressions pass.
 7. The original Reddit provider gate did not include Android direct opening; the direct-link extension below is a separate gate.
 8. Settings copy distinguishes the number of providers with direct-link handling from the total number of supported providers.
@@ -280,7 +280,7 @@ Verified:
 3. A real `pin.it` share alias that resolves through Pinterest's `/sent/` share path normalizes to the same single Pin and renders correctly.
 4. A nonexistent Pin exits the loading state and shows `Questo Pin Pinterest non è disponibile.` rather than leaving an indefinite black surface.
 5. Canonical Pinterest `/pin/` direct-link handling works through Android Open by default.
-6. System / Light / Dark sanity passed around the Pinterest embed.
+6. Light / Dark sanity passed around the Pinterest embed.
 7. TikTok, Instagram, Threads, YouTube and Reddit regressions all passed after the Pinterest changes.
 8. Board, profile, feed and arbitrary Pinterest navigation remain outside the provider boundary.
 9. `pin.it` and regional hosts remain manual-paste / Android-Share-only; the manifest claims only canonical Pinterest hosts and `/pin/` paths.
@@ -296,7 +296,7 @@ The shared loading-overlay polish must be verified on a physical device before m
 4. Open Pinterest, X and Bluesky once each. Their provider-specific loading/error behavior must remain reachable; the native overlay must not remain stuck indefinitely.
 5. Exercise one unavailable/failed provider case. After the bounded WebView fallback, any provider-owned status/error surface must be allowed to appear rather than leaving a permanent loading overlay.
 6. Rotate or resize once while loading and once after reveal. The current item must remain active and must not return to Home.
-7. Re-run System / Light / Dark around the loading transition. The overlay must use the SocialViewer theme and must not expose an accidental white/unstyled frame.
+7. Re-run Light / Dark around the loading transition. The overlay must use the SocialViewer theme and must not expose an accidental white/unstyled frame.
 
 Record PASS only if the transition is visually atomic across the representative providers and there is no playback, navigation, consent, or rotation regression.
 
@@ -316,7 +316,7 @@ Verified:
 7. Settings → Privacy and site data → **Revoca autorizzazione** clears the local X embed-consent decision; the next X load shows the notice again.
 8. Third-party cookies remain blocked; `dnt=true`, `hide_thread=true` and `omit_script=true` are requested from X oEmbed.
 9. X remains manual-paste / Android-Share-only in this slice; no X ACTION_VIEW filters are declared because the supported status route cannot be constrained safely enough on the minSdk-26 manifest matcher.
-10. System / Light / Dark sanity passed.
+10. Light / Dark sanity passed.
 11. TikTok, Instagram, Threads, YouTube, Reddit and Pinterest regressions all passed after the X changes.
 12. Facebook PR #4 and the Reddit loading-transition polish item were not modified.
 
