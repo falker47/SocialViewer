@@ -9,17 +9,11 @@ class DirectLinkHandlingTest {
     @Test
     fun providerHostMappingIncludesAllDeclaredDirectLinkProviders() {
         assertEquals(
-            listOf("tiktok", "instagram", "threads", "reddit", "pinterest", "bluesky"),
+            listOf("tiktok", "instagram", "threads", "reddit", "pinterest", "youtube", "bluesky"),
             DIRECT_LINK_PROVIDERS.map { it.providerId },
         )
         assertEquals(
-            setOf(
-                "tiktok.com",
-                "www.tiktok.com",
-                "m.tiktok.com",
-                "vm.tiktok.com",
-                "vt.tiktok.com",
-            ),
+            setOf("tiktok.com", "*.tiktok.com"),
             DIRECT_LINK_PROVIDERS.first { it.providerId == "tiktok" }.hosts,
         )
         assertEquals(
@@ -31,12 +25,16 @@ class DirectLinkHandlingTest {
             DIRECT_LINK_PROVIDERS.first { it.providerId == "threads" }.hosts,
         )
         assertEquals(
-            setOf("reddit.com", "www.reddit.com"),
+            setOf("reddit.com", "*.reddit.com"),
             DIRECT_LINK_PROVIDERS.first { it.providerId == "reddit" }.hosts,
         )
         assertEquals(
-            setOf("pinterest.com", "www.pinterest.com"),
+            setOf("pinterest.com", "www.pinterest.com", "pin.it"),
             DIRECT_LINK_PROVIDERS.first { it.providerId == "pinterest" }.hosts,
+        )
+        assertEquals(
+            setOf("youtube.com", "www.youtube.com", "m.youtube.com", "youtu.be"),
+            DIRECT_LINK_PROVIDERS.first { it.providerId == "youtube" }.hosts,
         )
         assertEquals(
             setOf("bsky.app"),
@@ -54,7 +52,7 @@ class DirectLinkHandlingTest {
         )
 
         assertTrue(state.allProvidersActive)
-        assertEquals(6, state.activeProviderCount)
+        assertEquals(7, state.activeProviderCount)
         assertTrue(state.providers.all { it.status == DirectLinkProviderStatus.ACTIVE })
     }
 
@@ -102,7 +100,7 @@ class DirectLinkHandlingTest {
         val completedState = buildDirectLinkHandlingState(
             platformStateAvailable = true,
             linkHandlingAllowed = true,
-            approvedHosts = setOf("reddit.com", "www.reddit.com"),
+            approvedHosts = setOf("reddit.com", "*.reddit.com"),
         )
 
         assertEquals(
