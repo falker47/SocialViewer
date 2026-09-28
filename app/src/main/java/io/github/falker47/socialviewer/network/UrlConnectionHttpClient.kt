@@ -10,8 +10,18 @@ open class UrlConnectionHttpClient {
         val body: String,
     )
 
-    open fun resolveFinalUrl(url: String): String {
-        val connection = open(url, followRedirects = true)
+    open fun resolveFinalUrl(url: String): String =
+        resolveFinalUrl(url, emptyMap())
+
+    open fun resolveFinalUrl(
+        url: String,
+        headers: Map<String, String>,
+    ): String {
+        val connection = open(
+            url = url,
+            followRedirects = true,
+            headers = headers,
+        )
         return try {
             val code = connection.responseCode
             if (code !in 200..399) {
