@@ -4,8 +4,17 @@ import android.content.SharedPreferences
 
 private const val PREF_THEME_MODE = "theme_mode"
 
-internal fun readThemeMode(preferences: SharedPreferences): ThemeMode =
-    ThemeMode.fromStorage(preferences.getString(PREF_THEME_MODE, null))
+internal fun readThemeMode(
+    preferences: SharedPreferences,
+    systemDark: Boolean,
+): ThemeMode {
+    val stored = preferences.getString(PREF_THEME_MODE, null)
+    val resolved = ThemeMode.fromStorage(stored, systemDark)
+    if (stored != resolved.storageValue) {
+        writeThemeMode(preferences, resolved)
+    }
+    return resolved
+}
 
 internal fun writeThemeMode(
     preferences: SharedPreferences,
