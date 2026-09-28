@@ -19,7 +19,8 @@ SocialViewer has no viewing-history database, account state, analytics store, or
 Minimal local state is allowed only when it materially supports the viewing flow. Today that includes:
 
 - onboarding completion;
-- UI appearance preference (System / Light / Dark, default System);
+- UI language preference (English / Italian), initialized once from the device locale and then explicitly user-selectable in-app;
+- UI appearance preference (Light / Dark), initialized once from the device theme and then explicitly persisted;
 - provider first-party cookies/preferences required to preserve provider consent choices across items;
 - the explicit one-time X embed-consent decision, stored locally and revocable in Settings.
 
