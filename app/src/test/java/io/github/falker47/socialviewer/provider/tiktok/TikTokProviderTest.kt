@@ -27,13 +27,19 @@ class TikTokProviderTest {
     }
 
     @Test
-    fun playerHtmlSurfacesOfficialPlayerErrorCodeAndType() {
-        val html = TikTokProvider().playerHtml("1234567890")
+    fun playerHtmlHandlesVerifiedFirstLoadPlaybackErrorWithoutBlockingConsent() {
+        val hint = "Complete the cookie prompt, then retry."
+        val html = TikTokProvider().playerHtml(
+            postId = "1234567890",
+            firstLoadPlaybackHint = hint,
+        )
 
         assertTrue(html.contains("data.type === 'onPlayerError'"))
         assertTrue(html.contains("value.errorCode"))
         assertTrue(html.contains("value.errorType"))
-        assertTrue(html.contains("TikTok player error"))
-        assertTrue(html.contains("if (!hadError) reveal()"))
+        assertTrue(html.contains("errorCode === 3001"))
+        assertTrue(html.contains("pointer-events: none"))
+        assertTrue(html.contains(hint))
+        assertTrue(html.contains("if (!waitingForConsent) reveal()"))
     }
 }
