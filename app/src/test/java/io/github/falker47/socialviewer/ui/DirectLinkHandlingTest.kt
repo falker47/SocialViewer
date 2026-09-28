@@ -9,7 +9,7 @@ class DirectLinkHandlingTest {
     @Test
     fun providerHostMappingIncludesAllDeclaredDirectLinkProviders() {
         assertEquals(
-            listOf("tiktok", "instagram", "threads", "reddit", "pinterest", "youtube", "bluesky"),
+            listOf("tiktok", "instagram", "threads", "reddit", "pinterest", "bluesky"),
             DIRECT_LINK_PROVIDERS.map { it.providerId },
         )
         assertEquals(
@@ -33,10 +33,6 @@ class DirectLinkHandlingTest {
             DIRECT_LINK_PROVIDERS.first { it.providerId == "pinterest" }.hosts,
         )
         assertEquals(
-            setOf("youtube.com", "www.youtube.com", "m.youtube.com", "youtu.be"),
-            DIRECT_LINK_PROVIDERS.first { it.providerId == "youtube" }.hosts,
-        )
-        assertEquals(
             setOf("bsky.app"),
             DIRECT_LINK_PROVIDERS.first { it.providerId == "bluesky" }.hosts,
         )
@@ -52,7 +48,7 @@ class DirectLinkHandlingTest {
         )
 
         assertTrue(state.allProvidersActive)
-        assertEquals(7, state.activeProviderCount)
+        assertEquals(6, state.activeProviderCount)
         assertTrue(state.providers.all { it.status == DirectLinkProviderStatus.ACTIVE })
     }
 
