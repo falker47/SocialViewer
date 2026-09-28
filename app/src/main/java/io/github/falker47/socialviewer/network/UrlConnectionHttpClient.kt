@@ -8,22 +8,10 @@ open class UrlConnectionHttpClient {
         val statusCode: Int,
         val finalUrl: String,
         val body: String,
-        val contentType: String? = null,
-        val location: String? = null,
     )
 
-    open fun resolveFinalUrl(url: String): String =
-        resolveFinalUrl(url, emptyMap())
-
-    open fun resolveFinalUrl(
-        url: String,
-        headers: Map<String, String>,
-    ): String {
-        val connection = open(
-            url = url,
-            followRedirects = true,
-            headers = headers,
-        )
+    open fun resolveFinalUrl(url: String): String {
+        val connection = open(url, followRedirects = true)
         return try {
             val code = connection.responseCode
             if (code !in 200..399) {
@@ -54,8 +42,6 @@ open class UrlConnectionHttpClient {
                 statusCode = code,
                 finalUrl = connection.url.toString(),
                 body = body,
-                contentType = connection.contentType,
-                location = connection.getHeaderField("Location"),
             )
         } finally {
             connection.disconnect()

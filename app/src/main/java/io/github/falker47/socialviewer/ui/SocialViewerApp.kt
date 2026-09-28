@@ -114,7 +114,6 @@ import androidx.compose.ui.unit.sp
 import io.github.falker47.socialviewer.R
 import io.github.falker47.socialviewer.domain.SocialContent
 import io.github.falker47.socialviewer.provider.ProviderRegistry
-import io.github.falker47.socialviewer.util.PinItDiagnostics
 import io.github.falker47.socialviewer.util.UrlExtractor
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -255,26 +254,11 @@ fun SocialViewerApp(
     LaunchedEffect(state) {
         val loading = state as? ViewerState.Loading ?: return@LaunchedEffect
         state = try {
-            if (PinItDiagnostics.tracks(loading.url)) {
-                PinItDiagnostics.info(
-                    "registry_resolve_start",
-                    "url" to PinItDiagnostics.safeUrl(loading.url),
-                )
-            }
             val content = withContext(Dispatchers.IO) {
                 registry.resolve(loading.url)
             }
-            if (PinItDiagnostics.tracks(loading.url)) {
-                PinItDiagnostics.info(
-                    "registry_resolve_success",
-                    "canonicalUrl" to PinItDiagnostics.safeUrl(content.canonicalUrl),
-                )
-            }
             ViewerState.Ready(content)
         } catch (t: Throwable) {
-            if (PinItDiagnostics.tracks(loading.url)) {
-                PinItDiagnostics.error("registry_resolve_error", loading.url, t)
-            }
             val copy = viewerErrorCopyFor(t)
             ViewerState.Error(
                 title = context.getString(copy.titleRes),

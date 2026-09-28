@@ -179,4 +179,4 @@ The active milestone is **Google Play release-readiness**. The first slice adds 
 
 YouTube remains manual-paste / Android-Share-only. On the physical release test phone, Android routed a neutral YouTube web intent to the official YouTube app even after SocialViewer's YouTube domains were user-selected; the official app is system-configured for those domains. SocialViewer therefore does not advertise YouTube direct opening as reliable.
 
-Pinterest `pin.it` aliases are first-class direct-link inputs. Their redirect resolver uses a mobile-browser request identity before applying the same strict final-target validation used for canonical Pinterest Pins.
+Pinterest `pin.it` aliases are first-class direct-link inputs. They reuse the existing bounded redirect resolver and the same strict final-target validation used for canonical Pinterest Pins.

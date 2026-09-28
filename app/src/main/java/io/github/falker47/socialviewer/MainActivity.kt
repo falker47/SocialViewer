@@ -19,7 +19,6 @@ import io.github.falker47.socialviewer.provider.x.XProvider
 import io.github.falker47.socialviewer.provider.youtube.YouTubeProvider
 import io.github.falker47.socialviewer.ui.SocialViewerApp
 import io.github.falker47.socialviewer.ui.initializeAppLanguage
-import io.github.falker47.socialviewer.util.PinItDiagnostics
 import io.github.falker47.socialviewer.util.UrlExtractor
 import io.github.falker47.socialviewer.util.googleAndroidApiClientHeaders
 
@@ -73,27 +72,9 @@ class MainActivity : AppCompatActivity() {
         incomingUrl = extractUrl(intent)
     }
 
-    private fun extractUrl(intent: Intent): String? {
-        val url = when (intent.action) {
-            Intent.ACTION_VIEW -> intent.dataString
-            Intent.ACTION_SEND -> UrlExtractor.firstHttpUrl(intent.getStringExtra(Intent.EXTRA_TEXT))
-            else -> null
-        }
-
-        if (intent.action == Intent.ACTION_VIEW) {
-            val tracked = PinItDiagnostics.tracks(url)
-            PinItDiagnostics.info(
-                "action_view_seen",
-                "url" to PinItDiagnostics.safeUrl(url),
-                "tracked" to tracked,
-            )
-            if (tracked) {
-                PinItDiagnostics.info(
-                    "action_view_received",
-                    "url" to PinItDiagnostics.safeUrl(url),
-                )
-            }
-        }
-        return url
+    private fun extractUrl(intent: Intent): String? = when (intent.action) {
+        Intent.ACTION_VIEW -> intent.dataString
+        Intent.ACTION_SEND -> UrlExtractor.firstHttpUrl(intent.getStringExtra(Intent.EXTRA_TEXT))
+        else -> null
     }
 }

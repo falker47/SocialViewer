@@ -81,4 +81,4 @@ Bluesky direct-link handling is user-managed through Android's existing Open-by-
 
 ## AD-010 — pin.it redirect resolution
 
-`pin.it` is a Pinterest-owned short-link surface. SocialViewer claims the short-link host for direct opening, resolves it with a normal mobile-browser request identity, and still rejects the result unless the final URL canonicalizes to one supported public Pinterest Pin. This broadens real-world Pinterest share-link coverage without turning Pinterest navigation into a browser.
+`pin.it` is a Pinterest-owned short-link surface. SocialViewer claims the short-link host for direct opening and reuses the existing bounded Pinterest redirect resolver, accepting the result only when the final URL canonicalizes to one supported public Pinterest Pin. No landing-page scraping or broader Pinterest navigation is introduced.
