@@ -21,6 +21,8 @@
     <string name="app_language">App language</string>
     <string name="language_system_default">System default</string>
     <string name="language_device_default">Uses device language</string>
+    <string name="language_automatic_format">%1$s · automatic</string>
+    <string name="theme_system_effective_format">System · %1$s</string>
     <string name="language_english">English</string>
     <string name="language_italian">Italiano</string>
     <string name="direct_link_opening">Direct link opening</string>
