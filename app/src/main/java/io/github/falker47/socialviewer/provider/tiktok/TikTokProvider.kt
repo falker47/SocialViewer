@@ -8,6 +8,9 @@ import org.json.JSONObject
 
 class TikTokProvider(
     private val http: UrlConnectionHttpClient = UrlConnectionHttpClient(),
+    private val firstLoadPlaybackHint: () -> String = {
+        "TikTok needs a cookie choice on first use. Complete the cookie prompt in the player, then retry if needed."
+    },
 ) : SocialProvider {
     override val id: String = "tiktok"
     override val displayName: String = "TikTok"
@@ -54,7 +57,10 @@ class TikTokProvider(
             title = json.optString("title").takeIf { it.isNotBlank() },
             authorName = json.optString("author_name").takeIf { it.isNotBlank() },
             documentBaseUrl = "https://www.tiktok.com/",
-            embedHtml = playerHtml(postId),
+            embedHtml = playerHtml(
+                postId = postId,
+                firstLoadPlaybackHint = firstLoadPlaybackHint(),
+            ),
         )
     }
 
@@ -71,7 +77,13 @@ class TikTokProvider(
         return null
     }
 
-    internal fun playerHtml(postId: String): String = """
+    internal fun playerHtml(
+        postId: String,
+        firstLoadPlaybackHint: String = "TikTok needs a cookie choice on first use. Complete the cookie prompt in the player, then retry if needed.",
+    ): String {
+        val quotedFirstLoadPlaybackHint = JSONObject.quote(firstLoadPlaybackHint)
+
+        return """
         <!doctype html>
         <html>
           <head>
@@ -145,13 +157,16 @@ class TikTokProvider(
                 const player = document.getElementById('player');
                 const loader = document.getElementById('loader');
                 const playerError = document.getElementById('player-error');
+                const firstLoadPlaybackHint = $quotedFirstLoadPlaybackHint;
                 let revealed = false;
-                let hadError = false;
+                let playerReady = false;
+                let waitingForConsent = false;
 
                 function reveal() {
+                  playerError.style.display = 'none';
+                  waitingForConsent = false;
                   if (revealed) return;
                   revealed = true;
-                  playerError.style.display = 'none';
                   player.style.opacity = '1';
                   loader.style.display = 'none';
                 }
@@ -166,6 +181,7 @@ class TikTokProvider(
                   if (!data || !data['x-tiktok-player']) return;
 
                   if (data.type === 'onPlayerReady') {
+                    playerReady = true;
                     reveal();
                     return;
                   }
@@ -174,23 +190,33 @@ class TikTokProvider(
                     const value = data.value || {};
                     const errorCode = value.errorCode === undefined ? 'unknown' : value.errorCode;
                     const errorType = value.errorType || 'UNKNOWN';
-                    hadError = true;
-                    player.style.opacity = '1';
-                    loader.style.display = 'none';
-                    playerError.textContent =
-                      'TikTok player error ' + errorCode + ' (' + errorType + ')';
-                    playerError.style.display = 'block';
+
+                    console.warn('TikTok player error', errorCode, errorType);
+
+                    // Physical-device verification showed that TikTok can emit 3001 on
+                    // the very first player load while its own cookie-consent surface is
+                    // still unresolved. Keep TikTok's iframe fully interactive and give
+                    // the user context instead of treating that transient state as a
+                    // terminal SocialViewer error.
+                    if (!playerReady && errorCode === 3001) {
+                      waitingForConsent = true;
+                      player.style.opacity = '1';
+                      loader.style.display = 'none';
+                      playerError.textContent = firstLoadPlaybackHint;
+                      playerError.style.display = 'block';
+                    }
                   }
                 });
 
-                // Safety fallback for unusual WebView/player builds. Do not hide a real
-                // player error; a later onPlayerReady can still recover normally.
+                // Safety fallback for unusual WebView/player builds. Do not hide the
+                // first-load consent hint while TikTok is waiting for the user's choice.
                 window.setTimeout(function () {
-                  if (!hadError) reveal();
+                  if (!waitingForConsent) reveal();
                 }, 6000);
               })();
             </script>
           </body>
         </html>
     """.trimIndent()
+    }
 }
