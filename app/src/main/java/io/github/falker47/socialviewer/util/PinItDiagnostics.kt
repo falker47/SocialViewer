@@ -1,7 +1,6 @@
 package io.github.falker47.socialviewer.util
 
 import android.util.Log
-import io.github.falker47.socialviewer.BuildConfig
 import java.net.URI
 
 internal object PinItDiagnostics {
@@ -20,7 +19,6 @@ internal object PinItDiagnostics {
         stage: String,
         vararg fields: Pair<String, Any?>,
     ) {
-        if (!BuildConfig.DEBUG) return
         runCatching {
             Log.i(TAG, line(stage, *fields))
         }
@@ -31,7 +29,6 @@ internal object PinItDiagnostics {
         url: String,
         throwable: Throwable,
     ) {
-        if (!BuildConfig.DEBUG) return
         runCatching {
             Log.e(
                 TAG,
