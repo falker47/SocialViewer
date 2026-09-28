@@ -111,7 +111,7 @@ class PinterestProviderTest {
     @Test
     fun extractsEscapedPinterestPinCandidatesFromLandingPageBody() {
         val candidates = pinterestPinCandidatesFromBody(
-            """{"url":"https:\\/\\/it.pinterest.com\\/pin\\/1098104321628496170\\/"}""",
+            """{"url":"https:\/\/it.pinterest.com\/pin\/1098104321628496170\/"}""",
         )
 
         assertTrue(

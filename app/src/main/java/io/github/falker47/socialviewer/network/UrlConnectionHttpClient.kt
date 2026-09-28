@@ -8,6 +8,8 @@ open class UrlConnectionHttpClient {
         val statusCode: Int,
         val finalUrl: String,
         val body: String,
+        val contentType: String? = null,
+        val location: String? = null,
     )
 
     open fun resolveFinalUrl(url: String): String =
@@ -52,6 +54,8 @@ open class UrlConnectionHttpClient {
                 statusCode = code,
                 finalUrl = connection.url.toString(),
                 body = body,
+                contentType = connection.contentType,
+                location = connection.getHeaderField("Location"),
             )
         } finally {
             connection.disconnect()

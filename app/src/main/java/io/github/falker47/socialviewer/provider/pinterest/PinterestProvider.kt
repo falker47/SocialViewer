@@ -4,6 +4,7 @@ import android.net.Uri
 import io.github.falker47.socialviewer.domain.SocialContent
 import io.github.falker47.socialviewer.network.UrlConnectionHttpClient
 import io.github.falker47.socialviewer.provider.SocialProvider
+import io.github.falker47.socialviewer.util.PinItDiagnostics
 import java.net.URI
 import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
@@ -47,7 +48,17 @@ internal fun canonicalPinterestUrlFor(
     rawUrl: String,
     http: UrlConnectionHttpClient,
 ): String {
-    PinterestUrlPolicy.canonicalPinUrl(scheme, host, path)?.let { return it }
+    val diagnosticsEnabled = PinItDiagnostics.tracks(rawUrl)
+    val directCanonical = PinterestUrlPolicy.canonicalPinUrl(scheme, host, path)
+    if (diagnosticsEnabled) {
+        PinItDiagnostics.info(
+            "canonical_gate",
+            "gate" to "input_url",
+            "result" to if (directCanonical != null) "pass" else "miss",
+            "url" to PinItDiagnostics.safeUrl(rawUrl),
+        )
+    }
+    directCanonical?.let { return it }
 
     require(PinterestUrlPolicy.requiresRedirectResolution(scheme, host, path)) {
         "URL Pinterest non supportata"
@@ -64,18 +75,55 @@ internal fun canonicalPinterestUrlFor(
         ),
     )
 
+    if (diagnosticsEnabled) {
+        PinItDiagnostics.info(
+            "http_response",
+            "requestUrl" to PinItDiagnostics.safeUrl(rawUrl),
+            "status" to response.statusCode,
+            "finalUrl" to PinItDiagnostics.safeUrl(response.finalUrl),
+            "location" to response.location?.let(PinItDiagnostics::safeUrl),
+            "contentType" to response.contentType,
+            "bodyLength" to response.body.length,
+        )
+    }
+
     if (response.statusCode !in 200..399) {
         throw IllegalArgumentException(
             "HTTP ${response.statusCode} durante la risoluzione del link Pinterest",
         )
     }
 
-    canonicalPinterestUrlOrNull(response.finalUrl)?.let { return it }
+    val finalCanonical = canonicalPinterestUrlOrNull(response.finalUrl)
+    if (diagnosticsEnabled) {
+        PinItDiagnostics.info(
+            "canonical_gate",
+            "gate" to "final_url",
+            "result" to if (finalCanonical != null) "pass" else "miss",
+            "finalUrl" to PinItDiagnostics.safeUrl(response.finalUrl),
+        )
+    }
+    finalCanonical?.let { return it }
 
-    pinterestPinCandidatesFromBody(response.body)
-        .firstNotNullOfOrNull(::canonicalPinterestUrlOrNull)
-        ?.let { return it }
+    val bodyCandidates = pinterestPinCandidatesFromBody(response.body)
+    val bodyCanonical = bodyCandidates.firstNotNullOfOrNull(::canonicalPinterestUrlOrNull)
+    if (diagnosticsEnabled) {
+        PinItDiagnostics.info(
+            "canonical_gate",
+            "gate" to "body_candidate",
+            "result" to if (bodyCanonical != null) "pass" else "miss",
+            "candidateCount" to bodyCandidates.size,
+            "firstCandidate" to bodyCandidates.firstOrNull()?.let(PinItDiagnostics::safeUrl),
+        )
+    }
+    bodyCanonical?.let { return it }
 
+    if (diagnosticsEnabled) {
+        PinItDiagnostics.info(
+            "canonicalization_failed",
+            "gate" to "body_candidate",
+            "url" to PinItDiagnostics.safeUrl(rawUrl),
+        )
+    }
     throw IllegalArgumentException(
         "Il link di condivisione Pinterest non ha risolto a un Pin pubblico supportato",
     )
