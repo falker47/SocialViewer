@@ -917,8 +917,17 @@ private fun ThemeSegmentedControl(
     themeMode: ThemeMode,
     onThemeModeChange: (ThemeMode) -> Unit,
 ) {
+    val effectiveSystemTheme = if (isSystemInDarkTheme()) {
+        stringResource(R.string.theme_dark)
+    } else {
+        stringResource(R.string.theme_light)
+    }
     val options = listOf(
-        Triple(ThemeMode.System, stringResource(R.string.theme_system), Icons.Outlined.Devices),
+        Triple(
+            ThemeMode.System,
+            stringResource(R.string.theme_system_effective_format, effectiveSystemTheme),
+            Icons.Outlined.Devices,
+        ),
         Triple(ThemeMode.Light, stringResource(R.string.theme_light), Icons.Outlined.LightMode),
         Triple(ThemeMode.Dark, stringResource(R.string.theme_dark), Icons.Outlined.DarkMode),
     )
@@ -1587,19 +1596,24 @@ private fun validateManualLink(
 }
 
 private fun appLanguageSummary(context: Context): String {
+    val effectiveLanguage = if (context.resources.configuration.locales[0].language == "it") {
+        context.getString(R.string.language_italian)
+    } else {
+        context.getString(R.string.language_english)
+    }
+
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
-        return context.getString(R.string.language_device_default)
+        return context.getString(R.string.language_automatic_format, effectiveLanguage)
     }
 
-    val locales = context.getSystemService(LocaleManager::class.java).applicationLocales
-    if (locales.isEmpty) {
-        return context.getString(R.string.language_system_default)
+    val appLocales = context.getSystemService(LocaleManager::class.java).applicationLocales
+    if (appLocales.isEmpty) {
+        return context.getString(R.string.language_automatic_format, effectiveLanguage)
     }
 
-    return when (locales[0].language) {
-        "en" -> context.getString(R.string.language_english)
+    return when (appLocales[0].language) {
         "it" -> context.getString(R.string.language_italian)
-        else -> locales[0].getDisplayLanguage(locales[0])
+        else -> context.getString(R.string.language_english)
     }
 }
 
