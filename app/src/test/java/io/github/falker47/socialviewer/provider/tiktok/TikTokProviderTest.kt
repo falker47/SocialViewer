@@ -27,19 +27,13 @@ class TikTokProviderTest {
     }
 
     @Test
-    fun playerHtmlHandlesVerifiedFirstLoadPlaybackErrorWithoutBlockingConsent() {
-        val hint = "Complete the cookie prompt, then retry."
-        val html = TikTokProvider().playerHtml(
-            postId = "1234567890",
-            firstLoadPlaybackHint = hint,
-        )
+    fun playerHtmlKeepsOfficialErrorDiagnosticWithoutCoveringProviderUi() {
+        val html = TikTokProvider().playerHtml("1234567890")
 
         assertTrue(html.contains("data.type === 'onPlayerError'"))
         assertTrue(html.contains("value.errorCode"))
         assertTrue(html.contains("value.errorType"))
-        assertTrue(html.contains("errorCode === 3001"))
-        assertTrue(html.contains("pointer-events: none"))
-        assertTrue(html.contains(hint))
-        assertTrue(html.contains("if (!waitingForConsent) reveal()"))
+        assertTrue(html.contains("console.warn"))
+        assertFalse(html.contains("player-error"))
     }
 }
