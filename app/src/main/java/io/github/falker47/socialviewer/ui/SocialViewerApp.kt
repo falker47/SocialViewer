@@ -1,15 +1,12 @@
 package io.github.falker47.socialviewer.ui
 
 import android.app.Activity
-import android.app.LocaleManager
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.os.Build
 import android.os.Handler
 import android.os.Looper
-import android.provider.Settings
 import android.view.View
 import android.webkit.CookieManager
 import android.webkit.WebStorage
@@ -53,7 +50,6 @@ import androidx.compose.material.icons.outlined.ChevronRight
 import androidx.compose.material.icons.outlined.Code
 import androidx.compose.material.icons.outlined.DarkMode
 import androidx.compose.material.icons.outlined.DeleteOutline
-import androidx.compose.material.icons.outlined.Devices
 import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.LightMode
@@ -105,6 +101,7 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -144,7 +141,6 @@ private sealed interface ManualLinkResult {
     data class Invalid(val message: String, val displayValue: String) : ManualLinkResult
 }
 
-private const val PREFS_NAME = "social_viewer_ui"
 private const val PREF_ONBOARDING_COMPLETE = "onboarding_complete"
 private const val PREF_X_EMBED_CONSENT_GRANTED = "x_embed_consent_granted"
 
@@ -158,7 +154,7 @@ fun SocialViewerApp(
     onIncomingConsumed: () -> Unit,
 ) {
     val uiPrefs = remember {
-        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        context.getSharedPreferences(UI_PREFS_NAME, Context.MODE_PRIVATE)
     }
     val initialIncoming = incomingUrl?.takeIf { it.isNotBlank() }
     val initialXEmbedConsentGranted =
@@ -181,8 +177,11 @@ fun SocialViewerApp(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
-    var themeMode by remember { mutableStateOf(readThemeMode(uiPrefs)) }
-    val darkTheme = themeMode.resolveDark(isSystemInDarkTheme())
+    val systemDarkAtLaunch = isSystemInDarkTheme()
+    var themeMode by remember {
+        mutableStateOf(readThemeMode(uiPrefs, systemDarkAtLaunch))
+    }
+    val darkTheme = themeMode.isDark
     var onboardingStep by remember {
         mutableStateOf(
             if (uiPrefs.getBoolean(PREF_ONBOARDING_COMPLETE, false)) null else 1,
@@ -314,6 +313,9 @@ fun SocialViewerApp(
                         context = context,
                         directLinkState = directLinkState,
                         themeMode = themeMode,
+                        onLanguageChange = { selectedLanguage ->
+                            setAppLanguage(context, selectedLanguage)
+                        },
                         onThemeModeChange = { selectedMode ->
                             themeMode = selectedMode
                             writeThemeMode(uiPrefs, selectedMode)
@@ -710,6 +712,7 @@ private fun SettingsScreen(
     context: Context,
     directLinkState: DirectLinkHandlingState,
     themeMode: ThemeMode,
+    onLanguageChange: (AppLanguage) -> Unit,
     onThemeModeChange: (ThemeMode) -> Unit,
     onConfigureDirectLinks: () -> Unit,
     onClearSiteData: () -> Unit,
@@ -720,28 +723,21 @@ private fun SettingsScreen(
     modifier: Modifier = Modifier,
 ) {
     var confirmClear by remember { mutableStateOf(false) }
+    val currentLanguage = AppLanguage.fromLanguageTag(
+        LocalConfiguration.current.locales[0].language,
+    )
     Column(
         modifier = modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 20.dp, vertical = 16.dp),
     ) {
-        SettingsSectionTitle(stringResource(R.string.section_language))
-        Spacer(Modifier.height(10.dp))
-        Card(
-            shape = RoundedCornerShape(18.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f),
-            ),
-        ) {
-            SettingsActionRow(
-                icon = Icons.Outlined.Public,
-                title = stringResource(R.string.app_language),
-                subtitle = appLanguageSummary(context),
-                trailingIcon = Icons.Outlined.ChevronRight,
-                onClick = { openAppLanguageSettings(context) },
-            )
-        }
+        QuickPreferencesRow(
+            currentLanguage = currentLanguage,
+            themeMode = themeMode,
+            onLanguageChange = onLanguageChange,
+            onThemeModeChange = onThemeModeChange,
+        )
         Spacer(Modifier.height(28.dp))
         SettingsSectionTitle(stringResource(R.string.direct_link_opening))
         Spacer(Modifier.height(10.dp))
@@ -763,10 +759,6 @@ private fun SettingsScreen(
         }
         Spacer(Modifier.height(12.dp))
         DirectLinkHowToCard()
-        Spacer(Modifier.height(28.dp))
-        SettingsSectionTitle(stringResource(R.string.section_appearance))
-        Spacer(Modifier.height(10.dp))
-        ThemeSegmentedControl(themeMode, onThemeModeChange)
         Spacer(Modifier.height(28.dp))
         SettingsSectionTitle(stringResource(R.string.section_privacy_data))
         Spacer(Modifier.height(10.dp))
@@ -913,51 +905,127 @@ private fun ProviderStatusBadge(status: DirectLinkProviderStatus) {
 }
 
 @Composable
-private fun ThemeSegmentedControl(
+private fun QuickPreferencesRow(
+    currentLanguage: AppLanguage,
     themeMode: ThemeMode,
+    onLanguageChange: (AppLanguage) -> Unit,
     onThemeModeChange: (ThemeMode) -> Unit,
 ) {
-    val effectiveSystemTheme = if (isSystemInDarkTheme()) {
-        stringResource(R.string.theme_dark)
-    } else {
-        stringResource(R.string.theme_light)
-    }
-    val options = listOf(
-        Triple(
-            ThemeMode.System,
-            stringResource(R.string.theme_system_effective_format, effectiveSystemTheme),
-            Icons.Outlined.Devices,
-        ),
-        Triple(ThemeMode.Light, stringResource(R.string.theme_light), Icons.Outlined.LightMode),
-        Triple(ThemeMode.Dark, stringResource(R.string.theme_dark), Icons.Outlined.DarkMode),
-    )
     Row(
-        modifier = Modifier.fillMaxWidth()
-            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(16.dp))
-            .padding(2.dp),
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        options.forEach { (mode, label, icon) ->
-            val selected = themeMode == mode
-            Surface(
-                modifier = Modifier.weight(1f).clickable { onThemeModeChange(mode) },
-                shape = RoundedCornerShape(13.dp),
-                color = if (selected) MaterialTheme.colorScheme.primaryContainer else Color.Transparent,
-                contentColor = if (selected) {
-                    MaterialTheme.colorScheme.onPrimaryContainer
-                } else {
-                    MaterialTheme.colorScheme.onSurfaceVariant
-                },
+        QuickPreferenceCard(
+            title = stringResource(R.string.section_language),
+            modifier = Modifier.weight(1f),
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth()
+                    .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(12.dp))
+                    .padding(2.dp),
             ) {
-                Row(
-                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 11.dp),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically,
+                CompactPreferenceSegment(
+                    selected = currentLanguage == AppLanguage.Italian,
+                    onClick = { onLanguageChange(AppLanguage.Italian) },
+                    modifier = Modifier.weight(1f),
                 ) {
-                    Icon(imageVector = icon, contentDescription = null, modifier = Modifier.size(18.dp))
-                    Spacer(Modifier.size(6.dp))
-                    Text(label, style = MaterialTheme.typography.labelLarge)
+                    Text(stringResource(R.string.language_code_it), style = MaterialTheme.typography.labelLarge)
+                }
+                CompactPreferenceSegment(
+                    selected = currentLanguage == AppLanguage.English,
+                    onClick = { onLanguageChange(AppLanguage.English) },
+                    modifier = Modifier.weight(1f),
+                ) {
+                    Text(stringResource(R.string.language_code_en), style = MaterialTheme.typography.labelLarge)
                 }
             }
+        }
+
+        QuickPreferenceCard(
+            title = stringResource(R.string.section_appearance),
+            modifier = Modifier.weight(1f),
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth()
+                    .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(12.dp))
+                    .padding(2.dp),
+            ) {
+                CompactPreferenceSegment(
+                    selected = themeMode == ThemeMode.Light,
+                    onClick = { onThemeModeChange(ThemeMode.Light) },
+                    modifier = Modifier.weight(1f),
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.LightMode,
+                        contentDescription = stringResource(R.string.theme_light),
+                        modifier = Modifier.size(18.dp),
+                    )
+                }
+                CompactPreferenceSegment(
+                    selected = themeMode == ThemeMode.Dark,
+                    onClick = { onThemeModeChange(ThemeMode.Dark) },
+                    modifier = Modifier.weight(1f),
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.DarkMode,
+                        contentDescription = stringResource(R.string.theme_dark),
+                        modifier = Modifier.size(18.dp),
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun QuickPreferenceCard(
+    title: String,
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit,
+) {
+    Card(
+        modifier = modifier.height(94.dp),
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f),
+        ),
+    ) {
+        Column(
+            modifier = Modifier.fillMaxSize().padding(12.dp),
+        ) {
+            Text(
+                title,
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.SemiBold,
+            )
+            Spacer(Modifier.height(10.dp))
+            content()
+        }
+    }
+}
+
+@Composable
+private fun CompactPreferenceSegment(
+    selected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit,
+) {
+    Surface(
+        modifier = modifier.clickable(onClick = onClick),
+        shape = RoundedCornerShape(10.dp),
+        color = if (selected) MaterialTheme.colorScheme.primaryContainer else Color.Transparent,
+        contentColor = if (selected) {
+            MaterialTheme.colorScheme.onPrimaryContainer
+        } else {
+            MaterialTheme.colorScheme.onSurfaceVariant
+        },
+    ) {
+        Box(
+            modifier = Modifier.height(36.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            content()
         }
     }
 }
@@ -1593,44 +1661,6 @@ private fun validateManualLink(
     }
 
     return ManualLinkResult.Valid(candidate)
-}
-
-private fun appLanguageSummary(context: Context): String {
-    val effectiveLanguage = if (context.resources.configuration.locales[0].language == "it") {
-        context.getString(R.string.language_italian)
-    } else {
-        context.getString(R.string.language_english)
-    }
-
-    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
-        return context.getString(R.string.language_automatic_format, effectiveLanguage)
-    }
-
-    val appLocales = context.getSystemService(LocaleManager::class.java).applicationLocales
-    if (appLocales.isEmpty) {
-        return context.getString(R.string.language_automatic_format, effectiveLanguage)
-    }
-
-    return when (appLocales[0].language) {
-        "it" -> context.getString(R.string.language_italian)
-        else -> context.getString(R.string.language_english)
-    }
-}
-
-private fun openAppLanguageSettings(context: Context) {
-    val packageUri = Uri.parse("package:${context.packageName}")
-    val intent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        Intent(Settings.ACTION_APP_LOCALE_SETTINGS, packageUri)
-    } else {
-        Intent(Settings.ACTION_LOCALE_SETTINGS)
-    }
-
-    runCatching { context.startActivity(intent) }
-        .onFailure {
-            context.startActivity(
-                Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, packageUri),
-            )
-        }
 }
 
 private fun readClipboardText(context: Context): String? {
