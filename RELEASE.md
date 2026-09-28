@@ -5,7 +5,7 @@ SocialViewer targets **Google Play** as its initial public distribution channel.
 ## Fixed release identity
 
 - Application ID: `io.github.falker47.socialviewer`
-- Current version: `0.1.1` (`versionCode = 2`)
+- Current version: `0.1.2` (`versionCode = 3`)
 - Minimum SDK: 26
 - Target / compile SDK: 37
 - Publishing format: Android App Bundle (`.aab`)
