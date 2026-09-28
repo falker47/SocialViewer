@@ -374,10 +374,10 @@ Run this after CI is green on `feature/direct-link-cleanup`.
 1. Sync the branch and install the debug build on the physical Android test phone.
 2. Open **Settings → Direct link opening → Configure** and confirm Android's real **Open by default** screen opens. SocialViewer must not claim that it can programmatically select domains for the user.
 3. Development shortcut only: with ADB available, `pm set-app-links-user-selection --user cur --package io.github.falker47.socialviewer true all` may be used to select every declared domain on the test phone. This is not a production-app capability.
-4. Run `pm get-app-links --user cur io.github.falker47.socialviewer` and confirm the declared-host state includes TikTok as `tiktok.com` + `*.tiktok.com`, Reddit as `reddit.com` + `*.reddit.com`, Pinterest including `pin.it`, YouTube (`youtube.com`, `www.youtube.com`, `m.youtube.com`, `youtu.be`) and the existing Instagram / Threads / Bluesky hosts.
+4. Run `pm get-app-links --user cur io.github.falker47.socialviewer` and confirm the declared-host state includes TikTok as `tiktok.com` + `*.tiktok.com`, Reddit as `reddit.com` + `*.reddit.com`, Pinterest including `pin.it`, and the existing Instagram / Threads / Bluesky hosts. YouTube must not appear in SocialViewer's direct-link host state.
 5. TikTok: tap a canonical `www.tiktok.com` item and one short-link host such as `vm.tiktok.com`. Both must open SocialViewer directly. This confirms wildcard-host user selection works on the physical device.
-6. YouTube: tap one public `watch?v=`, one `youtu.be/{11-char-id}`, and one Shorts URL. They must open directly and render through the existing YouTube provider path. A YouTube channel/profile/playlist URL must not open SocialViewer.
-7. Pinterest: tap one real `pin.it/{token}` share alias. It must open SocialViewer directly, resolve to a supported single Pin, and render normally. `https://pin.it/` must remain unclaimed.
+6. YouTube: verify a normal YouTube web tap is still handled by the platform/official app as configured; SocialViewer remains manual paste / Android Share only for YouTube.
+7. Pinterest: tap the fixed real test alias `https://pin.it/1pTjG6L`. It must open SocialViewer directly, resolve to a supported single Pin, and render normally. `https://pin.it/` must remain unclaimed.
 8. Reddit: tap one canonical `www.reddit.com` post and one supported legacy-host post such as `old.reddit.com` or `m.reddit.com`. Both must open directly. A subreddit/profile URL on those same hosts must remain unclaimed.
 9. Existing Instagram, Threads shorthand and Bluesky direct opening must still work.
 10. X and canonical Threads `/@user/post/...` remain manual paste / Android Share only; do not broaden them in this gate.
