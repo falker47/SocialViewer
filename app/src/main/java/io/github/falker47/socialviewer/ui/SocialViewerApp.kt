@@ -1,12 +1,15 @@
 package io.github.falker47.socialviewer.ui
 
 import android.app.Activity
+import android.app.LocaleManager
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.provider.Settings
 import android.view.View
 import android.webkit.CookieManager
 import android.webkit.WebStorage
@@ -308,6 +311,7 @@ fun SocialViewerApp(
             ) { padding ->
                 when (screen) {
                     AppScreen.Settings -> SettingsScreen(
+                        context = context,
                         directLinkState = directLinkState,
                         themeMode = themeMode,
                         onThemeModeChange = { selectedMode ->
@@ -703,6 +707,7 @@ private fun HomeNavigationRow(
 
 @Composable
 private fun SettingsScreen(
+    context: Context,
     directLinkState: DirectLinkHandlingState,
     themeMode: ThemeMode,
     onThemeModeChange: (ThemeMode) -> Unit,
@@ -721,6 +726,23 @@ private fun SettingsScreen(
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 20.dp, vertical = 16.dp),
     ) {
+        SettingsSectionTitle(stringResource(R.string.section_language))
+        Spacer(Modifier.height(10.dp))
+        Card(
+            shape = RoundedCornerShape(18.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f),
+            ),
+        ) {
+            SettingsActionRow(
+                icon = Icons.Outlined.Public,
+                title = stringResource(R.string.app_language),
+                subtitle = appLanguageSummary(context),
+                trailingIcon = Icons.Outlined.ChevronRight,
+                onClick = { openAppLanguageSettings(context) },
+            )
+        }
+        Spacer(Modifier.height(28.dp))
         SettingsSectionTitle(stringResource(R.string.direct_link_opening))
         Spacer(Modifier.height(10.dp))
         Card(
@@ -1562,6 +1584,39 @@ private fun validateManualLink(
     }
 
     return ManualLinkResult.Valid(candidate)
+}
+
+private fun appLanguageSummary(context: Context): String {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+        return context.getString(R.string.language_device_default)
+    }
+
+    val locales = context.getSystemService(LocaleManager::class.java).applicationLocales
+    if (locales.isEmpty) {
+        return context.getString(R.string.language_system_default)
+    }
+
+    return when (locales[0].language) {
+        "en" -> context.getString(R.string.language_english)
+        "it" -> context.getString(R.string.language_italian)
+        else -> locales[0].getDisplayLanguage(locales[0])
+    }
+}
+
+private fun openAppLanguageSettings(context: Context) {
+    val packageUri = Uri.parse("package:${context.packageName}")
+    val intent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        Intent(Settings.ACTION_APP_LOCALE_SETTINGS, packageUri)
+    } else {
+        Intent(Settings.ACTION_LOCALE_SETTINGS)
+    }
+
+    runCatching { context.startActivity(intent) }
+        .onFailure {
+            context.startActivity(
+                Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, packageUri),
+            )
+        }
 }
 
 private fun readClipboardText(context: Context): String? {
