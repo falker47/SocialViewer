@@ -13,13 +13,7 @@ class DirectLinkHandlingTest {
             DIRECT_LINK_PROVIDERS.map { it.providerId },
         )
         assertEquals(
-            setOf(
-                "tiktok.com",
-                "www.tiktok.com",
-                "m.tiktok.com",
-                "vm.tiktok.com",
-                "vt.tiktok.com",
-            ),
+            setOf("tiktok.com", "*.tiktok.com"),
             DIRECT_LINK_PROVIDERS.first { it.providerId == "tiktok" }.hosts,
         )
         assertEquals(
@@ -31,11 +25,11 @@ class DirectLinkHandlingTest {
             DIRECT_LINK_PROVIDERS.first { it.providerId == "threads" }.hosts,
         )
         assertEquals(
-            setOf("reddit.com", "www.reddit.com"),
+            setOf("reddit.com", "*.reddit.com"),
             DIRECT_LINK_PROVIDERS.first { it.providerId == "reddit" }.hosts,
         )
         assertEquals(
-            setOf("pinterest.com", "www.pinterest.com"),
+            setOf("pinterest.com", "www.pinterest.com", "pin.it"),
             DIRECT_LINK_PROVIDERS.first { it.providerId == "pinterest" }.hosts,
         )
         assertEquals(
@@ -102,7 +96,7 @@ class DirectLinkHandlingTest {
         val completedState = buildDirectLinkHandlingState(
             platformStateAvailable = true,
             linkHandlingAllowed = true,
-            approvedHosts = setOf("reddit.com", "www.reddit.com"),
+            approvedHosts = setOf("reddit.com", "*.reddit.com"),
         )
 
         assertEquals(

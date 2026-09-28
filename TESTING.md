@@ -226,7 +226,7 @@ Run this only after CI is green on `feature/youtube-provider`.
 12. Player surface: controls remain native; autoplay is off; provider-native related-video/advertising surfaces are accepted. SocialViewer must not overlay, hide, restyle, or intercept them.
 13. Privacy-enhanced host: confirm player network/rendering uses `youtube-nocookie.com`. Note whether playback works with SocialViewer's existing third-party-cookie block; do not relax the cookie policy unless this fails repeatably.
 14. Referrer/client identity: if the player reports error 153, capture Logcat and the exact URL. The WebView document base URL must provide a Referer; do not work around 153 by disabling identity requirements.
-15. Routing: YouTube is intentionally **manual paste / Android Share only** in this milestone. Do not expect YouTube links to appear under Android Open by default for SocialViewer.
+15. Routing baseline: this provider milestone originally kept YouTube manual paste / Android Share only. The later `feature/direct-link-cleanup` gate adds bounded direct opening for watch, `youtu.be`, Shorts and `/live/` routes.
 16. Navigation boundary: YouTube logo/channel/related actions must not turn the app shell into an unrestricted YouTube browser. Provider-native behavior inside the official player is allowed.
 17. Appearance: check Light / Dark around the player; the player itself must not be recolored.
 18. Regression: re-run one TikTok canonical item, one Instagram post + Reel, and one Threads permalink or /t/ item. Their provider code and behavior must remain unchanged.
@@ -252,7 +252,7 @@ Verified:
 
 Run this after CI is green on `feature/reddit-direct-links`. The provider/rendering path itself is unchanged.
 
-1. Configure Android **Open by default** for SocialViewer and select `reddit.com` and `www.reddit.com` where Android allows it.
+1. Configure Android **Open by default** for SocialViewer. The later direct-link cleanup represents Reddit as `reddit.com` plus `*.reddit.com`, so legacy subdomains are covered by the same bounded route patterns.
 2. Tap a canonical public post permalink from another app/browser. It must open SocialViewer directly and render the post.
 3. Tap a direct single-comment permalink. It must open SocialViewer directly and render the explicitly linked comment.
 4. Tap a real root `/s/{token}` share URL. It must open SocialViewer directly, resolve through the existing safe redirect gate and render normally.
@@ -261,7 +261,7 @@ Run this after CI is green on `feature/reddit-direct-links`. The provider/render
 7. Tap a normal subreddit URL such as `https://www.reddit.com/r/android/` and a user/profile URL such as `https://www.reddit.com/user/example/`. Neither may open SocialViewer. Home, search, `r/all`, `r/popular`, wiki, mod tools, messages and settings are likewise out of scope.
 8. Tap a real `https://redd.it/{id}` short permalink. SocialViewer must **not claim the initial redd.it URL directly**. A browser may visibly open first, follow Reddit's redirect to a declared `reddit.com` permalink, and then hand that redirected URL to SocialViewer; this opportunistic browser-mediated handoff is acceptable but is not counted as first-class redd.it direct-link support and may vary by browser/device.
 9. Verify one already-active direct-link provider still opens normally (for example TikTok, Instagram, Pinterest or Bluesky).
-10. Verify Reddit manual paste and Android Share still work for the supported permalink and `/s/` families, including a supported permalink on a non-declared legacy host such as `old.reddit.com` if convenient.
+10. Verify Reddit manual paste and Android Share still work for the supported permalink and `/s/` families, including a legacy subdomain such as `old.reddit.com`. Under the later direct-link cleanup, that legacy host should also open directly through the wildcard declaration.
 11. If the first-party Reddit app or browser owns a declared domain, treat that as Android association competition: change **Open by default** ownership for the test rather than changing SocialViewer routing.
 
 Record PASS only if useful Reddit content opens directly, out-of-scope Reddit navigation stays unclaimed, Settings matches Android's actual host selection, and the existing Reddit provider plus one other direct-link provider regress cleanly.
@@ -283,7 +283,7 @@ Verified:
 6. Light / Dark sanity passed around the Pinterest embed.
 7. TikTok, Instagram, Threads, YouTube and Reddit regressions all passed after the Pinterest changes.
 8. Board, profile, feed and arbitrary Pinterest navigation remain outside the provider boundary.
-9. `pin.it` and regional hosts remain manual-paste / Android-Share-only; the manifest claims only canonical Pinterest hosts and `/pin/` paths.
+9. Regional Pinterest hosts remain manual-paste / Android-Share-only. The later direct-link cleanup adds first-class direct opening for `pin.it` share aliases while retaining provider redirect validation.
 10. The implementation has no Pinterest API key, OAuth, backend or paid/billing dependency.
 
 ### Shared embed loading-transition gate
@@ -365,3 +365,21 @@ gradlew.bat playReleaseBundle
 That task must fail if the YouTube key, any upload-signing value, or the configured keystore file is missing.
 
 Do not perform the full provider/device regression merely for this plumbing branch unless the changes extend beyond Gradle/CI/docs. The signed release-candidate smoke belongs to the later RC milestone after the real Play signing identities are available.
+
+
+## Direct-link cleanup gate
+
+Run this after CI is green on `feature/direct-link-cleanup`.
+
+1. Sync the branch and install the debug build on the physical Android test phone.
+2. Open **Settings → Direct link opening → Configure** and confirm Android's real **Open by default** screen opens. SocialViewer must not claim that it can programmatically select domains for the user.
+3. Development shortcut only: with ADB available, `pm set-app-links-user-selection --user cur --package io.github.falker47.socialviewer true all` may be used to select every declared domain on the test phone. This is not a production-app capability.
+4. Run `pm get-app-links --user cur io.github.falker47.socialviewer` and confirm the declared-host state includes TikTok as `tiktok.com` + `*.tiktok.com`, Reddit as `reddit.com` + `*.reddit.com`, Pinterest including `pin.it`, and the existing Instagram / Threads / Bluesky hosts. YouTube must not appear in SocialViewer's direct-link host state.
+5. TikTok: tap a canonical `www.tiktok.com` item and one short-link host such as `vm.tiktok.com`. Both must open SocialViewer directly. This confirms wildcard-host user selection works on the physical device.
+6. YouTube: verify a normal YouTube web tap is still handled by the platform/official app as configured; SocialViewer remains manual paste / Android Share only for YouTube.
+7. Pinterest: tap the current known-good real test alias `https://pin.it/2J18qJxfQ`. It must open SocialViewer directly, resolve to a supported single Pin, and render normally. `https://pin.it/` must remain unclaimed. Do not use the historical `https://pin.it/1pTjG6L` as a fixed gate: current runtime evidence shows Pinterest resolves that token to a non-Pin page.
+8. Reddit: tap one canonical `www.reddit.com` post and one supported legacy-host post such as `old.reddit.com` or `m.reddit.com`. Both must open directly. A subreddit/profile URL on those same hosts must remain unclaimed.
+9. Existing Instagram, Threads shorthand and Bluesky direct opening must still work.
+10. X and canonical Threads `/@user/post/...` remain manual paste / Android Share only; do not broaden them in this gate.
+11. Return to SocialViewer Settings and confirm provider states/counts match Android's actual domain selection. YouTube must remain excluded from the direct-link provider count.
+12. Record PASS only if the bounded positive routes open directly, negative navigation routes remain outside SocialViewer, wildcard host state is represented correctly, and no provider regression is observed.

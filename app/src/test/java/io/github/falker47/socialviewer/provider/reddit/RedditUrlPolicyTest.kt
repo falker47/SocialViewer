@@ -23,6 +23,13 @@ class RedditUrlPolicyTest {
                 "/r/android/comments/1abc234/example_post/def567/",
             ),
         )
+        assertTrue(
+            RedditUrlPolicy.supports(
+                "https",
+                "sh.reddit.com",
+                "/r/android/comments/1abc234/example_post/",
+            ),
+        )
     }
 
     @Test

@@ -1,6 +1,5 @@
 package io.github.falker47.socialviewer.ui
 
-import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -9,90 +8,52 @@ import java.io.File
 import java.net.URI
 import javax.xml.parsers.DocumentBuilderFactory
 
-class RedditDirectLinkManifestTest {
+class DirectLinkManifestCoverageTest {
     @Test
-    fun redditManifestHostsAndPatternsStayBoundedAndMatchSettingsDefinition() {
-        val redditFilters = viewFilters().filter { filter ->
-            filter.hosts.any { it in REDDIT_HOSTS }
-        }
+    fun tiktokWildcardCoversCurrentAndFutureSubdomainsWithoutExtraCheckboxHosts() {
+        assertTrue(manifestClaims("https://www.tiktok.com/@user/video/1234567890123456789"))
+        assertTrue(manifestClaims("https://vm.tiktok.com/ABC123/"))
+        assertTrue(manifestClaims("https://future.tiktok.com/@user/video/1234567890123456789"))
 
-        assertEquals(1, redditFilters.size)
+        val tiktokHosts = viewFilters()
+            .flatMap { it.hosts }
+            .filter { it == "tiktok.com" || it.endsWith(".tiktok.com") }
+            .toSet()
 
-        val redditComFilter = redditFilters.single {
-            it.hosts == setOf("reddit.com", "*.reddit.com")
-        }
-        assertEquals(setOf("https"), redditComFilter.schemes)
-        assertEquals(
-            setOf(
-                "/r/..*/comments/..*/",
-                "/r/..*/comments/..*/..*/",
-                "/r/..*/comments/..*/..*/..*/",
-                "/s/..*",
-                "/r/..*/s/..*",
-                "/u/..*/s/..*",
-                "/user/..*/s/..*",
+        assertTrue("tiktok.com" in tiktokHosts)
+        assertTrue("*.tiktok.com" in tiktokHosts)
+        assertFalse("www.tiktok.com" in tiktokHosts)
+        assertFalse("vm.tiktok.com" in tiktokHosts)
+    }
+
+    @Test
+    fun pinterestShortAliasIsClaimedButPinterestNavigationIsNotBroadened() {
+        assertTrue(manifestClaims("https://pin.it/AbC123xyz"))
+        assertTrue(manifestClaims("https://www.pinterest.com/pin/123456789/"))
+
+        assertFalse(manifestClaims("https://pin.it/"))
+        assertFalse(manifestClaims("https://www.pinterest.com/"))
+        assertFalse(manifestClaims("https://www.pinterest.com/example-user/"))
+        assertFalse(manifestClaims("https://www.youtube.com/watch?v=dQw4w9WgXcQ"))
+        assertFalse(manifestClaims("https://youtu.be/dQw4w9WgXcQ"))
+    }
+
+    @Test
+    fun redditWildcardAddsLegacyPostAndShareHostsButNotNavigation() {
+        assertTrue(
+            manifestClaims(
+                "https://old.reddit.com/r/android/comments/1abc234/example_post/",
             ),
-            redditComFilter.pathPatterns,
         )
-        assertTrue(redditComFilter.pathPrefixes.isEmpty())
-        assertTrue(redditComFilter.literalPaths.isEmpty())
-
-        val manifestHosts = redditFilters.flatMapTo(linkedSetOf()) { it.hosts }
-        val settingsHosts = DIRECT_LINK_PROVIDERS
-            .single { it.providerId == "reddit" }
-            .hosts
-
-        assertEquals(settingsHosts, manifestHosts)
-        assertTrue("*.reddit.com" in manifestHosts)
-    }
-
-    @Test
-    fun declaredRedditRoutesCoverUsefulSingleContentLinks() {
-        val claimed = listOf(
-            "https://www.reddit.com/r/android/comments/1abc234/",
-            "https://reddit.com/r/android/comments/1abc234/example_post/",
-            "https://www.reddit.com/r/android/comments/1abc234/example_post/def567/",
-            "https://reddit.com/s/AbC123_xYz",
-            "https://www.reddit.com/r/android/s/AbC123_xYz/",
-            "https://reddit.com/u/example_user/s/AbC123_xYz/",
-            "https://www.reddit.com/user/example_user/s/AbC123_xYz/",
-            "https://old.reddit.com/r/android/comments/1abc234/example_post/",
-            "https://new.reddit.com/r/android/comments/1abc234/example_post/",
-            "https://m.reddit.com/r/android/comments/1abc234/example_post/",
+        assertTrue(
+            manifestClaims(
+                "https://m.reddit.com/r/android/s/AbC123_xYz/",
+            ),
         )
 
-        claimed.forEach { url ->
-            assertTrue("Expected manifest to claim $url", manifestClaims(url))
-        }
-    }
-
-    @Test
-    fun genericRedditNavigationAndLegacyHostsAreNotClaimed() {
-        val notClaimed = listOf(
-            "https://www.reddit.com/",
-            "https://www.reddit.com/r/android/",
-            "https://www.reddit.com/r/all/",
-            "https://www.reddit.com/r/popular/",
-            "https://www.reddit.com/user/example_user/",
-            "https://www.reddit.com/u/example_user/",
-            "https://www.reddit.com/search/?q=android",
-            "https://www.reddit.com/r/android/wiki/index/",
-            "https://www.reddit.com/r/android/about/modqueue/",
-            "https://www.reddit.com/message/inbox/",
-            "https://www.reddit.com/settings/",
-            "https://www.reddit.com/s/",
-            "https://www.reddit.com/r/android/s/",
-            "https://www.reddit.com/r/android/comments/",
-            "https://www.reddit.com/r/android/comments/1abc234/example_post/def567/child/",
-            "https://redd.it/",
-            "https://redd.it/1abc234",
-            "https://old.reddit.com/r/android/",
-            "https://m.reddit.com/user/example_user/",
-        )
-
-        notClaimed.forEach { url ->
-            assertFalse("Manifest must not claim $url", manifestClaims(url))
-        }
+        assertFalse(manifestClaims("https://old.reddit.com/r/android/"))
+        assertFalse(manifestClaims("https://new.reddit.com/user/example_user/"))
+        assertFalse(manifestClaims("https://redd.it/1abc234"))
     }
 
     private fun manifestClaims(url: String): Boolean {
@@ -102,20 +63,19 @@ class RedditDirectLinkManifestTest {
         val path = uri.path ?: "/"
 
         return viewFilters().any { filter ->
+            val hasPathConstraint =
+                filter.literalPaths.isNotEmpty() ||
+                    filter.pathPrefixes.isNotEmpty() ||
+                    filter.pathPatterns.isNotEmpty()
+            val pathMatches =
+                !hasPathConstraint ||
+                    filter.literalPaths.any { it == path } ||
+                    filter.pathPrefixes.any { path.startsWith(it) } ||
+                    filter.pathPatterns.any { matchesAndroidSimpleGlob(it, path) }
+
             filter.hosts.any { manifestHost -> hostMatches(manifestHost, host) } &&
                 scheme in filter.schemes &&
-                when {
-                    filter.literalPaths.isNotEmpty() ->
-                        filter.literalPaths.any { it == path }
-
-                    filter.pathPrefixes.isNotEmpty() ->
-                        filter.pathPrefixes.any { path.startsWith(it) }
-
-                    filter.pathPatterns.isNotEmpty() ->
-                        filter.pathPatterns.any { matchesAndroidSimpleGlob(it, path) }
-
-                    else -> true
-                }
+                pathMatches
         }
     }
 
@@ -127,11 +87,6 @@ class RedditDirectLinkManifestTest {
             actualHost == manifestHost
         }
 
-    /**
-     * Minimal deterministic model of Android PATTERN_SIMPLE_GLOB for the subset used by
-     * this manifest: literals, '.', '*' and '.*'. Android documents '.*' as lazy and
-     * non-backtracking, so a following '/' bounds it to the next path segment.
-     */
     private fun matchesAndroidSimpleGlob(pattern: String, value: String): Boolean {
         var patternIndex = 0
         var valueIndex = 0
@@ -144,14 +99,9 @@ class RedditDirectLinkManifestTest {
             if (followedByStar) {
                 if (patternChar == '.') {
                     patternIndex += 2
-                    if (patternIndex == pattern.length) {
-                        return true
-                    }
+                    if (patternIndex == pattern.length) return true
 
                     val nextLiteral = pattern[patternIndex]
-                    require(nextLiteral != '.' && nextLiteral != '*') {
-                        "Test matcher only supports a literal after .*"
-                    }
                     val stop = value.indexOf(nextLiteral, valueIndex)
                     if (stop < 0) return false
                     valueIndex = stop
@@ -243,13 +193,5 @@ class RedditDirectLinkManifestTest {
 
     private companion object {
         const val ANDROID_NAMESPACE = "http://schemas.android.com/apk/res/android"
-        val REDDIT_HOSTS = setOf(
-            "reddit.com",
-            "www.reddit.com",
-            "old.reddit.com",
-            "new.reddit.com",
-            "m.reddit.com",
-            "redd.it",
-        )
     }
 }

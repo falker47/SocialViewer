@@ -31,10 +31,7 @@
                 <category android:name="android.intent.category.BROWSABLE" />
 
                 <data android:scheme="https" android:host="tiktok.com" />
-                <data android:scheme="https" android:host="www.tiktok.com" />
-                <data android:scheme="https" android:host="m.tiktok.com" />
-                <data android:scheme="https" android:host="vm.tiktok.com" />
-                <data android:scheme="https" android:host="vt.tiktok.com" />
+                <data android:scheme="https" android:host="*.tiktok.com" />
             </intent-filter>
 
             <!-- Only Instagram content types supported by InstagramProvider are claimed. -->
@@ -77,7 +74,7 @@
                 <category android:name="android.intent.category.BROWSABLE" />
 
                 <data android:scheme="https" android:host="reddit.com" />
-                <data android:scheme="https" android:host="www.reddit.com" />
+                <data android:scheme="https" android:host="*.reddit.com" />
 
                 <!-- Canonical post permalink, with optional slug or one explicit comment. -->
                 <data android:pathPattern="/r/..*/comments/..*/" />
@@ -91,7 +88,7 @@
                 <data android:pathPattern="/user/..*/s/..*" />
             </intent-filter>
 
-            <!-- Only single-Pin Pinterest paths are claimed. pin.it aliases stay paste/Share-only. -->
+            <!-- Only single-Pin Pinterest paths are claimed on canonical hosts. -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -99,6 +96,19 @@
 
                 <data android:scheme="https" android:host="pinterest.com" android:pathPrefix="/pin/" />
                 <data android:scheme="https" android:host="www.pinterest.com" android:pathPrefix="/pin/" />
+            </intent-filter>
+
+            <!-- pin.it is a dedicated Pinterest share-alias host; the provider still
+                 resolves and validates the final target before rendering. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:scheme="https"
+                    android:host="pin.it"
+                    android:pathPattern="/..*" />
             </intent-filter>
 
             <!-- Only Bluesky single-post paths are claimed; profile pages are not. -->
