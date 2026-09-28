@@ -1,15 +1,8 @@
 package io.github.falker47.socialviewer.provider.reddit
 
 object RedditUrlPolicy {
-    private val directHosts = setOf(
-        "reddit.com",
-        "www.reddit.com",
-        "old.reddit.com",
-        "new.reddit.com",
-        "m.reddit.com",
-    )
-
-    private val redirectHosts = directHosts
+    private fun isRedditHost(host: String): Boolean =
+        host == "reddit.com" || host.endsWith(".reddit.com")
 
     fun supports(
         scheme: String?,
@@ -27,7 +20,7 @@ object RedditUrlPolicy {
         if (!scheme.equals("https", ignoreCase = true)) return null
 
         val normalizedHost = host?.lowercase() ?: return null
-        if (normalizedHost !in directHosts) return null
+        if (!isRedditHost(normalizedHost)) return null
 
         val segments = pathSegments(path)
         if (segments.size !in 4..6) return null
@@ -66,7 +59,7 @@ object RedditUrlPolicy {
         if (!scheme.equals("https", ignoreCase = true)) return false
 
         val normalizedHost = host?.lowercase() ?: return false
-        if (normalizedHost !in redirectHosts) return false
+        if (!isRedditHost(normalizedHost)) return false
 
         val segments = pathSegments(path)
 
