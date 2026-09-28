@@ -33,7 +33,7 @@
     <string name="clear_provider_data_title">Clear provider data?</string>
     <string name="clear_provider_data_body">Provider cookies and preferences will be removed. Providers may ask for cookie preferences again.</string>
     <string name="cancel">Cancel</string>
-    <string name="delete">Clear</string>
+    <string name="clear">Clear</string>
     <string name="theme_system">System</string>
     <string name="theme_light">Light</string>
     <string name="theme_dark">Dark</string>
