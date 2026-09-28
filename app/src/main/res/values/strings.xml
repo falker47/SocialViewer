@@ -76,5 +76,4 @@
     <string name="error_unexpected">An unexpected error occurred.</string>
     <string name="error_provider_not_configured_format">%1$s isn’t configured in this build.</string>
     <string name="error_youtube_mfk">Videos marked as Made for Kids on YouTube aren’t opened in SocialViewer.</string>
-    <string name="tiktok_first_load_playback_hint">TikTok needs a cookie choice on first use. Complete the cookie prompt in the player, then retry if needed.</string>
 </resources>
