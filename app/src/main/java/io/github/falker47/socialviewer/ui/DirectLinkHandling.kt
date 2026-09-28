@@ -65,16 +65,6 @@ internal val DIRECT_LINK_PROVIDERS = listOf(
         ),
     ),
     DirectLinkProviderDefinition(
-        providerId = "youtube",
-        displayName = "YouTube",
-        hosts = linkedSetOf(
-            "youtube.com",
-            "www.youtube.com",
-            "m.youtube.com",
-            "youtu.be",
-        ),
-    ),
-    DirectLinkProviderDefinition(
         providerId = "bluesky",
         displayName = "Bluesky",
         hosts = linkedSetOf(
