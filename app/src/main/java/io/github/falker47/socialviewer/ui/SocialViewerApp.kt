@@ -1573,6 +1573,7 @@ private fun PlayerScreen(
                     EmbedWebView(
                         html = content.embedHtml,
                         baseUrl = content.documentBaseUrl,
+                        reloadOnCookieName = content.reloadOnCookieName,
                         modifier = Modifier.fillMaxSize(),
                         onContentReady = { embedReady = true },
                     )

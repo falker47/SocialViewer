@@ -8,4 +8,5 @@ data class SocialContent(
     val authorName: String?,
     val documentBaseUrl: String,
     val embedHtml: String,
+    val reloadOnCookieName: String? = null,
 )

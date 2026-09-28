@@ -55,6 +55,11 @@ class TikTokProvider(
             authorName = json.optString("author_name").takeIf { it.isNotBlank() },
             documentBaseUrl = "https://www.tiktok.com/",
             embedHtml = playerHtml(postId),
+            // TikTok's first WebView load can enter PLAYBACK_ERROR 3001 while its own
+            // first-party cookie-consent choice is unresolved. Once that choice creates
+            // TikTok's consent cookie, the shared WebView automatically reloads this
+            // document exactly once so the same player initializes with the saved choice.
+            reloadOnCookieName = "cookie-consent",
         )
     }
 
@@ -71,7 +76,7 @@ class TikTokProvider(
         return null
     }
 
-    private fun playerHtml(postId: String): String = """
+    internal fun playerHtml(postId: String): String = """
         <!doctype html>
         <html>
           <head>
@@ -138,18 +143,32 @@ class TikTokProvider(
                 }
 
                 player.addEventListener('load', function () {
-                  // Avoid exposing the iframe's intermediate layout while TikTok initializes.
                   window.setTimeout(reveal, 250);
                 });
 
                 window.addEventListener('message', function (event) {
                   const data = event && event.data;
-                  if (data && data['x-tiktok-player'] && data.type === 'onPlayerReady') {
+                  if (!data || !data['x-tiktok-player']) return;
+
+                  if (data.type === 'onPlayerReady') {
+                    reveal();
+                    return;
+                  }
+
+                  if (data.type === 'onPlayerError') {
+                    const value = data.value || {};
+                    console.warn(
+                      'TikTok player error',
+                      value.errorCode === undefined ? 'unknown' : value.errorCode,
+                      value.errorType || 'UNKNOWN'
+                    );
+                    // Keep TikTok's own cookie-consent UI visible and interactive.
+                    // Native WebView cookie monitoring handles the one-time reload after
+                    // the user's consent choice is persisted.
                     reveal();
                   }
                 });
 
-                // Safety fallback for unusual WebView/player builds.
                 window.setTimeout(reveal, 6000);
               })();
             </script>

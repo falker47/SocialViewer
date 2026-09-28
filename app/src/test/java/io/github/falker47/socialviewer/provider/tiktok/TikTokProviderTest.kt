@@ -25,4 +25,15 @@ class TikTokProviderTest {
         assertTrue(TikTokUrlPolicy.isShortLink("www.tiktok.com", "/t/ZM123/"))
         assertFalse(TikTokUrlPolicy.isShortLink("www.tiktok.com", "/@foo/video/123"))
     }
+
+    @Test
+    fun playerHtmlKeepsOfficialErrorDiagnosticWithoutCoveringProviderUi() {
+        val html = TikTokProvider().playerHtml("1234567890")
+
+        assertTrue(html.contains("data.type === 'onPlayerError'"))
+        assertTrue(html.contains("value.errorCode"))
+        assertTrue(html.contains("value.errorType"))
+        assertTrue(html.contains("console.warn"))
+        assertFalse(html.contains("player-error"))
+    }
 }
