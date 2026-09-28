@@ -80,11 +80,19 @@ class MainActivity : AppCompatActivity() {
             else -> null
         }
 
-        if (intent.action == Intent.ACTION_VIEW && PinItDiagnostics.tracks(url)) {
+        if (intent.action == Intent.ACTION_VIEW) {
+            val tracked = PinItDiagnostics.tracks(url)
             PinItDiagnostics.info(
-                "action_view_received",
+                "action_view_seen",
                 "url" to PinItDiagnostics.safeUrl(url),
+                "tracked" to tracked,
             )
+            if (tracked) {
+                PinItDiagnostics.info(
+                    "action_view_received",
+                    "url" to PinItDiagnostics.safeUrl(url),
+                )
+            }
         }
         return url
     }
