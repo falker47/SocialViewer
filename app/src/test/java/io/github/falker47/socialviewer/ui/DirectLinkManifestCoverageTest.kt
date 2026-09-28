@@ -88,20 +88,19 @@ class DirectLinkManifestCoverageTest {
         val path = uri.path ?: "/"
 
         return viewFilters().any { filter ->
+            val hasPathConstraint =
+                filter.literalPaths.isNotEmpty() ||
+                    filter.pathPrefixes.isNotEmpty() ||
+                    filter.pathPatterns.isNotEmpty()
+            val pathMatches =
+                !hasPathConstraint ||
+                    filter.literalPaths.any { it == path } ||
+                    filter.pathPrefixes.any { path.startsWith(it) } ||
+                    filter.pathPatterns.any { matchesAndroidSimpleGlob(it, path) }
+
             filter.hosts.any { manifestHost -> hostMatches(manifestHost, host) } &&
                 scheme in filter.schemes &&
-                when {
-                    filter.literalPaths.isNotEmpty() ->
-                        filter.literalPaths.any { it == path }
-
-                    filter.pathPrefixes.isNotEmpty() ->
-                        filter.pathPrefixes.any { path.startsWith(it) }
-
-                    filter.pathPatterns.isNotEmpty() ->
-                        filter.pathPatterns.any { matchesAndroidSimpleGlob(it, path) }
-
-                    else -> true
-                }
+                pathMatches
         }
     }
 
