@@ -26,6 +26,8 @@
     <string name="section_privacy_data">Privacy e dati</string>
     <string name="privacy_title">Privacy</string>
     <string name="privacy_no_account">Nessun account SocialViewer, cronologia o analytics.</string>
+    <string name="privacy_policy_title">Privacy Policy</string>
+    <string name="privacy_policy_subtitle">Come Social Viewer gestisce i dati dell’app e dei provider.</string>
     <string name="clear_site_data">Cancella dati dei siti</string>
     <string name="clear_site_data_subtitle">Rimuove cookie e preferenze locali dei provider.</string>
     <string name="x_authorization">Autorizzazione X</string>
@@ -34,6 +36,15 @@
     <string name="section_about">Informazioni</string>
     <string name="version_format">Versione %1$s</string>
     <string name="source_code">Codice sorgente</string>
+    <string name="brand_name" translatable="false">Falker Studio</string>
+    <string name="home_free_summary" formatted="false">100% gratis · No pubblicità · No acquisti</string>
+    <string name="home_free_cta">Scopri perché</string>
+    <string name="support_reason_title">Perché è gratis?</string>
+    <string name="support_reason_body_1">Social Viewer nasce completa e gratuita. Non voglio nascondere funzionalità utili dietro paywall né interrompere l’uso con pubblicità di Social Viewer.</string>
+    <string name="support_reason_body_2">Falker Studio è il mio progetto per creare app utili, complete e destinate a restare gratuite. Se vuoi aiutarmi a continuare a costruirne, puoi supportare il progetto volontariamente.</string>
+    <string name="support_reason_body_3">Il supporto è facoltativo e non sblocca nulla: niente funzionalità, contenuti, badge, priorità o abbonamenti. I provider possono comunque mostrare superfici proprie negli embed ufficiali.</string>
+    <string name="support_project">Supporta il progetto</string>
+    <string name="close">Chiudi</string>
     <string name="clear_provider_data_title">Cancellare i dati dei provider?</string>
     <string name="clear_provider_data_body">Verranno rimossi cookie e preferenze dei provider. I provider potrebbero chiederti nuovamente le preferenze sui cookie.</string>
     <string name="cancel">Annulla</string>

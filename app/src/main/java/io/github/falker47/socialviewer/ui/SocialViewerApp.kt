@@ -144,6 +144,10 @@ private sealed interface ManualLinkResult {
 
 private const val PREF_ONBOARDING_COMPLETE = "onboarding_complete"
 private const val PREF_X_EMBED_CONSENT_GRANTED = "x_embed_consent_granted"
+private const val SOURCE_CODE_URL = "https://github.com/falker47/SocialViewer"
+private const val PORTFOLIO_URL = "https://falker47.github.io/Nexus-portfolio/"
+private const val PRIVACY_POLICY_URL = "https://falker47.github.io/Nexus-portfolio/socialviewer-privacy.html"
+private const val SUPPORT_PROJECT_URL = "https://www.paypal.com/paypalme/falker47"
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -339,8 +343,11 @@ fun SocialViewerApp(
                             }
                         },
                         appVersion = appVersionName(context),
+                        onOpenPrivacy = {
+                            openExternal(context, PRIVACY_POLICY_URL)
+                        },
                         onOpenSource = {
-                            openExternal(context, "https://github.com/falker47/SocialViewer")
+                            openExternal(context, SOURCE_CODE_URL)
                         },
                         modifier = Modifier.padding(padding),
                     )
@@ -358,6 +365,9 @@ fun SocialViewerApp(
                             onOpen = ::openManualField,
                             onConfigureDirectLinks = ::launchDirectLinkSettings,
                             onOpenSettings = { screen = AppScreen.Settings },
+                            onOpenPortfolio = { openExternal(context, PORTFOLIO_URL) },
+                            onOpenPrivacy = { openExternal(context, PRIVACY_POLICY_URL) },
+                            onOpenSupport = { openExternal(context, SUPPORT_PROJECT_URL) },
                             onInputTargetChanged = { inputTarget = it },
                             onDirectLinkTargetChanged = { directLinkTarget = it },
                             modifier = Modifier.padding(padding),
@@ -434,10 +444,15 @@ private fun HomeScreen(
     onOpen: () -> Unit,
     onConfigureDirectLinks: () -> Unit,
     onOpenSettings: () -> Unit,
+    onOpenPortfolio: () -> Unit,
+    onOpenPrivacy: () -> Unit,
+    onOpenSupport: () -> Unit,
     onInputTargetChanged: (Rect) -> Unit,
     onDirectLinkTargetChanged: (Rect) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    var showSupportInfo by rememberSaveable { mutableStateOf(false) }
+
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
         val compactHeight = maxHeight < 640.dp
 
@@ -465,6 +480,13 @@ private fun HomeScreen(
                     onOpenSettings = onOpenSettings,
                     onDirectLinkTargetChanged = onDirectLinkTargetChanged,
                 )
+                Spacer(Modifier.height(18.dp))
+                HomeFooter(
+                    onLearnWhy = { showSupportInfo = true },
+                    onOpenPortfolio = onOpenPortfolio,
+                    onOpenPrivacy = onOpenPrivacy,
+                )
+                Spacer(Modifier.height(8.dp))
             }
         } else {
             Column(
@@ -480,7 +502,7 @@ private fun HomeScreen(
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
-                    Spacer(Modifier.height(24.dp))
+                    Spacer(Modifier.height(8.dp))
                     HomePrimaryContent(
                         value = value,
                         error = error,
@@ -497,9 +519,25 @@ private fun HomeScreen(
                     onOpenSettings = onOpenSettings,
                     onDirectLinkTargetChanged = onDirectLinkTargetChanged,
                 )
-                Spacer(Modifier.height(4.dp))
+                Spacer(Modifier.height(18.dp))
+                HomeFooter(
+                    onLearnWhy = { showSupportInfo = true },
+                    onOpenPortfolio = onOpenPortfolio,
+                    onOpenPrivacy = onOpenPrivacy,
+                )
+                Spacer(Modifier.height(2.dp))
             }
         }
+    }
+
+    if (showSupportInfo) {
+        SupportProjectDialog(
+            onDismiss = { showSupportInfo = false },
+            onSupport = {
+                showSupportInfo = false
+                onOpenSupport()
+            },
+        )
     }
 }
 
@@ -530,7 +568,7 @@ private fun HomePrimaryContent(
         style = MaterialTheme.typography.bodyLarge,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
-    Spacer(Modifier.height(32.dp))
+    Spacer(Modifier.height(24.dp))
 
     Column(
         modifier = Modifier
@@ -640,6 +678,104 @@ private fun HomeUtilities(
 }
 
 @Composable
+private fun HomeFooter(
+    onLearnWhy: () -> Unit,
+    onOpenPortfolio: () -> Unit,
+    onOpenPrivacy: () -> Unit,
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center,
+        ) {
+            Text(
+                text = stringResource(R.string.home_free_summary),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+            )
+            Text(
+                text = " · ",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Text(
+                text = stringResource(R.string.home_free_cta),
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.clickable(onClick = onLearnWhy),
+            )
+        }
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center,
+        ) {
+            TextButton(
+                onClick = onOpenPortfolio,
+                contentPadding = PaddingValues(horizontal = 6.dp, vertical = 0.dp),
+            ) {
+                Text(
+                    text = stringResource(R.string.brand_name),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+            }
+            Text(
+                text = "·",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            TextButton(
+                onClick = onOpenPrivacy,
+                contentPadding = PaddingValues(horizontal = 6.dp, vertical = 0.dp),
+            ) {
+                Text(
+                    text = stringResource(R.string.privacy_policy_title),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun SupportProjectDialog(
+    onDismiss: () -> Unit,
+    onSupport: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(stringResource(R.string.support_reason_title))
+        },
+        text = {
+            Column {
+                Text(stringResource(R.string.support_reason_body_1))
+                Spacer(Modifier.height(12.dp))
+                Text(stringResource(R.string.support_reason_body_2))
+                Spacer(Modifier.height(12.dp))
+                Text(stringResource(R.string.support_reason_body_3))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.close))
+            }
+        },
+        confirmButton = {
+            Button(onClick = onSupport) {
+                Text(stringResource(R.string.support_project))
+            }
+        },
+    )
+}
+
+@Composable
 private fun DirectLinkCard(
     state: DirectLinkHandlingState,
     onConfigure: () -> Unit,
@@ -718,6 +854,7 @@ private fun SettingsScreen(
     xEmbedConsentGranted: Boolean,
     onRevokeXEmbedConsent: () -> Unit,
     appVersion: String,
+    onOpenPrivacy: () -> Unit,
     onOpenSource: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -769,8 +906,10 @@ private fun SettingsScreen(
         ) {
             SettingsActionRow(
                 icon = Icons.Outlined.Shield,
-                title = stringResource(R.string.privacy_title),
-                subtitle = stringResource(R.string.privacy_no_account),
+                title = stringResource(R.string.privacy_policy_title),
+                subtitle = stringResource(R.string.privacy_policy_subtitle),
+                trailingIcon = Icons.Outlined.OpenInNew,
+                onClick = onOpenPrivacy,
             )
             HorizontalDivider(
                 modifier = Modifier.padding(start = 58.dp),
