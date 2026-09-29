@@ -687,14 +687,27 @@ private fun HomeFooter(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        TextButton(
-            onClick = onLearnWhy,
-            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp),
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center,
         ) {
             Text(
-                text = stringResource(R.string.home_free_footer),
-                style = MaterialTheme.typography.labelMedium,
+                text = stringResource(R.string.home_free_summary),
+                style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+            )
+            Text(
+                text = " · ",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Text(
+                text = stringResource(R.string.home_free_cta),
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.clickable(onClick = onLearnWhy),
             )
         }
         Row(
