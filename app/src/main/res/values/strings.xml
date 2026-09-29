@@ -38,7 +38,7 @@
     <string name="version_format">Version %1$s</string>
     <string name="source_code">Source code</string>
     <string name="brand_name" translatable="false">Falker Studio</string>
-    <string name="home_free_footer">100% free · No Social Viewer ads · No in-app purchases · Learn why</string>
+    <string name="home_free_footer" formatted="false">100% free · No Social Viewer ads · No in-app purchases · Learn why</string>
     <string name="support_reason_title">Why is it free?</string>
     <string name="support_reason_body_1">Social Viewer is complete and free by design. I don’t want useful features hidden behind paywalls or basic use interrupted by Social Viewer ads.</string>
     <string name="support_reason_body_2">Falker Studio is my project for building useful, complete apps that stay free. If you’d like to help me keep creating them, you can support the project voluntarily.</string>
