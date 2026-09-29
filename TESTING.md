@@ -113,7 +113,33 @@ Then tap one supported TikTok link, one supported Instagram post/Reel link, one 
 
 Expected: when Android is associated with SocialViewer for that domain, SocialViewer opens directly and starts resolving/rendering without first flashing Home. If a first-party app/browser owns the domain instead, change the association in Android rather than treating SocialViewer as a silent default.
 
-## 9. Open-original escape hatch
+### Meta host-persistence regression gate
+
+This gate specifically covers the user-reported Android settings regression where `www.instagram.com` and `www.threads.net` appeared enabled, then reverted after leaving the system screen.
+
+1. Install this branch over the existing app without clearing app data.
+2. Open SocialViewer → Settings → Direct link opening → Configure.
+3. For Instagram, select both `instagram.com` and `*.instagram.com`.
+4. For Threads, select `threads.com`, `*.threads.com`, `threads.net` and `*.threads.net`.
+5. Leave the Android settings screen with Back, then immediately reopen it.
+6. All selected Meta-domain entries must still be selected.
+7. Tap a real `https://www.instagram.com/p/...` or `/reel/...` link from another app/browser. It must open SocialViewer directly.
+8. Tap a real legacy `https://www.threads.net/t/...` link if available; otherwise verify a `www.threads.com/t/...` link. It must open SocialViewer directly.
+9. If any selection still resets, capture `adb shell pm get-app-links --user cur io.github.falker47.socialviewer` immediately after the reset. Android documents that a manually selected domain can return to NONE when another app becomes selected or verified for that same domain; that output is required before further app-side changes.
+
+## 9. Android back navigation
+
+Use gesture navigation if the device is configured for it; repeat once with the classic navigation-bar Back action if convenient.
+
+1. Home → Settings → Android Back gesture/action. Expected: return to Home, not exit SocialViewer.
+2. Open one supported item → Android Back gesture/action. Expected: return to Home exactly like the in-app back arrow.
+3. Trigger one Error screen with a supported-but-unavailable item → Android Back. Expected: return to Home.
+4. If X consent is available for the smoke run, open an X item before consent → Android Back. Expected: return to Home.
+5. From Home itself, Android Back remains system-owned and may exit/background the app normally.
+
+Record PASS only if Android Back and the visible in-app back controls have equivalent navigation semantics inside SocialViewer.
+
+## 10. Open-original escape hatch
 
 With direct-link handling enabled for at least one supported provider:
 
@@ -127,13 +153,13 @@ With direct-link handling enabled for at least one supported provider:
 
 Record PASS only if every original-content escape path opens in a browser outside SocialViewer while generic external links such as Privacy, source code and portfolio still use their normal external-link behavior.
 
-## 10. Share-sheet fallback
+## 11. Share-sheet fallback
 
 Share a public TikTok URL as text from another app and choose **SocialViewer**.
 
 Expected: the app starts resolving the URL. This path is supported but intentionally not promoted in the primary UI.
 
-## 11. Appearance / dark mode
+## 12. Appearance / dark mode
 
 Open Settings → **Aspetto** and verify:
 
@@ -147,7 +173,7 @@ Open Settings → **Aspetto** and verify:
 8. Open a TikTok and confirm the remote player itself is not recolored; its black player background remains unchanged.
 9. Re-run clipboard paste/open and direct-link configuration to confirm no regression in those flows.
 
-## 12. Negative tests
+## 13. Negative tests
 
 Confirm clean failure for:
 
@@ -157,7 +183,7 @@ Confirm clean failure for:
 - a TikTok URL without a supported post/photo ID
 - a short TikTok URL that redirects outside TikTok, when a safe fixture is available
 
-## 13. What to capture if something fails
+## 14. What to capture if something fails
 
 Send:
 

@@ -10,6 +10,7 @@ import android.os.Looper
 import android.view.View
 import android.webkit.CookieManager
 import android.webkit.WebStorage
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -242,6 +243,18 @@ fun SocialViewerApp(
     fun launchDirectLinkSettings() {
         awaitingLinkSettings = true
         openDefaultLinkSettings(context)
+    }
+
+    BackHandler(
+        enabled = screen == AppScreen.Settings || state != ViewerState.Home,
+    ) {
+        when {
+            screen == AppScreen.Settings -> screen = AppScreen.Viewer
+            state != ViewerState.Home -> {
+                screen = AppScreen.Viewer
+                state = ViewerState.Home
+            }
+        }
     }
 
     LaunchedEffect(incomingUrl) {

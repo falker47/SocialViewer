@@ -17,11 +17,11 @@ class DirectLinkHandlingTest {
             DIRECT_LINK_PROVIDERS.first { it.providerId == "tiktok" }.hosts,
         )
         assertEquals(
-            setOf("instagram.com", "www.instagram.com"),
+            setOf("instagram.com", "*.instagram.com"),
             DIRECT_LINK_PROVIDERS.first { it.providerId == "instagram" }.hosts,
         )
         assertEquals(
-            setOf("threads.com", "www.threads.com", "threads.net", "www.threads.net"),
+            setOf("threads.com", "*.threads.com", "threads.net", "*.threads.net"),
             DIRECT_LINK_PROVIDERS.first { it.providerId == "threads" }.hosts,
         )
         assertEquals(

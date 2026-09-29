@@ -41,9 +41,9 @@
                 <category android:name="android.intent.category.BROWSABLE" />
 
                 <data android:scheme="https" android:host="instagram.com" android:pathPrefix="/p/" />
-                <data android:scheme="https" android:host="www.instagram.com" android:pathPrefix="/p/" />
+                <data android:scheme="https" android:host="*.instagram.com" android:pathPrefix="/p/" />
                 <data android:scheme="https" android:host="instagram.com" android:pathPrefix="/reel/" />
-                <data android:scheme="https" android:host="www.instagram.com" android:pathPrefix="/reel/" />
+                <data android:scheme="https" android:host="*.instagram.com" android:pathPrefix="/reel/" />
             </intent-filter>
 
             <!--
@@ -58,9 +58,9 @@
                 <category android:name="android.intent.category.BROWSABLE" />
 
                 <data android:scheme="https" android:host="threads.com" android:pathPrefix="/t/" />
-                <data android:scheme="https" android:host="www.threads.com" android:pathPrefix="/t/" />
+                <data android:scheme="https" android:host="*.threads.com" android:pathPrefix="/t/" />
                 <data android:scheme="https" android:host="threads.net" android:pathPrefix="/t/" />
-                <data android:scheme="https" android:host="www.threads.net" android:pathPrefix="/t/" />
+                <data android:scheme="https" android:host="*.threads.net" android:pathPrefix="/t/" />
             </intent-filter>
 
             <!--
