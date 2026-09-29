@@ -37,7 +37,7 @@
     <string name="version_format">Versione %1$s</string>
     <string name="source_code">Codice sorgente</string>
     <string name="brand_name" translatable="false">Falker Studio</string>
-    <string name="home_free_footer">100% gratis · Nessuna pubblicità di Social Viewer · Nessun acquisto in-app · Scopri perché</string>
+    <string name="home_free_footer" formatted="false">100% gratis · Nessuna pubblicità di Social Viewer · Nessun acquisto in-app · Scopri perché</string>
     <string name="support_reason_title">Perché è gratis?</string>
     <string name="support_reason_body_1">Social Viewer nasce completa e gratuita. Non voglio nascondere funzionalità utili dietro paywall né interrompere l’uso con pubblicità di Social Viewer.</string>
     <string name="support_reason_body_2">Falker Studio è il mio progetto per creare app utili, complete e destinate a restare gratuite. Se vuoi aiutarmi a continuare a costruirne, puoi supportare il progetto volontariamente.</string>
