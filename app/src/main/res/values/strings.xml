@@ -27,6 +27,8 @@
     <string name="section_privacy_data">Privacy &amp; data</string>
     <string name="privacy_title">Privacy</string>
     <string name="privacy_no_account">No SocialViewer account, history or analytics.</string>
+    <string name="privacy_policy_title">Privacy Policy</string>
+    <string name="privacy_policy_subtitle">How Social Viewer handles app and provider data.</string>
     <string name="clear_site_data">Clear site data</string>
     <string name="clear_site_data_subtitle">Removes local provider cookies and preferences.</string>
     <string name="x_authorization">X authorization</string>
@@ -35,6 +37,12 @@
     <string name="section_about">About</string>
     <string name="version_format">Version %1$s</string>
     <string name="source_code">Source code</string>
+    <string name="creator_title" translatable="false">Maurizio Falconi · falker47</string>
+    <string name="creator_subtitle">Independent projects · Nexus Portfolio</string>
+    <string name="support_project">Support the project</string>
+    <string name="support_project_subtitle">Optional support. No digital content, features or benefits are unlocked.</string>
+    <string name="about_free_note">Social Viewer is free. It has no Social Viewer ads, subscriptions or in-app purchases. Providers may show their own surfaces inside official embeds.</string>
+    <string name="creator_footer" translatable="false">© 2026 Maurizio Falconi · falker47</string>
     <string name="clear_provider_data_title">Clear provider data?</string>
     <string name="clear_provider_data_body">Provider cookies and preferences will be removed. Providers may ask for cookie preferences again.</string>
     <string name="cancel">Cancel</string>

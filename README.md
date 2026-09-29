@@ -4,7 +4,7 @@ Privacy-minimal Android viewer for **single public social-media links**.
 
 SocialViewer is intentionally not a social client: no feed, no SocialViewer account, no viewing history, no recommendations, no analytics, and no backend. A user opens a public link someone explicitly sent them; the app resolves the matching provider and renders that one piece of content.
 
-## Current baseline — v0.1.2
+## Current baseline — v0.1.3
 
 Implemented providers:
 
@@ -77,7 +77,8 @@ SocialViewer itself:
 - disables third-party cookies in the embedded WebView;
 - intentionally retains provider first-party consent/preferences across items;
 - stores a local one-time X embed-consent flag after explicit approval; it can be revoked in Settings;
-- exposes **Cancella dati del sito** to remove shared local provider cookies/preferences.
+- exposes **Cancella dati del sito** to remove shared local provider cookies/preferences;
+- links to a public bilingual Privacy Policy, the developer's Nexus Portfolio, source code and an optional external support page. Voluntary support unlocks no digital content, feature or benefit.
 
 The remote social platform/CDN still receives ordinary network metadata required to serve a public embed. This project does **not** claim network anonymity from the provider.
 

@@ -52,6 +52,7 @@ import androidx.compose.material.icons.outlined.DarkMode
 import androidx.compose.material.icons.outlined.DeleteOutline
 import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.LightMode
 import androidx.compose.material.icons.outlined.OpenInNew
 import androidx.compose.material.icons.outlined.Public
@@ -144,6 +145,10 @@ private sealed interface ManualLinkResult {
 
 private const val PREF_ONBOARDING_COMPLETE = "onboarding_complete"
 private const val PREF_X_EMBED_CONSENT_GRANTED = "x_embed_consent_granted"
+private const val SOURCE_CODE_URL = "https://github.com/falker47/SocialViewer"
+private const val PORTFOLIO_URL = "https://falker47.github.io/Nexus-portfolio/"
+private const val PRIVACY_POLICY_URL = "https://github.com/falker47/SocialViewer/blob/main/PRIVACY.md"
+private const val SUPPORT_PROJECT_URL = "https://www.paypal.com/paypalme/falker47"
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -339,8 +344,17 @@ fun SocialViewerApp(
                             }
                         },
                         appVersion = appVersionName(context),
+                        onOpenPrivacy = {
+                            openExternal(context, PRIVACY_POLICY_URL)
+                        },
+                        onOpenPortfolio = {
+                            openExternal(context, PORTFOLIO_URL)
+                        },
+                        onOpenSupport = {
+                            openExternal(context, SUPPORT_PROJECT_URL)
+                        },
                         onOpenSource = {
-                            openExternal(context, "https://github.com/falker47/SocialViewer")
+                            openExternal(context, SOURCE_CODE_URL)
                         },
                         modifier = Modifier.padding(padding),
                     )
@@ -718,6 +732,9 @@ private fun SettingsScreen(
     xEmbedConsentGranted: Boolean,
     onRevokeXEmbedConsent: () -> Unit,
     appVersion: String,
+    onOpenPrivacy: () -> Unit,
+    onOpenPortfolio: () -> Unit,
+    onOpenSupport: () -> Unit,
     onOpenSource: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -769,8 +786,10 @@ private fun SettingsScreen(
         ) {
             SettingsActionRow(
                 icon = Icons.Outlined.Shield,
-                title = stringResource(R.string.privacy_title),
-                subtitle = stringResource(R.string.privacy_no_account),
+                title = stringResource(R.string.privacy_policy_title),
+                subtitle = stringResource(R.string.privacy_policy_subtitle),
+                trailingIcon = Icons.Outlined.OpenInNew,
+                onClick = onOpenPrivacy,
             )
             HorizontalDivider(
                 modifier = Modifier.padding(start = 58.dp),
@@ -815,6 +834,28 @@ private fun SettingsScreen(
                 color = MaterialTheme.colorScheme.outlineVariant,
             )
             SettingsActionRow(
+                icon = Icons.Outlined.Public,
+                title = stringResource(R.string.creator_title),
+                subtitle = stringResource(R.string.creator_subtitle),
+                trailingIcon = Icons.Outlined.OpenInNew,
+                onClick = onOpenPortfolio,
+            )
+            HorizontalDivider(
+                modifier = Modifier.padding(start = 58.dp),
+                color = MaterialTheme.colorScheme.outlineVariant,
+            )
+            SettingsActionRow(
+                icon = Icons.Outlined.FavoriteBorder,
+                title = stringResource(R.string.support_project),
+                subtitle = stringResource(R.string.support_project_subtitle),
+                trailingIcon = Icons.Outlined.OpenInNew,
+                onClick = onOpenSupport,
+            )
+            HorizontalDivider(
+                modifier = Modifier.padding(start = 58.dp),
+                color = MaterialTheme.colorScheme.outlineVariant,
+            )
+            SettingsActionRow(
                 icon = Icons.Outlined.Code,
                 title = stringResource(R.string.source_code),
                 subtitle = "GitHub",
@@ -822,6 +863,23 @@ private fun SettingsScreen(
                 onClick = onOpenSource,
             )
         }
+        Spacer(Modifier.height(18.dp))
+        Text(
+            text = stringResource(R.string.about_free_note),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+        )
+        Spacer(Modifier.height(8.dp))
+        Text(
+            text = stringResource(R.string.creator_footer),
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onOpenPortfolio)
+                .padding(horizontal = 8.dp, vertical = 4.dp),
+        )
         Spacer(Modifier.height(24.dp))
     }
     if (confirmClear) {

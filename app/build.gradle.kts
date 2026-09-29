@@ -62,8 +62,8 @@ android {
         applicationId = "io.github.falker47.socialviewer"
         minSdk = 26
         targetSdk = 37
-        versionCode = 3
-        versionName = "0.1.2"
+        versionCode = 4
+        versionName = "0.1.3"
         resourceConfigurations += listOf("en", "it")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
