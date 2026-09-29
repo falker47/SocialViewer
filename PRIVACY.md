@@ -3,6 +3,7 @@
 **Last updated: 29 September 2026**
 
 Developer: **Maurizio Falconi (falker47)**  
+Project label: **Falker Studio**  
 Contact: **falker.dev@gmail.com**
 
 Social Viewer is a privacy-minimal Android app for opening individual public social-media links. It does not provide a feed, Social Viewer account, analytics system, advertising SDK or developer-operated backend.
@@ -84,6 +85,7 @@ For privacy questions:
 **Ultimo aggiornamento: 29 settembre 2026**
 
 Sviluppatore: **Maurizio Falconi (falker47)**  
+Marchio progettuale: **Falker Studio**  
 Contatto: **falker.dev@gmail.com**
 
 Social Viewer è un'app Android orientata alla minimizzazione dei dati, pensata per aprire singoli link pubblici provenienti dai social. Non offre un feed, un account Social Viewer, sistemi di analytics, SDK pubblicitari o un backend gestito dallo sviluppatore.

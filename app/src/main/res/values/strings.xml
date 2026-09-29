@@ -37,12 +37,14 @@
     <string name="section_about">About</string>
     <string name="version_format">Version %1$s</string>
     <string name="source_code">Source code</string>
-    <string name="creator_title" translatable="false">Maurizio Falconi · falker47</string>
-    <string name="creator_subtitle">Independent projects · Nexus Portfolio</string>
+    <string name="brand_name" translatable="false">Falker Studio</string>
+    <string name="home_free_footer">100% free · No Social Viewer ads · No in-app purchases · Learn why</string>
+    <string name="support_reason_title">Why is it free?</string>
+    <string name="support_reason_body_1">Social Viewer is complete and free by design. I don’t want useful features hidden behind paywalls or basic use interrupted by Social Viewer ads.</string>
+    <string name="support_reason_body_2">Falker Studio is my project for building useful, complete apps that stay free. If you’d like to help me keep creating them, you can support the project voluntarily.</string>
+    <string name="support_reason_body_3">Support is optional and unlocks nothing: no features, content, badges, priority or subscriptions. Providers may still show their own surfaces inside official embeds.</string>
     <string name="support_project">Support the project</string>
-    <string name="support_project_subtitle">Optional support. No digital content, features or benefits are unlocked.</string>
-    <string name="about_free_note">Social Viewer is free. It has no Social Viewer ads, subscriptions or in-app purchases. Providers may show their own surfaces inside official embeds.</string>
-    <string name="creator_footer" translatable="false">© 2026 Maurizio Falconi · falker47</string>
+    <string name="close">Close</string>
     <string name="clear_provider_data_title">Clear provider data?</string>
     <string name="clear_provider_data_body">Provider cookies and preferences will be removed. Providers may ask for cookie preferences again.</string>
     <string name="cancel">Cancel</string>

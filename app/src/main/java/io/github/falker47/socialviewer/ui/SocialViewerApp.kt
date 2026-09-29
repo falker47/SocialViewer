@@ -52,7 +52,6 @@ import androidx.compose.material.icons.outlined.DarkMode
 import androidx.compose.material.icons.outlined.DeleteOutline
 import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.LightMode
 import androidx.compose.material.icons.outlined.OpenInNew
 import androidx.compose.material.icons.outlined.Public
@@ -347,12 +346,6 @@ fun SocialViewerApp(
                         onOpenPrivacy = {
                             openExternal(context, PRIVACY_POLICY_URL)
                         },
-                        onOpenPortfolio = {
-                            openExternal(context, PORTFOLIO_URL)
-                        },
-                        onOpenSupport = {
-                            openExternal(context, SUPPORT_PROJECT_URL)
-                        },
                         onOpenSource = {
                             openExternal(context, SOURCE_CODE_URL)
                         },
@@ -372,6 +365,9 @@ fun SocialViewerApp(
                             onOpen = ::openManualField,
                             onConfigureDirectLinks = ::launchDirectLinkSettings,
                             onOpenSettings = { screen = AppScreen.Settings },
+                            onOpenPortfolio = { openExternal(context, PORTFOLIO_URL) },
+                            onOpenPrivacy = { openExternal(context, PRIVACY_POLICY_URL) },
+                            onOpenSupport = { openExternal(context, SUPPORT_PROJECT_URL) },
                             onInputTargetChanged = { inputTarget = it },
                             onDirectLinkTargetChanged = { directLinkTarget = it },
                             modifier = Modifier.padding(padding),
@@ -448,10 +444,15 @@ private fun HomeScreen(
     onOpen: () -> Unit,
     onConfigureDirectLinks: () -> Unit,
     onOpenSettings: () -> Unit,
+    onOpenPortfolio: () -> Unit,
+    onOpenPrivacy: () -> Unit,
+    onOpenSupport: () -> Unit,
     onInputTargetChanged: (Rect) -> Unit,
     onDirectLinkTargetChanged: (Rect) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    var showSupportInfo by rememberSaveable { mutableStateOf(false) }
+
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
         val compactHeight = maxHeight < 640.dp
 
@@ -479,6 +480,13 @@ private fun HomeScreen(
                     onOpenSettings = onOpenSettings,
                     onDirectLinkTargetChanged = onDirectLinkTargetChanged,
                 )
+                Spacer(Modifier.height(14.dp))
+                HomeFooter(
+                    onLearnWhy = { showSupportInfo = true },
+                    onOpenPortfolio = onOpenPortfolio,
+                    onOpenPrivacy = onOpenPrivacy,
+                )
+                Spacer(Modifier.height(8.dp))
             }
         } else {
             Column(
@@ -494,7 +502,7 @@ private fun HomeScreen(
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
-                    Spacer(Modifier.height(24.dp))
+                    Spacer(Modifier.height(8.dp))
                     HomePrimaryContent(
                         value = value,
                         error = error,
@@ -511,9 +519,25 @@ private fun HomeScreen(
                     onOpenSettings = onOpenSettings,
                     onDirectLinkTargetChanged = onDirectLinkTargetChanged,
                 )
-                Spacer(Modifier.height(4.dp))
+                Spacer(Modifier.height(10.dp))
+                HomeFooter(
+                    onLearnWhy = { showSupportInfo = true },
+                    onOpenPortfolio = onOpenPortfolio,
+                    onOpenPrivacy = onOpenPrivacy,
+                )
+                Spacer(Modifier.height(2.dp))
             }
         }
+    }
+
+    if (showSupportInfo) {
+        SupportProjectDialog(
+            onDismiss = { showSupportInfo = false },
+            onSupport = {
+                showSupportInfo = false
+                onOpenSupport()
+            },
+        )
     }
 }
 
@@ -544,7 +568,7 @@ private fun HomePrimaryContent(
         style = MaterialTheme.typography.bodyLarge,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
-    Spacer(Modifier.height(32.dp))
+    Spacer(Modifier.height(24.dp))
 
     Column(
         modifier = Modifier
@@ -654,6 +678,91 @@ private fun HomeUtilities(
 }
 
 @Composable
+private fun HomeFooter(
+    onLearnWhy: () -> Unit,
+    onOpenPortfolio: () -> Unit,
+    onOpenPrivacy: () -> Unit,
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        TextButton(
+            onClick = onLearnWhy,
+            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp),
+        ) {
+            Text(
+                text = stringResource(R.string.home_free_footer),
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center,
+        ) {
+            TextButton(
+                onClick = onOpenPortfolio,
+                contentPadding = PaddingValues(horizontal = 6.dp, vertical = 0.dp),
+            ) {
+                Text(
+                    text = stringResource(R.string.brand_name),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+            }
+            Text(
+                text = "·",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            TextButton(
+                onClick = onOpenPrivacy,
+                contentPadding = PaddingValues(horizontal = 6.dp, vertical = 0.dp),
+            ) {
+                Text(
+                    text = stringResource(R.string.privacy_policy_title),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun SupportProjectDialog(
+    onDismiss: () -> Unit,
+    onSupport: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(stringResource(R.string.support_reason_title))
+        },
+        text = {
+            Column {
+                Text(stringResource(R.string.support_reason_body_1))
+                Spacer(Modifier.height(12.dp))
+                Text(stringResource(R.string.support_reason_body_2))
+                Spacer(Modifier.height(12.dp))
+                Text(stringResource(R.string.support_reason_body_3))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.close))
+            }
+        },
+        confirmButton = {
+            Button(onClick = onSupport) {
+                Text(stringResource(R.string.support_project))
+            }
+        },
+    )
+}
+
+@Composable
 private fun DirectLinkCard(
     state: DirectLinkHandlingState,
     onConfigure: () -> Unit,
@@ -733,8 +842,6 @@ private fun SettingsScreen(
     onRevokeXEmbedConsent: () -> Unit,
     appVersion: String,
     onOpenPrivacy: () -> Unit,
-    onOpenPortfolio: () -> Unit,
-    onOpenSupport: () -> Unit,
     onOpenSource: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -834,28 +941,6 @@ private fun SettingsScreen(
                 color = MaterialTheme.colorScheme.outlineVariant,
             )
             SettingsActionRow(
-                icon = Icons.Outlined.Public,
-                title = stringResource(R.string.creator_title),
-                subtitle = stringResource(R.string.creator_subtitle),
-                trailingIcon = Icons.Outlined.OpenInNew,
-                onClick = onOpenPortfolio,
-            )
-            HorizontalDivider(
-                modifier = Modifier.padding(start = 58.dp),
-                color = MaterialTheme.colorScheme.outlineVariant,
-            )
-            SettingsActionRow(
-                icon = Icons.Outlined.FavoriteBorder,
-                title = stringResource(R.string.support_project),
-                subtitle = stringResource(R.string.support_project_subtitle),
-                trailingIcon = Icons.Outlined.OpenInNew,
-                onClick = onOpenSupport,
-            )
-            HorizontalDivider(
-                modifier = Modifier.padding(start = 58.dp),
-                color = MaterialTheme.colorScheme.outlineVariant,
-            )
-            SettingsActionRow(
                 icon = Icons.Outlined.Code,
                 title = stringResource(R.string.source_code),
                 subtitle = "GitHub",
@@ -863,23 +948,6 @@ private fun SettingsScreen(
                 onClick = onOpenSource,
             )
         }
-        Spacer(Modifier.height(18.dp))
-        Text(
-            text = stringResource(R.string.about_free_note),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
-        )
-        Spacer(Modifier.height(8.dp))
-        Text(
-            text = stringResource(R.string.creator_footer),
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable(onClick = onOpenPortfolio)
-                .padding(horizontal = 8.dp, vertical = 4.dp),
-        )
         Spacer(Modifier.height(24.dp))
     }
     if (confirmClear) {
