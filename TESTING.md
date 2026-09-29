@@ -113,13 +113,27 @@ Then tap one supported TikTok link, one supported Instagram post/Reel link, one 
 
 Expected: when Android is associated with SocialViewer for that domain, SocialViewer opens directly and starts resolving/rendering without first flashing Home. If a first-party app/browser owns the domain instead, change the association in Android rather than treating SocialViewer as a silent default.
 
-## 9. Share-sheet fallback
+## 9. Open-original escape hatch
+
+With direct-link handling enabled for at least one supported provider:
+
+1. Tap a supported provider link from another app so SocialViewer opens it directly.
+2. In the player, tap **Originale** / **Apri originale**.
+3. Android must open the URL in a browser context, bypassing SocialViewer's direct-link ownership.
+4. If a browser choice is required because no default browser is configured, choose one of the available browsers.
+5. Confirm the destination opens outside SocialViewer and does not loop back into the current item.
+6. Repeat once from an unavailable/error state that exposes **Originale**.
+7. Repeat the X privacy-notice **Apri originale** path if X is available for the smoke run.
+
+Record PASS only if every original-content escape path opens in a browser outside SocialViewer while generic external links such as Privacy, source code and portfolio still use their normal external-link behavior.
+
+## 10. Share-sheet fallback
 
 Share a public TikTok URL as text from another app and choose **SocialViewer**.
 
 Expected: the app starts resolving the URL. This path is supported but intentionally not promoted in the primary UI.
 
-## 10. Appearance / dark mode
+## 11. Appearance / dark mode
 
 Open Settings → **Aspetto** and verify:
 
@@ -133,7 +147,7 @@ Open Settings → **Aspetto** and verify:
 8. Open a TikTok and confirm the remote player itself is not recolored; its black player background remains unchanged.
 9. Re-run clipboard paste/open and direct-link configuration to confirm no regression in those flows.
 
-## 11. Negative tests
+## 12. Negative tests
 
 Confirm clean failure for:
 
@@ -143,7 +157,7 @@ Confirm clean failure for:
 - a TikTok URL without a supported post/photo ID
 - a short TikTok URL that redirects outside TikTok, when a safe fixture is available
 
-## 12. What to capture if something fails
+## 13. What to capture if something fails
 
 Send:
 

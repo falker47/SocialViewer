@@ -375,7 +375,7 @@ fun SocialViewerApp(
 
                         is ViewerState.XConsent -> XConsentScreen(
                             onBack = { state = ViewerState.Home },
-                            onOpenOriginal = { openExternal(context, current.url) },
+                            onOpenOriginal = { openOriginalExternal(context, current.url) },
                             onLoadX = {
                                 xEmbedConsentGranted = true
                                 uiPrefs.edit()
@@ -393,7 +393,7 @@ fun SocialViewerApp(
                         is ViewerState.Ready -> PlayerScreen(
                             content = current.content,
                             onBack = { state = ViewerState.Home },
-                            onOpenOriginal = { openExternal(context, current.content.canonicalUrl) },
+                            onOpenOriginal = { openOriginalExternal(context, current.content.canonicalUrl) },
                             modifier = Modifier.padding(padding),
                         )
 
@@ -405,7 +405,7 @@ fun SocialViewerApp(
                                 { state = ViewerState.Loading(url) }
                             },
                             onOpenOriginal = current.url?.let { url ->
-                                { openExternal(context, url) }
+                                { openOriginalExternal(context, url) }
                             },
                             modifier = Modifier.padding(padding),
                         )
@@ -1844,4 +1844,14 @@ private fun appVersionName(context: Context): String = runCatching {
 
 private fun openExternal(context: Context, url: String) {
     context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+}
+
+private fun openOriginalExternal(context: Context, url: String) {
+    val browserSelector = Intent(Intent.ACTION_MAIN).apply {
+        addCategory(Intent.CATEGORY_APP_BROWSER)
+    }
+    val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(url)).apply {
+        selector = browserSelector
+    }
+    context.startActivity(browserIntent)
 }
