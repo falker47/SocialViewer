@@ -27,6 +27,27 @@ class DirectLinkManifestCoverageTest {
     }
 
     @Test
+    fun instagramAndThreadsUseWildcardSubdomainsForStableUserSelection() {
+        assertTrue(manifestClaims("https://www.instagram.com/p/CODE_123/"))
+        assertTrue(manifestClaims("https://m.instagram.com/reel/CODE_123/"))
+        assertTrue(manifestClaims("https://www.threads.com/t/CODE_123/"))
+        assertTrue(manifestClaims("https://www.threads.net/t/CODE_123/"))
+
+        val hosts = viewFilters().flatMapTo(linkedSetOf()) { it.hosts }
+
+        assertTrue("instagram.com" in hosts)
+        assertTrue("*.instagram.com" in hosts)
+        assertFalse("www.instagram.com" in hosts)
+
+        assertTrue("threads.com" in hosts)
+        assertTrue("*.threads.com" in hosts)
+        assertTrue("threads.net" in hosts)
+        assertTrue("*.threads.net" in hosts)
+        assertFalse("www.threads.com" in hosts)
+        assertFalse("www.threads.net" in hosts)
+    }
+
+    @Test
     fun pinterestShortAliasIsClaimedButPinterestNavigationIsNotBroadened() {
         assertTrue(manifestClaims("https://pin.it/AbC123xyz"))
         assertTrue(manifestClaims("https://www.pinterest.com/pin/123456789/"))
