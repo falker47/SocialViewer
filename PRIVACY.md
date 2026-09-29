@@ -37,9 +37,11 @@ To resolve or display a public link, Social Viewer connects directly to public o
 - X;
 - Bluesky.
 
-Those third-party services may receive ordinary technical information required to serve content, such as your IP address, browser/WebView or device information, the public URL/content identifier requested, and provider cookies or preferences where applicable. Their processing is governed by their own privacy policies and terms.
+Those services may receive information required to serve and operate the embedded content, including the public URL/content identifier requested, approximate location inferred from IP address, app or device identifiers, browser/WebView or device information, playback or other in-embed interactions, and provider cookies or preferences where applicable.
 
-Social Viewer does not bypass private content, authentication requirements, age gates, removals, regional restrictions or other provider access controls.
+Depending on the provider, these data may be used by that provider for content delivery and app functionality, analytics, fraud prevention/security/compliance, advertising or marketing, and personalization. Social Viewer itself does not operate an advertising SDK, analytics backend, recommendation system or user-profile database.
+
+The provider's processing is governed by its own privacy policy and terms. Social Viewer does not bypass private content, authentication requirements, age gates, removals, regional restrictions or other provider access controls.
 
 ## 4. YouTube
 
@@ -119,9 +121,11 @@ Per risolvere o mostrare un link pubblico, Social Viewer si collega direttamente
 - X;
 - Bluesky.
 
-Questi servizi possono ricevere le normali informazioni tecniche necessarie a fornire il contenuto, come indirizzo IP, informazioni del browser/WebView o del dispositivo, URL/identificativo del contenuto pubblico richiesto e cookie o preferenze del provider quando applicabili. Il loro trattamento è regolato dalle rispettive informative privacy e condizioni.
+Questi servizi possono ricevere informazioni necessarie a fornire e gestire il contenuto incorporato, tra cui URL/identificativo del contenuto pubblico richiesto, posizione approssimativa dedotta dall'indirizzo IP, identificatori dell'app o del dispositivo, informazioni del browser/WebView o del dispositivo, interazioni o dati di riproduzione nell'embed e cookie o preferenze del provider quando applicabili.
 
-Social Viewer non aggira contenuti privati, autenticazione, limiti di età, rimozioni, restrizioni geografiche o altri controlli di accesso dei provider.
+A seconda del provider, questi dati possono essere usati dal provider per erogazione del contenuto e funzionalità dell'app, analisi, prevenzione frodi/sicurezza/conformità, pubblicità o marketing e personalizzazione. Social Viewer non gestisce direttamente SDK pubblicitari, backend di analytics, sistemi di raccomandazione o database di profili utente.
+
+Il trattamento del provider è regolato dalle rispettive informative privacy e condizioni. Social Viewer non aggira contenuti privati, autenticazione, limiti di età, rimozioni, restrizioni geografiche o altri controlli di accesso dei provider.
 
 ## 4. YouTube
 
