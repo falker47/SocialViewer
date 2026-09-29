@@ -11,16 +11,19 @@ class OpenOriginalIntentRegressionTest {
         val source = socialViewerAppSource()
 
         assertTrue(
-            "Open-original helper must use an Android chooser",
-            source.contains("Intent.createChooser(target, null)"),
+            "Open-original helper must constrain resolution to browser applications",
+            source.contains("Intent.CATEGORY_APP_BROWSER"),
         )
         assertTrue(
-            "Open-original chooser must exclude SocialViewer's MainActivity",
-            source.contains("Intent.EXTRA_EXCLUDE_COMPONENTS") &&
-                source.contains("ComponentName(context, MainActivity::class.java)"),
+            "Open-original helper must preserve ACTION_VIEW with the original URL",
+            source.contains("Intent(Intent.ACTION_VIEW, Uri.parse(url))"),
+        )
+        assertTrue(
+            "Open-original helper must resolve through a selector instead of app-link ownership",
+            source.contains("selector = browserSelector"),
         )
         assertEquals(
-            "Every original-content action must use the exclusion helper",
+            "Every original-content action must use the browser-only helper",
             3,
             Regex("""openOriginalExternal\(context,""").findAll(source).count(),
         )
