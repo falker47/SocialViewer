@@ -480,7 +480,7 @@ private fun HomeScreen(
                     onOpenSettings = onOpenSettings,
                     onDirectLinkTargetChanged = onDirectLinkTargetChanged,
                 )
-                Spacer(Modifier.height(14.dp))
+                Spacer(Modifier.height(18.dp))
                 HomeFooter(
                     onLearnWhy = { showSupportInfo = true },
                     onOpenPortfolio = onOpenPortfolio,
@@ -519,7 +519,7 @@ private fun HomeScreen(
                     onOpenSettings = onOpenSettings,
                     onDirectLinkTargetChanged = onDirectLinkTargetChanged,
                 )
-                Spacer(Modifier.height(10.dp))
+                Spacer(Modifier.height(18.dp))
                 HomeFooter(
                     onLearnWhy = { showSupportInfo = true },
                     onOpenPortfolio = onOpenPortfolio,
