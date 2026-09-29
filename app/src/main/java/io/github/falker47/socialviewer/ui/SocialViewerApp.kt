@@ -2,7 +2,6 @@ package io.github.falker47.socialviewer.ui
 
 import android.app.Activity
 import android.content.ClipboardManager
-import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -112,7 +111,6 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import io.github.falker47.socialviewer.MainActivity
 import io.github.falker47.socialviewer.R
 import io.github.falker47.socialviewer.domain.SocialContent
 import io.github.falker47.socialviewer.provider.ProviderRegistry
@@ -1849,12 +1847,11 @@ private fun openExternal(context: Context, url: String) {
 }
 
 private fun openOriginalExternal(context: Context, url: String) {
-    val target = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-    val chooser = Intent.createChooser(target, null).apply {
-        putExtra(
-            Intent.EXTRA_EXCLUDE_COMPONENTS,
-            arrayOf(ComponentName(context, MainActivity::class.java)),
-        )
+    val browserSelector = Intent(Intent.ACTION_MAIN).apply {
+        addCategory(Intent.CATEGORY_APP_BROWSER)
     }
-    context.startActivity(chooser)
+    val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(url)).apply {
+        selector = browserSelector
+    }
+    context.startActivity(browserIntent)
 }
