@@ -34,7 +34,7 @@ internal val DIRECT_LINK_PROVIDERS = listOf(
         displayName = "Instagram",
         hosts = linkedSetOf(
             "instagram.com",
-            "www.instagram.com",
+            "*.instagram.com",
         ),
     ),
     DirectLinkProviderDefinition(
@@ -42,9 +42,9 @@ internal val DIRECT_LINK_PROVIDERS = listOf(
         displayName = "Threads",
         hosts = linkedSetOf(
             "threads.com",
-            "www.threads.com",
+            "*.threads.com",
             "threads.net",
-            "www.threads.net",
+            "*.threads.net",
         ),
     ),
     DirectLinkProviderDefinition(
