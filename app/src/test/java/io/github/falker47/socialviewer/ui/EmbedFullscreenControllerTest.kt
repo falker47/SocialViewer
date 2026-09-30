@@ -38,7 +38,6 @@ class EmbedFullscreenControllerTest {
     }
 
     private fun newClient(): WebChromeClient {
-        // Reflection lets the test-first commit compile against the unmodified baseline.
         val type = runCatching {
             Class.forName("io.github.falker47.socialviewer.ui.EmbedFullscreenController")
         }.getOrNull()
@@ -76,16 +75,14 @@ class EmbedFullscreenControllerTest {
         assertEquals(1, hidden)
     }
 
-    @Test fun explicitExitButtonClosesFullscreen() {
+    @Test fun fullscreenAddsNoNativeExitToolbar() {
         val chrome = newClient()
-        var hidden = 0
-        chrome.onShowCustomView(View(activity)) { hidden++ }
+        val view = View(activity)
+        chrome.onShowCustomView(view) {}
         val dialog = ShadowDialog.getLatestDialog()
-        val button = descendants(dialog.window!!.decorView).filterIsInstance<Button>().single()
-        assertEquals("Exit fullscreen", button.text.toString())
-        button.performClick()
-        assertFalse(dialog.isShowing)
-        assertEquals(1, hidden)
+        val buttons = descendants(dialog.window!!.decorView).filterIsInstance<Button>().toList()
+        assertTrue("Fullscreen must rely on the provider's own controls and use the full video height", buttons.isEmpty())
+        assertNotNull(view.parent)
     }
 
     @Test fun duplicateRequestIsRejectedWithoutReplacingActiveView() {
