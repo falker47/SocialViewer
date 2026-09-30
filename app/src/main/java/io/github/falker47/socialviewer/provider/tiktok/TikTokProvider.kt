@@ -31,9 +31,13 @@ class TikTokProvider(
 
         val postId = extractPostId(canonicalUri)
             ?: error("Il link TikTok non contiene un ID di post supportato")
+        val isCanonicalPhoto = canonicalUri.pathSegments.let { segments ->
+            segments.size == 3 && segments[0].startsWith("@") &&
+                segments[1] == "photo" && segments[2] == postId
+        }
 
-        // Keep oEmbed for public metadata/availability, but render with TikTok's
-        // dedicated Embed Player instead of the blockquote + embed.js transformation.
+        // Keep oEmbed metadata where supported, but render with TikTok's official
+        // Embed Player, which supports both video and image posts.
         val oEmbedUrl = Uri.parse("https://www.tiktok.com/oembed")
             .buildUpon()
             .appendQueryParameter("url", canonical)
@@ -41,18 +45,22 @@ class TikTokProvider(
             .toString()
 
         val response = http.get(oEmbedUrl)
-        if (response.statusCode !in 200..299) {
-            error("TikTok oEmbed ha risposto HTTP ${response.statusCode}")
+        val json = when {
+            response.statusCode in 200..299 -> JSONObject(response.body)
+            // The reported vm link resolves successfully to a /@user/photo/id URL,
+            // but oEmbed returns 400 for that image post. Missing metadata must not
+            // prevent the official image player from handling this supported format.
+            // Do not generalize this to video, access, rate-limit or server errors.
+            isCanonicalPhoto && response.statusCode == 400 -> null
+            else -> error("TikTok oEmbed ha risposto HTTP ${response.statusCode}")
         }
-
-        val json = JSONObject(response.body)
 
         return SocialContent(
             providerId = id,
             providerName = displayName,
             canonicalUrl = canonical,
-            title = json.optString("title").takeIf { it.isNotBlank() },
-            authorName = json.optString("author_name").takeIf { it.isNotBlank() },
+            title = json?.optString("title")?.takeIf { it.isNotBlank() },
+            authorName = json?.optString("author_name")?.takeIf { it.isNotBlank() },
             documentBaseUrl = "https://www.tiktok.com/",
             embedHtml = playerHtml(postId),
             // TikTok's first WebView load can enter PLAYBACK_ERROR 3001 while its own

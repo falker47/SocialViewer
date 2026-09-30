@@ -9,6 +9,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: android-ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -41,8 +45,68 @@ jobs:
       - name: Run deterministic unit tests
         run: ./gradlew --no-daemon testDebugUnitTest
 
+      - name: Summarize unit-test results
+        if: always()
+        run: |
+          python3 - <<'PY'
+          import glob, os, xml.etree.ElementTree as ET
+          reports = glob.glob('app/build/test-results/testDebugUnitTest/TEST-*.xml')
+          totals = dict.fromkeys(['tests', 'failures', 'errors', 'skipped'], 0)
+          for report in reports:
+              suite = ET.parse(report).getroot()
+              for key in totals:
+                  totals[key] += int(suite.attrib.get(key, 0))
+          text = ('Unit test reports: ' + str(len(reports)) + '\n' +
+                  ', '.join(f'{key}={value}' for key, value in totals.items()))
+          print(text)
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as summary:
+              summary.write(text + '\n')
+          PY
+
       - name: Lint release variant
         run: ./gradlew --no-daemon lintRelease
 
-      - name: Assemble debug and verify release AAB packaging
-        run: ./gradlew --no-daemon assembleDebug bundleRelease
+      - name: Assemble debug APK
+        run: ./gradlew --no-daemon assembleDebug
+
+      # Preserve the existing packaging check for main and other PRs. This
+      # device-retest-only branch must not prepare an AAB before owner approval.
+      - name: Verify unsigned release AAB packaging outside device-retest PR
+        if: github.head_ref != 'fix/tiktok-shortlink-youtube-fullscreen'
+        run: ./gradlew --no-daemon bundleRelease
+
+      - name: Record debug artifact provenance and limitations
+        env:
+          SOURCE_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          {
+            echo "PR/source head: $SOURCE_HEAD"
+            echo "CI checkout: $(git rev-parse HEAD)"
+            echo "Debug APK only; no production API key or release signing credentials."
+            echo "YouTube device retest requires a local build with the existing API key and an authorized signing certificate."
+            echo "Do not install this APK over a Play-signed app; Android signatures differ."
+            echo "See docs/DEVICE_RETEST_PR25.md for the physical-device gate."
+            sha256sum app/build/outputs/apk/debug/*.apk
+          } > app/build/outputs/apk/debug/RETEST-README.txt
+          cat app/build/outputs/apk/debug/RETEST-README.txt
+
+      - name: Upload keyless debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: socialviewer-debug-keyless-${{ github.event.pull_request.head.sha || github.sha }}
+          path: |
+            app/build/outputs/apk/debug/*.apk
+            app/build/outputs/apk/debug/RETEST-README.txt
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload verification reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: verification-reports-${{ github.event.pull_request.head.sha || github.sha }}
+          path: |
+            app/build/reports/tests/
+            app/build/test-results/
+            app/build/reports/lint-results-*
+          retention-days: 14
