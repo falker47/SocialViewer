@@ -11,6 +11,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
 
 private const val EMBED_REVEAL_DELAY_MS = 220L
@@ -26,7 +27,9 @@ fun EmbedWebView(
     modifier: Modifier = Modifier,
     onContentReady: () -> Unit = {},
 ) {
-    var webView: WebView? = null
+    val context = LocalContext.current
+    val webViewHolder = remember { arrayOfNulls<WebView>(1) }
+    val fullscreenController = remember(context) { EmbedFullscreenController(context) }
     val currentOnContentReady = rememberUpdatedState(onContentReady)
     val currentReloadOnCookieName = rememberUpdatedState(reloadOnCookieName)
     val cookieWatcher = remember { arrayOfNulls<Runnable>(1) }
@@ -42,9 +45,10 @@ fun EmbedWebView(
 
     AndroidView(
         modifier = modifier,
-        factory = { context ->
-            WebView(context).apply {
-                webView = this
+        factory = { viewContext ->
+            WebView(viewContext).apply {
+                webViewHolder[0] = this
+                webChromeClient = fullscreenController
                 alpha = 0f
                 isEnabled = false
                 setBackgroundColor(android.graphics.Color.BLACK)
@@ -100,6 +104,7 @@ fun EmbedWebView(
         update = { view ->
             val documentKey = 31 * baseUrl.hashCode() + html.hashCode()
             if (view.tag != documentKey) {
+                fullscreenController.onHideCustomView()
                 cookieWatcher[0]?.let(view::removeCallbacks)
                 cookieWatcher[0] = null
                 cookieReloadedDocumentKey[0] = Int.MIN_VALUE
@@ -141,6 +146,7 @@ fun EmbedWebView(
                                 // TikTok's first player can remain stuck in PLAYBACK_ERROR 3001
                                 // even after its own consent choice is saved. Rebuild the same
                                 // document once, now with that first-party consent cookie present.
+                                fullscreenController.onHideCustomView()
                                 view.alpha = 0f
                                 view.isEnabled = false
                                 view.loadDataWithBaseURL(
@@ -175,8 +181,10 @@ fun EmbedWebView(
         },
     )
 
-    DisposableEffect(Unit) {
+    DisposableEffect(fullscreenController) {
         onDispose {
+            fullscreenController.close()
+            val webView = webViewHolder[0]
             cookieWatcher[0]?.let { watcher ->
                 webView?.removeCallbacks(watcher)
             }
@@ -197,7 +205,7 @@ fun EmbedWebView(
                 removeAllViews()
                 destroy()
             }
-            webView = null
+            webViewHolder[0] = null
         }
     }
 }
