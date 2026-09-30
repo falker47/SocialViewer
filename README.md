@@ -4,7 +4,7 @@ Privacy-minimal Android viewer for **single public social-media links**.
 
 SocialViewer is intentionally not a social client: no feed, no SocialViewer account, no viewing history, no recommendations, no analytics, and no backend. A user opens a public link someone explicitly sent them; the app resolves the matching provider and renders that one piece of content.
 
-## Current baseline — v0.1.4
+## Current baseline — v0.1.5
 
 Implemented providers:
 
