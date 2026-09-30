@@ -18,11 +18,16 @@ image player without metadata. Video failures and photo 401/403/404/429/5xx are 
 The shared redirect client, consent-cookie handling, third-party-cookie restrictions and player HTML remain unchanged.
 The official player still decides whether a post is available; a real device must confirm image display/swiping.
 
-YouTube's existing player fullscreen icon can now invoke a native WebChromeClient custom-view window.
-The window has an explicit **Exit fullscreen / Esci da schermo intero** button and consumes Back before app navigation.
-The original WebView is not reloaded when entering/exiting. The exit toolbar is outside the provider view,
-not over its controls. Disposal, content replacement, duplicate requests and repeated entry are handled.
+YouTube's existing player fullscreen icon can invoke a native WebChromeClient custom-view window.
+The provider custom view now occupies the fullscreen host directly: Social Viewer adds no toolbar or exit button,
+so YouTube keeps the full available video height and its own native enter/exit controls.
+Android Back still exits fullscreen before app navigation. The original WebView is not reloaded when entering/exiting.
+Disposal, content replacement, duplicate requests and repeated entry remain handled.
 The existing manifest already handles orientation/size changes; no forced orientation was added.
+
+The first physical-device retest confirmed TikTok and YouTube fullscreen functionality. That retest also exposed a UI issue:
+Social Viewer's redundant exit toolbar consumed too much vertical space. The current refinement removes only that toolbar;
+a short second physical retest is still required to confirm the provider-only fullscreen layout on the final commit.
 
 ## Automated evidence and boundaries
 
@@ -92,9 +97,10 @@ explicit local decision and can erase local preferences. No command above instal
    image post actually displays; test image navigation, consent and reopening. Also open a known-working canonical
    TikTok video and a vt short link to check regression behavior.
 2. **YouTube:** open a known-working public, embeddable, non-Made-for-Kids video; start playback and use the player's
-   fullscreen icon. Confirm video/audio, portrait/landscape, the native exit button and re-entry. Enter again and
-   use the Android Back gesture/button: it must return to the normal player, not Home. Check repeated entry/exit,
-   no unintended restart and no extra audio continuing after leaving the content.
+   fullscreen icon. Confirm the video now uses the full available height with **no Social Viewer toolbar/button**.
+   Exit with YouTube's own fullscreen control, re-enter, then use the Android Back gesture/button: both must return
+   to the normal player without going directly Home. Check portrait/landscape, repeated entry/exit, no unintended
+   restart and no extra audio continuing after leaving the content.
 3. **Shared WebView smoke:** open one previously working non-TikTok/non-YouTube provider, then return Home and open
    another item. Confirm no black fullscreen window, stuck loading overlay, lost consent choice or navigation regression.
 
