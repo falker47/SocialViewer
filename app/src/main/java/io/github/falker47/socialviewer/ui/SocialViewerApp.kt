@@ -146,7 +146,7 @@ private sealed interface ManualLinkResult {
 private const val PREF_ONBOARDING_COMPLETE = "onboarding_complete"
 private const val PREF_X_EMBED_CONSENT_GRANTED = "x_embed_consent_granted"
 private const val SOURCE_CODE_URL = "https://github.com/falker47/SocialViewer"
-private const val PORTFOLIO_URL = "https://falker47.github.io/Nexus-portfolio/"
+private const val IDENTITY_HOME_URL = "https://falker47.github.io/"
 private const val PRIVACY_POLICY_URL = "https://falker47.github.io/Nexus-portfolio/socialviewer-privacy.html"
 private const val SUPPORT_PROJECT_URL = "https://www.paypal.com/paypalme/falker47"
 
@@ -378,7 +378,7 @@ fun SocialViewerApp(
                             onOpen = ::openManualField,
                             onConfigureDirectLinks = ::launchDirectLinkSettings,
                             onOpenSettings = { screen = AppScreen.Settings },
-                            onOpenPortfolio = { openExternal(context, PORTFOLIO_URL) },
+                            onOpenIdentityHome = { openExternal(context, IDENTITY_HOME_URL) },
                             onOpenPrivacy = { openExternal(context, PRIVACY_POLICY_URL) },
                             onOpenSupport = { openExternal(context, SUPPORT_PROJECT_URL) },
                             onInputTargetChanged = { inputTarget = it },
@@ -457,7 +457,7 @@ private fun HomeScreen(
     onOpen: () -> Unit,
     onConfigureDirectLinks: () -> Unit,
     onOpenSettings: () -> Unit,
-    onOpenPortfolio: () -> Unit,
+    onOpenIdentityHome: () -> Unit,
     onOpenPrivacy: () -> Unit,
     onOpenSupport: () -> Unit,
     onInputTargetChanged: (Rect) -> Unit,
@@ -496,7 +496,7 @@ private fun HomeScreen(
                 Spacer(Modifier.height(18.dp))
                 HomeFooter(
                     onLearnWhy = { showSupportInfo = true },
-                    onOpenPortfolio = onOpenPortfolio,
+                    onOpenIdentityHome = onOpenIdentityHome,
                     onOpenPrivacy = onOpenPrivacy,
                 )
                 Spacer(Modifier.height(8.dp))
@@ -535,7 +535,7 @@ private fun HomeScreen(
                 Spacer(Modifier.height(18.dp))
                 HomeFooter(
                     onLearnWhy = { showSupportInfo = true },
-                    onOpenPortfolio = onOpenPortfolio,
+                    onOpenIdentityHome = onOpenIdentityHome,
                     onOpenPrivacy = onOpenPrivacy,
                 )
                 Spacer(Modifier.height(2.dp))
@@ -693,7 +693,7 @@ private fun HomeUtilities(
 @Composable
 private fun HomeFooter(
     onLearnWhy: () -> Unit,
-    onOpenPortfolio: () -> Unit,
+    onOpenIdentityHome: () -> Unit,
     onOpenPrivacy: () -> Unit,
 ) {
     Column(
@@ -728,7 +728,7 @@ private fun HomeFooter(
             horizontalArrangement = Arrangement.Center,
         ) {
             TextButton(
-                onClick = onOpenPortfolio,
+                onClick = onOpenIdentityHome,
                 contentPadding = PaddingValues(horizontal = 6.dp, vertical = 0.dp),
             ) {
                 Text(
