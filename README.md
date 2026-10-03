@@ -78,7 +78,7 @@ SocialViewer itself:
 - intentionally retains provider first-party consent/preferences across items;
 - stores a local one-time X embed-consent flag after explicit approval; it can be revoked in Settings;
 - exposes **Cancella dati del sito** to remove shared local provider cookies/preferences;
-- shows a compact Falker Studio Home footer with a non-intrusive “why it’s free” explanation, links to the public bilingual Privacy Policy / Nexus Portfolio, and optional external project support. Voluntary support unlocks no digital content, feature or benefit.
+- shows a compact Falker Studio Home footer with a non-intrusive “why it’s free” explanation, links to the public bilingual Privacy Policy / developer identity home, and optional external project support. Voluntary support unlocks no digital content, feature or benefit.
 
 The remote social platform/CDN still receives ordinary network metadata required to serve a public embed. This project does **not** claim network anonymity from the provider.
 
