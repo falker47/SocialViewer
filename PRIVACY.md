@@ -59,7 +59,7 @@ Social Viewer does not request access to location, contacts, camera, microphone,
 
 Social Viewer may open external links to:
 
-- the developer's Nexus Portfolio;
+- the developer's identity home;
 - the Social Viewer source code on GitHub;
 - this Privacy Policy;
 - an optional PayPal support page.
@@ -143,7 +143,7 @@ Social Viewer non richiede accesso a posizione, contatti, fotocamera, microfono,
 
 Social Viewer può aprire link esterni verso:
 
-- Nexus Portfolio dello sviluppatore;
+- la pagina identitaria dello sviluppatore;
 - codice sorgente di Social Viewer su GitHub;
 - questa Privacy Policy;
 - una pagina PayPal facoltativa per supportare il progetto.
