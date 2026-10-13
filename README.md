@@ -4,6 +4,12 @@ Privacy-minimal Android viewer for **single public social-media links**.
 
 SocialViewer is intentionally not a social client: no feed, no SocialViewer account, no viewing history, no recommendations, no analytics, and no backend. A user opens a public link someone explicitly sent them; the app resolves the matching provider and renders that one piece of content.
 
+## Android closed beta — testers welcome
+
+Social Viewer is currently available to Android volunteers through Google Play closed testing. To join, use the [Falker Studio Testers page](https://falker47.github.io/Nexus-portfolio/testers.html) for the Google Group, Play opt-in, and installation steps (also for returning testers).
+
+Please remain opted in for **14 consecutive days**, try opening a few public social links, and send bug reports or device-specific feedback to [falker.dev@gmail.com](mailto:falker.dev@gmail.com). The app itself requires no Social Viewer account.
+
 ## Current baseline — v0.1.5
 
 Implemented providers:
