@@ -1276,8 +1276,8 @@ private fun SettingsActionRow(
             Icon(
                 imageVector = trailingIcon,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(20.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }
@@ -1731,6 +1731,7 @@ private fun PlayerScreen(
                     )
                 }
             }
+            RedditDiscussionAction(content = content)
         }
 
         if (!embedReady) {
