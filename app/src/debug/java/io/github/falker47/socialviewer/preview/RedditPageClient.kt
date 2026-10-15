@@ -72,7 +72,7 @@ internal class RedditPageClient(
         if (active) {
             if (RedditPagePolicy.allowsNavigation(initialUrl, url)) {
                 installRedditPageDiagnostics(view)
-                installRedditCookieConsentFit(view)
+                installRedditCookieChoice(view)
             }
             onLoading(false)
         }

@@ -23,17 +23,17 @@ class RedditDiagnosticsTest {
         ).forEach { assertNull(validateRedditDiagnosticReport(it)) }
     }
 
-    @Test fun cookieConsentFitAssetOnlyRepositionsTheExactDialog() {
+    @Test fun cookieConsentRequiresExplicitNativeSelection() {
         val file = sequenceOf(
-            java.io.File("src/debug/assets/reddit-consent-fit.js"),
-            java.io.File("app/src/debug/assets/reddit-consent-fit.js"),
+            java.io.File("src/debug/assets/reddit-consent-choice.js"),
+            java.io.File("app/src/debug/assets/reddit-consent-choice.js"),
         ).first(java.io.File::isFile)
         val script = file.readText()
         assertTrue(script.contains("#data-protection-consent-dialog"))
-        assertTrue(script.contains("rpl-modal-card"))
-        assertTrue(script.contains("host.hasAttribute('open')"))
-        assertFalse(script.contains(".click("))
+        assertTrue(script.contains("choose(choice)"))
+        assertTrue(script.contains("options[choice].click()"))
         assertFalse(script.contains("document.cookie"))
         assertFalse(script.contains("localStorage"))
+        assertFalse(script.contains("setTimeout("))
     }
 }

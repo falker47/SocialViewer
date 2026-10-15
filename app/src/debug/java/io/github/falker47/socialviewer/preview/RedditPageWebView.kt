@@ -83,10 +83,56 @@ internal fun RedditPageWebView(url: String, modifier: Modifier, onContentReady: 
     var httpCode by remember(url, attempt) { mutableStateOf(0) }
     val ready = rememberUpdatedState(onContentReady)
     val activeView = remember { arrayOfNulls<WebView>(1) }
+    var showCookieChoice by remember(url, attempt) { mutableStateOf(false) }
+    var cookieChoiceBusy by remember(url, attempt) { mutableStateOf(false) }
+    var cookieChoiceError by remember(url, attempt) { mutableStateOf(false) }
+
+    fun chooseCookieOption(choice: RedditCookieChoice) {
+        val view = activeView[0] ?: return
+        if (cookieChoiceBusy) return
+        cookieChoiceBusy = true
+        cookieChoiceError = false
+        submitRedditCookieChoice(view, choice) { sent ->
+            if (activeView[0] !== view) return@submitRedditCookieChoice
+            if (!sent) {
+                cookieChoiceBusy = false
+                cookieChoiceError = true
+                return@submitRedditCookieChoice
+            }
+            view.postDelayed({
+                if (activeView[0] === view && view.isAttachedToWindow) {
+                    inspectRedditCookieChoice(view) { stillPending ->
+                        if (activeView[0] !== view) return@inspectRedditCookieChoice
+                        cookieChoiceBusy = false
+                        showCookieChoice = stillPending
+                        cookieChoiceError = stillPending
+                    }
+                }
+            }, 1_500L)
+        }
+    }
 
     // Unlike a widget, expose the actual page/loading state immediately. A Reddit
     // security/consent/error page must not remain hidden behind the embed overlay.
     LaunchedEffect(url) { ready.value.invoke() }
+    // First-visit Reddit cookie dialogs can be invisible in a portrait WebView.
+    // Present native choice controls, but never submit anything automatically.
+    LaunchedEffect(url, attempt) {
+        repeat(45) {
+            delay(400L)
+            val view = activeView[0]
+            if (view != null && view.isAttachedToWindow) {
+                inspectRedditCookieChoice(view) { pending ->
+                    if (activeView[0] !== view) return@inspectRedditCookieChoice
+                    if (pending) showCookieChoice = true
+                    else if (!cookieChoiceBusy) {
+                        showCookieChoice = false
+                        cookieChoiceError = false
+                    }
+                }
+            }
+        }
+    }
     LaunchedEffect(url, attempt) {
         delay(15_000)
         if (loading && issue == null) {
@@ -175,6 +221,15 @@ internal fun RedditPageWebView(url: String, modifier: Modifier, onContentReady: 
                         holder[0] = null
                     }
                 }
+            }
+            if (showCookieChoice && issue != RedditPageIssue.OUTSIDE_THREAD_PAGE && issue != RedditPageIssue.RENDERER) {
+                RedditCookieConsentOverlay(
+                    busy = cookieChoiceBusy,
+                    error = cookieChoiceError,
+                    modifier = Modifier.align(Alignment.BottomCenter),
+                    onReject = { chooseCookieOption(RedditCookieChoice.REJECT) },
+                    onAccept = { chooseCookieOption(RedditCookieChoice.ACCEPT) },
+                )
             }
             if (issue == RedditPageIssue.OUTSIDE_THREAD_PAGE || issue == RedditPageIssue.RENDERER) {
                 Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surface))
