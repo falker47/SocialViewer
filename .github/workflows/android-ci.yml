@@ -63,6 +63,10 @@ jobs:
               summary.write(text + '\n')
           PY
 
+      - name: Verify debug-only Reddit prototype and release isolation
+        if: github.head_ref == 'spike/reddit-page-preview'
+        run: ./gradlew --no-daemon lintDebug testReleaseUnitTest
+
       - name: Lint release variant
         run: ./gradlew --no-daemon lintRelease
 
