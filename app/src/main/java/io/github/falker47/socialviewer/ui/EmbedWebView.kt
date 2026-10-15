@@ -13,6 +13,7 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
+import io.github.falker47.socialviewer.preview.RedditPagePreview
 
 private const val EMBED_REVEAL_DELAY_MS = 220L
 private const val EMBED_REVEAL_FALLBACK_MS = 13_000L
@@ -27,6 +28,10 @@ fun EmbedWebView(
     modifier: Modifier = Modifier,
     onContentReady: () -> Unit = {},
 ) {
+    // The debug prototype replaces this surface; it never adds a second WebView.
+    // Release's source-set bridge returns false, preserving every existing embed.
+    if (RedditPagePreview(html, baseUrl, modifier, onContentReady)) return
+
     val context = LocalContext.current
     val webViewHolder = remember { arrayOfNulls<WebView>(1) }
     val fullscreenController = remember(context) { EmbedFullscreenController(context) }

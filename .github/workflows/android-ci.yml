@@ -63,6 +63,12 @@ jobs:
               summary.write(text + '\n')
           PY
 
+      # AGP 9 defaults to creating unit tests for debug only. This isolated gate
+      # explicitly enables release tests too, without changing normal builds.
+      - name: Verify debug-only Reddit prototype and release isolation
+        if: github.head_ref == 'spike/reddit-page-preview'
+        run: ./gradlew --no-daemon -Pandroid.onlyEnableUnitTestForTheTestedBuildType=false lintDebug testReleaseUnitTest
+
       - name: Lint release variant
         run: ./gradlew --no-daemon lintRelease
 

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="reddit_page_preview_label">Anteprima · Pagina Reddit</string>
+    <string name="reddit_page_preview_reload">Ricarica questo post</string>
+    <string name="reddit_page_preview_scope">Questa anteprima resta sul post condiviso. Altre pagine, accesso e link di apertura app non sono disponibili qui.</string>
+    <string name="reddit_page_preview_network">La pagina non si è caricata. Controlla la connessione, poi ricarica questo post.</string>
+    <string name="reddit_page_preview_http">Reddit ha risposto con HTTP %1$d. La risposta resta visibile sotto; questo non identifica la causa del blocco.</string>
+    <string name="reddit_page_preview_tls">Non è stato possibile verificare la connessione sicura. La richiesta è stata interrotta.</string>
+    <string name="reddit_page_preview_timeout">Reddit sta impiegando più tempo del previsto. Puoi attendere oppure ricaricare questo post.</string>
+    <string name="reddit_page_preview_renderer">Il processo della pagina si è interrotto. Ricarica questo post per riprovare.</string>
+</resources>

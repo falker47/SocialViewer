@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">SocialViewer Test</string>
+    <string name="reddit_diagnostics_copy">Copy diagnostics</string>
+    <string name="reddit_diagnostics_copied">Diagnostics copied. Paste them into the chat.</string>
+    <string name="reddit_diagnostics_unavailable">Diagnostics are not ready. Wait for the page to load and try again.</string>
+</resources>
