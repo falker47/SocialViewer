@@ -20,7 +20,9 @@ class RedditCookieChoiceTest {
             java.io.File("app/src/debug/assets/reddit-consent-choice.js"),
         ).first(java.io.File::isFile)
         val script = file.readText()
-        assertTrue(script.contains("#data-protection-consent-dialog"))
+        assertTrue(script.contains("rpl-dialog-sheet[open]"))
+        assertTrue(script.contains("isConsentSheet"))
+        assertTrue(script.contains("rootsUnder"))
         assertTrue(script.contains("choose(choice)"))
         assertTrue(script.contains("options[choice].click()"))
         assertFalse(script.contains("document.cookie"))
