@@ -22,4 +22,15 @@ class RedditDiagnosticsTest {
             """{"schema":"OTHER","snapshots":[{}]}""",
         ).forEach { assertNull(validateRedditDiagnosticReport(it)) }
     }
+
+    @Test fun cookieConsentFitAssetOnlyRepositionsTheExactDialog() {
+        val app = org.robolectric.RuntimeEnvironment.getApplication()
+        val script = app.assets.open("reddit-consent-fit.js").bufferedReader().use { it.readText() }
+        assertTrue(script.contains("#data-protection-consent-dialog"))
+        assertTrue(script.contains("rpl-modal-card"))
+        assertTrue(script.contains("host.hasAttribute('open')"))
+        assertFalse(script.contains(".click("))
+        assertFalse(script.contains("document.cookie"))
+        assertFalse(script.contains("localStorage"))
+    }
 }

@@ -53,3 +53,16 @@ internal fun copyRedditPageDiagnostics(view: WebView) {
         ).show()
     }
 }
+
+
+/** Layout-only adjustment of Reddit's exact cookie-consent sheet (debug preview).
+ * Never clicks consent buttons, removes the backdrop or changes cookie state.
+ */
+internal fun installRedditCookieConsentFit(view: WebView) {
+    if (RedditPagePolicy.canonicalTarget(view.url.orEmpty()) == null) return
+    runCatching {
+        val script = view.context.assets.open("reddit-consent-fit.js")
+            .bufferedReader().use { it.readText() }
+        view.evaluateJavascript(script, null)
+    }
+}

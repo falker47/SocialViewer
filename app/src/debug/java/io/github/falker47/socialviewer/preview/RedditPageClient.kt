@@ -70,7 +70,10 @@ internal class RedditPageClient(
 
     override fun onPageFinished(view: WebView, url: String) {
         if (active) {
-            if (RedditPagePolicy.allowsNavigation(initialUrl, url)) installRedditPageDiagnostics(view)
+            if (RedditPagePolicy.allowsNavigation(initialUrl, url)) {
+                installRedditPageDiagnostics(view)
+                installRedditCookieConsentFit(view)
+            }
             onLoading(false)
         }
     }
