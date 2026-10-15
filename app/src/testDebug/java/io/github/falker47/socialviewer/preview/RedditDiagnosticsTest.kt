@@ -24,8 +24,11 @@ class RedditDiagnosticsTest {
     }
 
     @Test fun cookieConsentFitAssetOnlyRepositionsTheExactDialog() {
-        val app = org.robolectric.RuntimeEnvironment.getApplication()
-        val script = app.assets.open("reddit-consent-fit.js").bufferedReader().use { it.readText() }
+        val file = sequenceOf(
+            java.io.File("src/debug/assets/reddit-consent-fit.js"),
+            java.io.File("app/src/debug/assets/reddit-consent-fit.js"),
+        ).first(java.io.File::isFile)
+        val script = file.readText()
         assertTrue(script.contains("#data-protection-consent-dialog"))
         assertTrue(script.contains("rpl-modal-card"))
         assertTrue(script.contains("host.hasAttribute('open')"))
