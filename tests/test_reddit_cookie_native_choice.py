@@ -67,6 +67,47 @@ class CookieHandoffTest(unittest.TestCase):
         self.assertEqual('ready',self.page.evaluate('window.__svCookieChoice.state()'))
         self.assertTrue(self.page.evaluate('window.__svCookieChoice.choose("reject")'))
         self.assertEqual(['reject'],self.page.evaluate('window.choices'))
+    def test_nested_open_shadow_buttons_are_found(self):
+        self.page.set_content('<html><body><rpl-dialog-sheet id="data-protection-consent-dialog" open><custom-wrapper></custom-wrapper></rpl-dialog-sheet><script>window.choices=[]</script></body></html>')
+        self.page.evaluate("""() => {
+          const root=document.querySelector('custom-wrapper').attachShadow({mode:'open'});
+          root.innerHTML='<faceplate-button><button id="no">Rifiuta i cookie opzionali</button></faceplate-button><faceplate-button><button id="yes">Accetta tutti</button></faceplate-button>';
+          root.querySelector('#no').onclick=()=>window.choices.push('reject');
+          root.querySelector('#yes').onclick=()=>window.choices.push('accept');
+        }""")
+        self.install()
+        self.assertEqual('ready',self.page.evaluate('window.__svCookieChoice.state()'))
+        self.assertEqual([],self.page.evaluate('window.choices'))
+        self.assertTrue(self.page.evaluate('window.__svCookieChoice.choose("reject")'))
+        self.assertEqual(['reject'],self.page.evaluate('window.choices'))
+
+    def test_consent_component_can_be_class_marked_instead_of_exact_id(self):
+        self.page.set_content('<html><body><rpl-dialog-sheet class="consent-modal" open><custom-wrapper></custom-wrapper></rpl-dialog-sheet><script>window.choices=[]</script></body></html>')
+        self.page.evaluate("""() => {
+          const root=document.querySelector('custom-wrapper').attachShadow({mode:'open'});
+          root.innerHTML='<button id="no">Rifiuta i cookie opzionali</button><button id="yes">Accetta tutti</button>';
+          root.querySelector('#yes').onclick=()=>window.choices.push('accept');
+        }""")
+        self.install()
+        self.assertEqual('ready',self.page.evaluate('window.__svCookieChoice.state()'))
+        self.assertEqual([],self.page.evaluate('window.choices'))
+        self.assertTrue(self.page.evaluate('window.__svCookieChoice.choose("accept")'))
+        self.assertEqual(['accept'],self.page.evaluate('window.choices'))
+
+    def test_portaled_cookie_choices_require_an_open_consent_dialog(self):
+        self.page.set_content('<html><body><rpl-dialog-sheet id="data-protection-consent-dialog" open></rpl-dialog-sheet><div class="modal-root"><button id="no">Rifiuta i cookie opzionali</button><button id="yes">Accetta tutti</button></div><script>window.choices=[];document.querySelector("#no").onclick=()=>window.choices.push("reject");</script></body></html>')
+        self.install()
+        self.assertEqual('ready',self.page.evaluate('window.__svCookieChoice.state()'))
+        self.assertEqual([],self.page.evaluate('window.choices'))
+        self.assertTrue(self.page.evaluate('window.__svCookieChoice.choose("reject")'))
+        self.assertEqual(['reject'],self.page.evaluate('window.choices'))
+
+    def test_non_consent_sheet_never_triggers_native_cookie_controls(self):
+        self.page.set_content('<html><body><rpl-dialog-sheet id="unrelated-sheet" open><button>Rifiuta i cookie opzionali</button><button>Accetta tutti</button></rpl-dialog-sheet></body></html>')
+        self.install()
+        self.assertEqual('absent',self.page.evaluate('window.__svCookieChoice.state()'))
+        self.assertFalse(self.page.evaluate('window.__svCookieChoice.choose("accept")'))
+
     def test_landscape_does_not_duplicate_cookie_dialog(self):
         self.page.set_viewport_size({'width':850,'height':410})
         self.install()
