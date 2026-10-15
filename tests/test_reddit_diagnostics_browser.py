@@ -91,4 +91,66 @@ class BrowserTests(unittest.TestCase):
         self.assertFalse(self.page.evaluate('Boolean(window.__svRedditDiag)'))
         self.assertNotEqual('none',self.page.locator('#skip').evaluate('(e)=>getComputedStyle(e).display'))
 
+    def crowded_panels(self, pseudo=False):
+        """Reproduce the sampler's blind spot, not Reddit's unverified implementation."""
+        controllers = ''.join('<div class="modal-controller" style="display:contents"></div>' for _ in range(24))
+        self.page.set_content('<html><head></head><body>' + controllers + '<rpl-dialog-sheet id="consent-sheet" open style="display:contents"></rpl-dialog-sheet><panel-host></panel-host></body></html>')
+        self.page.evaluate('''() => {
+          document.querySelector('panel-host').attachShadow({mode:'open'}).innerHTML =
+          '<faceplate-bottom-sheet style="display:block;position:fixed;left:0;top:calc(100vh + 16px);width:100vw;height:0"><rpl-modal-card style="display:flex;height:0;width:100%"></rpl-modal-card></faceplate-bottom-sheet>';
+        }''')
+        if pseudo:
+            self.page.evaluate('''() => {
+              const root=document.querySelector('panel-host').shadowRoot;
+              root.innerHTML += '<style>#curtain::before {content:"";position:fixed;inset:0;backdrop-filter:blur(6px)}</style><div id="curtain" style="position:fixed;inset:0;z-index:100"></div>';
+            }''')
+
+    def test_07_keeps_actual_sheet_even_after_many_unrendered_controllers(self):
+        self.crowded_panels()
+        self.install()
+        snapshot=self.page.evaluate('window.__svRedditDiag.report().snapshots[0]')
+        self.assertTrue(any(n['tag']=='rpl-dialog-sheet' and n['open'] for n in snapshot['nodes']))
+        self.assertTrue(any(n['tag']=='faceplate-bottom-sheet' for n in snapshot['nodes']), 'The actual sheet must not be crowded out by display:contents controllers')
+
+    def test_08_reports_every_candidate_cut_as_truncation(self):
+        self.crowded_panels()
+        self.install()
+        snapshot=self.page.evaluate('window.__svRedditDiag.report().snapshots[0]')
+        self.assertGreater(snapshot['candidateCount'],len(snapshot['nodes']))
+        self.assertTrue(snapshot['truncated'], 'Candidate sampling cannot be labelled complete')
+        self.assertEqual(snapshot['candidateCount']-len(snapshot['nodes']),snapshot.get('omittedCandidates'))
+
+    def test_09_detects_blur_on_a_hit_tested_shadow_pseudo_element(self):
+        self.crowded_panels(pseudo=True)
+        self.install()
+        report=self.page.evaluate('window.__svRedditDiag.report()')
+        self.assertTrue(any(p.get('backdrop')=='blur(6px)' for n in report['snapshots'][0]['nodes'] for p in n.get('pseudo',[])), 'A ::before blur is invisible to element-only sampling')
+        self.assertEqual('blur(6px)',self.page.locator('panel-host').evaluate('(e)=>getComputedStyle(e.shadowRoot.querySelector("#curtain"),"::before").backdropFilter'))
+
+    def test_10_distinguishes_zero_box_controllers_from_rendered_children(self):
+        self.page.set_content('<rpl-dialog-sheet open style="display:contents"><rpl-modal-card style="display:block;width:300px;height:200px"></rpl-modal-card></rpl-dialog-sheet>')
+        self.install()
+        nodes=self.page.evaluate('window.__svRedditDiag.report().snapshots[0].nodes')
+        controller=next(n for n in nodes if n['tag']=='rpl-dialog-sheet')
+        card=next(n for n in nodes if n['tag']=='rpl-modal-card')
+        self.assertEqual(0,controller['rect']['height'])
+        self.assertEqual(200,card['rect']['height'])
+        self.assertTrue(controller.get('styleAvailable'), 'display:contents can have styles with no own layout box')
+        self.assertEqual(0,controller.get('boxCount'))
+        self.assertTrue(card.get('inViewport'))
+
+    def test_11_large_reports_remain_copyable_without_hiding_sample_loss(self):
+        self.crowded_panels(pseudo=True)
+        self.install()
+        self.page.wait_for_timeout(800)
+        self.page.mouse.click(350,100)
+        self.page.wait_for_timeout(200)
+        reports=[self.page.evaluate('window.__svRedditDiag.report()') for _ in range(12)]
+        last=reports[-1]
+        self.assertEqual(2,last.get('probeRevision'))
+        self.assertLessEqual(len(last['snapshots']),10)
+        self.assertEqual('manual',last['snapshots'][-1]['phase'])
+        self.assertLess(len(json.dumps(last,separators=(',',':'))),48000)
+        self.assertNotIn('PRIVATE_',json.dumps(last))
+
 if __name__=='__main__':unittest.main()
