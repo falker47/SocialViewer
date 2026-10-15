@@ -1,6 +1,7 @@
 package io.github.falker47.socialviewer.preview
 
 import android.annotation.SuppressLint
+import android.content.pm.ApplicationInfo
 import android.os.Message
 import android.view.ViewGroup
 import android.webkit.CookieManager
@@ -24,6 +25,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -43,6 +45,9 @@ import kotlinx.coroutines.delay
 
 @SuppressLint("SetJavaScriptEnabled")
 internal fun configureRedditPageWebView(view: WebView) {
+    if ((view.context.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0) {
+        WebView.setWebContentsDebuggingEnabled(true)
+    }
     view.settings.apply {
         javaScriptEnabled = true
         domStorageEnabled = true
@@ -77,6 +82,7 @@ internal fun RedditPageWebView(url: String, modifier: Modifier, onContentReady: 
     var issue by remember(url, attempt) { mutableStateOf<RedditPageIssue?>(null) }
     var httpCode by remember(url, attempt) { mutableStateOf(0) }
     val ready = rememberUpdatedState(onContentReady)
+    val activeView = remember { arrayOfNulls<WebView>(1) }
 
     // Unlike a widget, expose the actual page/loading state immediately. A Reddit
     // security/consent/error page must not remain hidden behind the embed overlay.
@@ -96,6 +102,9 @@ internal fun RedditPageWebView(url: String, modifier: Modifier, onContentReady: 
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
             Text(stringResource(R.string.reddit_page_preview_label), style = MaterialTheme.typography.labelMedium, modifier = Modifier.weight(1f))
+            TextButton(onClick = { activeView[0]?.let(::copyRedditPageDiagnostics) }) {
+                Text(stringResource(R.string.reddit_diagnostics_copy))
+            }
             IconButton(onClick = { attempt += 1 }) {
                 Icon(Icons.Outlined.Refresh, contentDescription = stringResource(R.string.reddit_page_preview_reload))
             }
@@ -121,6 +130,7 @@ internal fun RedditPageWebView(url: String, modifier: Modifier, onContentReady: 
                     factory = { context ->
                         WebView(context).apply {
                             holder[0] = this
+                            activeView[0] = this
                             configureRedditPageWebView(this)
                             val client = RedditPageClient(
                                 initialUrl = url,
@@ -137,6 +147,7 @@ internal fun RedditPageWebView(url: String, modifier: Modifier, onContentReady: 
                                 onRendererGone = { dead ->
                                     if (holder[0] === dead) {
                                         holder[0] = null
+                                        if (activeView[0] === dead) activeView[0] = null
                                         (dead.parent as? ViewGroup)?.removeView(dead)
                                         dead.destroy()
                                     }
@@ -154,6 +165,7 @@ internal fun RedditPageWebView(url: String, modifier: Modifier, onContentReady: 
                         clientHolder[0]?.close()
                         clientHolder[0] = null
                         CookieManager.getInstance().flush()
+                        if (activeView[0] === holder[0]) activeView[0] = null
                         holder[0]?.apply {
                             stopLoading()
                             clearHistory()

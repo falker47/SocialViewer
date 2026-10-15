@@ -89,6 +89,11 @@ android {
     }
 
     buildTypes {
+        getByName("debug") {
+            // Separate install/data for a reproducible first-visit probe; never replace Play.
+            applicationIdSuffix = ".redditdiag"
+            versionNameSuffix = "-redditdiag"
+        }
         release {
             isMinifyEnabled = false
             playUploadSigning?.let { signingConfig = it }

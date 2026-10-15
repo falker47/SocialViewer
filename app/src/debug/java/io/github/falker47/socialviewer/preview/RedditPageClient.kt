@@ -15,7 +15,7 @@ internal enum class RedditPageIssue {
     NETWORK, HTTP, TLS, OUTSIDE_THREAD_LINK, OUTSIDE_THREAD_PAGE, RENDERER, TIMEOUT,
 }
 
-/** No DOM extraction, JS bridge, UA substitution or external intent launch. */
+/** No content scraping, native JS bridge, UA substitution or external intent launch. */
 internal class RedditPageClient(
     private val initialUrl: String,
     private val onLoading: (Boolean) -> Unit,
@@ -69,7 +69,10 @@ internal class RedditPageClient(
     }
 
     override fun onPageFinished(view: WebView, url: String) {
-        if (active) onLoading(false)
+        if (active) {
+            if (RedditPagePolicy.allowsNavigation(initialUrl, url)) installRedditPageDiagnostics(view)
+            onLoading(false)
+        }
     }
 
     override fun onReceivedError(view: WebView, request: WebResourceRequest, error: WebResourceError) {
