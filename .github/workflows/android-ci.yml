@@ -75,6 +75,33 @@ jobs:
         if: github.head_ref != 'fix/tiktok-shortlink-youtube-fullscreen'
         run: ./gradlew --no-daemon bundleRelease
 
+      - name: Assemble unsigned release APK for comparison
+        if: github.head_ref != 'fix/tiktok-shortlink-youtube-fullscreen'
+        run: ./gradlew --no-daemon assembleRelease
+
+      - name: Capture release runtime dependency graph
+        if: github.head_ref != 'fix/tiktok-shortlink-youtube-fullscreen'
+        run: |
+          mkdir -p app/build/reports
+          ./gradlew --no-daemon :app:dependencies --configuration releaseRuntimeClasspath > app/build/reports/release-dependencies.txt
+
+      - name: Measure APK, AAB, and DEX sizes
+        if: github.head_ref != 'fix/tiktok-shortlink-youtube-fullscreen'
+        env:
+          SOURCE_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: python3 tools/android_size_report.py --source-sha "$SOURCE_HEAD"
+
+      - name: Upload size and dependency baseline
+        if: github.head_ref != 'fix/tiktok-shortlink-youtube-fullscreen'
+        uses: actions/upload-artifact@v4
+        with:
+          name: size-baseline-${{ github.event.pull_request.head.sha || github.sha }}
+          path: |
+            app/build/reports/size/
+            app/build/reports/release-dependencies.txt
+          if-no-files-found: error
+          retention-days: 14
+
       - name: Record debug artifact provenance and limitations
         env:
           SOURCE_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
