@@ -89,6 +89,11 @@ android {
     }
 
     buildTypes {
+        getByName("debug") {
+            // QA-only package: update the existing SocialViewer Test installation,
+            // never replace the Play-signed package or touch the signed AAB.
+            applicationIdSuffix = ".redditdiag"
+        }
         release {
             isMinifyEnabled = false
             playUploadSigning?.let { signingConfig = it }
