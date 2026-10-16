@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="reddit_native_cookie_title">Reddit cookie preferences</string>
+    <string name="reddit_native_cookie_message">Reddit is requesting a cookie choice. Select an option to continue; Reddit will handle your decision.</string>
+    <string name="reddit_native_cookie_reject">Reject optional cookies</string>
+    <string name="reddit_native_cookie_accept">Accept all</string>
+    <string name="reddit_native_cookie_failed">Reddit did not confirm your choice. Try again or use Original to open the page in the browser.</string>
+</resources>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="reddit_page_preview_scope">This preview stays on the shared post. Other pages, sign-in, and app-opening links are not available here.</string>
+    <string name="reddit_page_preview_network">The page could not load. Check the connection, then reload this post.</string>
+    <string name="reddit_page_preview_http">Reddit returned HTTP %1$d. Its response remains below; this does not identify the cause of the block.</string>
+    <string name="reddit_page_preview_tls">The secure connection could not be verified. The request was stopped.</string>
+    <string name="reddit_page_preview_timeout">Reddit is taking longer than expected. You can keep waiting or reload this post.</string>
+    <string name="reddit_page_preview_renderer">The page renderer stopped. Reload this post to try again.</string>
+</resources>
