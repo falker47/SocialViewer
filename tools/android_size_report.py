@@ -19,7 +19,7 @@ DEFAULT_GLOBS = {
     "release_aab": "app/build/outputs/bundle/release/*.aab",
 }
 BUCKETS = ("dex", "resources", "native", "assets", "other")
-DEX_PATH = re.compile(r"^(?:base/dex/)?classes\\d*\\.dex$")
+DEX_PATH = re.compile(r"^(?:base/dex/)?classes\d*\.dex$")
 
 def classify(path: str) -> str:
     if DEX_PATH.fullmatch(path):
@@ -53,7 +53,7 @@ def inspect_package(file_path: Path) -> dict:
             if bucket == "dex":
                 with archive.open(item) as dex:
                     header = dex.read(0x70)
-                if len(header) < 0x70 or not header.startswith(b"dex\\n"):
+                if len(header) < 0x70 or not header.startswith(b"dex\n"):
                     raise ValueError(f"Invalid DEX header: {item.filename} in {file_path}")
                 dex_count += 1
                 dex_method_refs += struct.unpack_from("<I", header, 0x58)[0]
