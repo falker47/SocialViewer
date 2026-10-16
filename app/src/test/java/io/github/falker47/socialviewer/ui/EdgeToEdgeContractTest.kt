@@ -54,6 +54,18 @@ class EdgeToEdgeContractTest {
     }
 
     @Test
+    fun fullscreenDialogKeepsSystemBarAndCutoutInsets() {
+        val source = mainSource("java/io/github/falker47/socialviewer/ui/EmbedFullscreenController.kt").readText()
+
+        assertTrue("Fullscreen must listen for window insets",
+            source.contains("ViewCompat.setOnApplyWindowInsetsListener"))
+        assertTrue("Fullscreen must account for system bars",
+            source.contains("WindowInsetsCompat.Type.systemBars()"))
+        assertTrue("Fullscreen must account for display cutouts",
+            source.contains("WindowInsetsCompat.Type.displayCutout()"))
+    }
+
+    @Test
     fun mainActivityKeepsKeyboardResizeAndNavigationContracts() {
         val manifest = parse(mainSource("AndroidManifest.xml"))
         val activities = manifest.getElementsByTagName("activity")
