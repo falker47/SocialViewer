@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="reddit_native_cookie_title">Preferenze cookie Reddit</string>
+    <string name="reddit_native_cookie_message">Reddit richiede una scelta sui cookie. Seleziona una delle opzioni per continuare; la scelta sarà gestita da Reddit.</string>
+    <string name="reddit_native_cookie_reject">Rifiuta i cookie opzionali</string>
+    <string name="reddit_native_cookie_accept">Accetta tutti</string>
+    <string name="reddit_native_cookie_failed">Reddit non ha confermato la scelta. Riprova o usa Originale per aprire la pagina nel browser.</string>
+</resources>

@@ -1,5 +1,7 @@
 package io.github.falker47.socialviewer.ui
 
+import io.github.falker47.socialviewer.preview.RedditPagePreview
+
 import android.app.Activity
 import android.content.ClipboardManager
 import android.content.Context
@@ -1722,13 +1724,15 @@ private fun PlayerScreen(
                     modifier = Modifier.fillMaxWidth().fillMaxHeight()
                         .widthIn(max = 840.dp).background(Color.Black),
                 ) {
-                    EmbedWebView(
-                        html = content.embedHtml,
-                        baseUrl = content.documentBaseUrl,
-                        reloadOnCookieName = content.reloadOnCookieName,
-                        modifier = Modifier.fillMaxSize(),
-                        onContentReady = { embedReady = true },
-                    )
+                    if (!RedditPagePreview(content.embedHtml, content.documentBaseUrl, Modifier.fillMaxSize()) { embedReady = true }) {
+                        EmbedWebView(
+                            html = content.embedHtml,
+                            baseUrl = content.documentBaseUrl,
+                            reloadOnCookieName = content.reloadOnCookieName,
+                            modifier = Modifier.fillMaxSize(),
+                            onContentReady = { embedReady = true },
+                        )
+                    }
                 }
             }
         }
