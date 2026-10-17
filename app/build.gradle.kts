@@ -90,12 +90,13 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            // AGP 9.4: R8 performs code shrinking, obfuscation, optimization,
+            // and optimized resource shrinking. Platform keep rules are implicit.
+            // Custom rules, if needed, belong in src/main/keepRules/*.keep.
+            optimization {
+                enable = true
+            }
             playUploadSigning?.let { signingConfig = it }
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro",
-            )
         }
     }
 
