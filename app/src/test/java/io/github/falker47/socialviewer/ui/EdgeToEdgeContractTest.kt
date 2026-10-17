@@ -30,8 +30,8 @@ class EdgeToEdgeContractTest {
         val source = mainSource("java/io/github/falker47/socialviewer/ui/SocialViewerApp.kt").readText()
 
         assertTrue(source.contains("WindowCompat.getInsetsController(window, window.decorView)"))
-        assertTrue(source.contains("isAppearanceLightStatusBars"))
-        assertTrue(source.contains("isAppearanceLightNavigationBars"))
+        assertTrue(source.contains("isAppearanceLightStatusBars = !darkTheme"))
+        assertTrue(source.contains("isAppearanceLightNavigationBars = !darkTheme"))
         assertFalse("Legacy status bar color mutation", source.contains("window.statusBarColor ="))
         assertFalse("Legacy navigation bar color mutation", source.contains("window.navigationBarColor ="))
         assertFalse("Legacy systemUiVisibility flags", source.contains("systemUiVisibility"))
