@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="reddit_discussion_open">Comments on Reddit</string>
+    <string name="reddit_discussion_no_browser">No browser available to open the discussion.</string>
+</resources>
