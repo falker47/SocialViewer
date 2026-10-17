@@ -9,7 +9,6 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Handler
 import android.os.Looper
-import android.view.View
 import android.webkit.CookieManager
 import android.webkit.WebStorage
 import androidx.activity.compose.BackHandler
@@ -79,6 +78,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.core.view.WindowCompat
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
@@ -101,7 +101,6 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -1548,20 +1547,13 @@ private fun ApplySystemBars(
     context: Context,
     darkTheme: Boolean,
 ) {
-    val barColor = MaterialTheme.colorScheme.surface.toArgb()
-
     SideEffect {
         val window = (context as? Activity)?.window ?: return@SideEffect
-        window.statusBarColor = barColor
-        window.navigationBarColor = barColor
-
-        val lightBarFlags =
-            View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR or View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
-        val currentFlags = window.decorView.systemUiVisibility
-        window.decorView.systemUiVisibility = if (darkTheme) {
-            currentFlags and lightBarFlags.inv()
-        } else {
-            currentFlags or lightBarFlags
+        // Icons match the selected in-app theme; edge-to-edge bar colors are
+        // managed by Activity.enableEdgeToEdge rather than deprecated Window APIs.
+        WindowCompat.getInsetsController(window, window.decorView).apply {
+            isAppearanceLightStatusBars = !darkTheme
+            isAppearanceLightNavigationBars = !darkTheme
         }
     }
 }

@@ -90,12 +90,27 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            // AGP 9.4: R8 performs code shrinking, obfuscation, optimization,
+            // and optimized resource shrinking. Platform keep rules are implicit.
+            // Custom rules, if needed, belong in src/main/keepRules/*.keep.
+            optimization {
+                enable = true
+            }
             playUploadSigning?.let { signingConfig = it }
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro",
-            )
+        }
+
+        // Non-publishable release-equivalent smoke APK. Debug-signed and separate
+        // from the Google Play package; no Play signing material or keys in CI.
+        create("qa") {
+            initWith(getByName("release"))
+            applicationIdSuffix = ".optimizationqa"
+            versionNameSuffix = "-qa"
+            signingConfig = signingConfigs.getByName("debug")
+            isDebuggable = false
+            matchingFallbacks += listOf("release")
+            optimization {
+                enable = true
+            }
         }
     }
 
