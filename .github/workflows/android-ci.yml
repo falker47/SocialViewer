@@ -102,6 +102,49 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
+      # This QA lane is limited to the integration smoke branch, and the
+      # resulting APK has a different package ID from the Play app.
+      - name: Assemble separate optimized QA APK (debug-signed, non-debuggable)
+        if: github.head_ref == 'qa/socialviewer-optimized-smoke-20261017'
+        run: ./gradlew --no-daemon assembleQa
+
+      - name: Verify optimized QA identity and R8 output
+        if: github.head_ref == 'qa/socialviewer-optimized-smoke-20261017'
+        env:
+          SOURCE_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -euo pipefail
+          apk="app/build/outputs/apk/qa/app-qa.apk"
+          test -s "$apk"
+          test -s "app/build/outputs/mapping/qa/mapping.txt"
+          "$ANDROID_HOME/build-tools/37.0.0/aapt" dump badging "$apk" > app/build/outputs/apk/qa/QA-BADGING.txt
+          grep -Fq "package: name='io.github.falker47.socialviewer.optimizationqa'" app/build/outputs/apk/qa/QA-BADGING.txt
+          grep -Fq "versionCode='7'" app/build/outputs/apk/qa/QA-BADGING.txt
+          grep -Fq "versionName='0.1.6-qa'" app/build/outputs/apk/qa/QA-BADGING.txt
+          grep -Fq "application-label:'SocialViewer QA'" app/build/outputs/apk/qa/QA-BADGING.txt
+          {
+            echo "Source: $SOURCE_HEAD"
+            echo "App: io.github.falker47.socialviewer.optimizationqa / SocialViewer QA"
+            echo "Build: R8-optimized, non-debuggable, signed with generic Android debug key."
+            echo "YouTube: no production API key in CI, cannot be functionally validated with this artifact."
+            echo "Do not upload to Play or install over the Play-signed SocialViewer package."
+            sha256sum "$apk"
+          } > app/build/outputs/apk/qa/QA-README.txt
+          cat app/build/outputs/apk/qa/QA-README.txt
+
+      - name: Upload isolated installable QA APK
+        if: github.head_ref == 'qa/socialviewer-optimized-smoke-20261017'
+        uses: actions/upload-artifact@v4
+        with:
+          name: socialviewer-optimized-qa-${{ github.event.pull_request.head.sha || github.sha }}
+          path: |
+            app/build/outputs/apk/qa/*.apk
+            app/build/outputs/apk/qa/QA-README.txt
+            app/build/outputs/apk/qa/QA-BADGING.txt
+            docs/OPTIMIZED_QA_SMOKE.md
+          if-no-files-found: error
+          retention-days: 14
+
       - name: Record debug artifact provenance and limitations
         env:
           SOURCE_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
