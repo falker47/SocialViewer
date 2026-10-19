@@ -1,10 +1,16 @@
 package io.github.falker47.socialviewer.provider.pinterest
 
+import io.github.falker47.socialviewer.network.LinkResolutionHttpException
 import io.github.falker47.socialviewer.network.UrlConnectionHttpClient
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertSame
+import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.net.SocketTimeoutException
+import java.net.UnknownHostException
 
 class PinterestProviderTest {
     @Test
@@ -82,7 +88,7 @@ class PinterestProviderTest {
         assertEquals("https://pin.it/AbC123_xYz", http.resolvedUrl)
     }
 
-    @Test(expected = IllegalArgumentException::class)
+    @Test(expected = PinterestPinRequiredException::class)
     fun rejectsPinItAliasRedirectOutsidePinterest() {
         canonicalPinterestUrlFor(
             scheme = "https",
@@ -93,7 +99,7 @@ class PinterestProviderTest {
         )
     }
 
-    @Test(expected = IllegalArgumentException::class)
+    @Test(expected = PinterestPinRequiredException::class)
     fun rejectsPinItAliasRedirectToPinterestBoard() {
         canonicalPinterestUrlFor(
             scheme = "https",
@@ -102,6 +108,52 @@ class PinterestProviderTest {
             rawUrl = "https://pin.it/AbC123",
             http = FakeHttpClient(finalUrl = "https://www.pinterest.com/example/board/"),
         )
+    }
+
+    @Test
+    fun profileAndMalformedDestinationsExplainPinRequirementWithoutKeepingSharedUrl() {
+        for (target in listOf(
+            "https://www.pinterest.com/ansasketching/?token=private-link-token",
+            "https://www.pinterest.com/pin/123/?token=private-link-token with spaces",
+        )) {
+            val error = assertThrows(PinterestPinRequiredException::class.java) {
+                canonicalPinterestUrlFor(
+                    scheme = "https",
+                    host = "pin.it",
+                    path = "/1pTjG6L",
+                    rawUrl = "https://pin.it/1pTjG6L",
+                    http = FakeHttpClient(finalUrl = target),
+                )
+            }
+            assertNull(error.cause)
+            assertFalse(error.message.orEmpty().contains("private-link-token"))
+            assertFalse(error.message.orEmpty().contains("ansasketching"))
+        }
+    }
+
+    @Test
+    fun redirectTransportFailuresAreNotClassifiedAsUnsupportedPins() {
+        for (failure in listOf(
+            SocketTimeoutException("private-link-token"),
+            UnknownHostException("private-link-token"),
+            LinkResolutionHttpException(503),
+        )) {
+            val http = object : UrlConnectionHttpClient() {
+                override fun resolveFinalUrl(url: String): String = throw failure
+            }
+
+            val error = assertThrows(Exception::class.java) {
+                canonicalPinterestUrlFor(
+                    scheme = "https",
+                    host = "pin.it",
+                    path = "/AbC123/",
+                    rawUrl = "https://pin.it/AbC123",
+                    http = http,
+                )
+            }
+
+            assertSame(failure, error)
+        }
     }
 
     private class FakeHttpClient(

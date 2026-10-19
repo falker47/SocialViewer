@@ -117,22 +117,8 @@ import io.github.falker47.socialviewer.R
 import io.github.falker47.socialviewer.domain.SocialContent
 import io.github.falker47.socialviewer.provider.ProviderRegistry
 import io.github.falker47.socialviewer.util.UrlExtractor
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import kotlin.math.sqrt
-
-sealed interface ViewerState {
-    data object Home : ViewerState
-    data class XConsent(val url: String) : ViewerState
-    data class Loading(val url: String) : ViewerState
-    data class Ready(val content: SocialContent) : ViewerState
-    data class Error(
-        val title: String,
-        val message: String,
-        val url: String?,
-    ) : ViewerState
-}
 
 private enum class AppScreen {
     Viewer,
@@ -271,20 +257,21 @@ fun SocialViewerApp(
 
     LaunchedEffect(state) {
         val loading = state as? ViewerState.Loading ?: return@LaunchedEffect
-        state = try {
-            val content = withContext(Dispatchers.IO) {
-                registry.resolve(loading.url)
-            }
-            ViewerState.Ready(content)
-        } catch (t: Throwable) {
-            val copy = viewerErrorCopyFor(t)
-            ViewerState.Error(
-                title = context.getString(copy.titleRes),
-                message = context.getString(
-                    copy.messageRes,
-                    *copy.messageArgs.toTypedArray(),
-                ),
-                url = loading.url,
+        val result = resolveViewerContent { registry.resolve(loading.url) }
+        publishViewerResultIfCurrent(loading, state) {
+            state = result.fold(
+                onSuccess = { content -> ViewerState.Ready(content) },
+                onFailure = { error ->
+                    val copy = viewerErrorCopyFor(error)
+                    ViewerState.Error(
+                        title = context.getString(copy.titleRes),
+                        message = context.getString(
+                            copy.messageRes,
+                            *copy.messageArgs.toTypedArray(),
+                        ),
+                        url = loading.url,
+                    )
+                },
             )
         }
     }

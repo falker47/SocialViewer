@@ -2,6 +2,8 @@ package io.github.falker47.socialviewer.provider.tiktok
 
 import android.net.Uri
 import io.github.falker47.socialviewer.network.UrlConnectionHttpClient
+import io.github.falker47.socialviewer.provider.ProviderHttpException
+import io.github.falker47.socialviewer.provider.ProviderInvalidResponseException
 import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -58,17 +60,52 @@ class TikTokPhotoResolutionTest {
     }
 
     @Test fun video400IsNotSilentlyAccepted() {
-        assertThrows(IllegalStateException::class.java) {
+        val error = assertThrows(ProviderHttpException::class.java) {
             TikTokProvider(FakeHttp(video, 400)).resolve(Uri.parse(video))
         }
+        assertEquals("TikTok", error.providerName)
+        assertEquals(400, error.statusCode)
     }
 
     @Test fun photoAccessErrorsAreNotSilentlyAccepted() {
         for (status in listOf(401, 403, 404, 429, 500)) {
-            assertThrows(IllegalStateException::class.java) {
+            val error = assertThrows(ProviderHttpException::class.java) {
                 TikTokProvider(FakeHttp(photo, status)).resolve(Uri.parse(photo))
             }
+            assertEquals("TikTok", error.providerName)
+            assertEquals(status, error.statusCode)
         }
+    }
+
+    @Test fun malformedSuccessfulMetadataIsClassifiedWithoutExposingResponseBody() {
+        val responses = listOf(
+            200 to "<html>private-response-token</html>",
+            200 to "[]",
+            204 to "",
+        )
+        for (url in listOf(video, photo)) {
+            for ((status, body) in responses) {
+                val error = assertThrows(ProviderInvalidResponseException::class.java) {
+                    TikTokProvider(FakeHttp(url, status, body)).resolve(Uri.parse(url))
+                }
+                assertEquals("TikTok", error.providerName)
+                assertEquals(status, error.statusCode)
+                assertNull(error.cause)
+                assertFalse(error.message.orEmpty().contains("private-response-token"))
+            }
+        }
+    }
+
+    @Test fun successfulVideoWithoutOptionalMetadataStillOpens() {
+        val http = FakeHttp(video, 200, """{"type":"video","embed_product_id":"1234567890"}""")
+
+        val content = TikTokProvider(http).resolve(Uri.parse(video))
+
+        assertTrue(http.resolutions.isEmpty())
+        assertEquals(video, content.canonicalUrl)
+        assertTrue(content.embedHtml.contains("/player/v1/1234567890?"))
+        assertNull(content.title)
+        assertNull(content.authorName)
     }
 
     @Test fun shortLinkRedirectOutsideTikTokIsRejectedBeforeMetadata() {
@@ -87,7 +124,11 @@ class TikTokPhotoResolutionTest {
         assertTrue(http.gets.isEmpty())
     }
 
-    private class FakeHttp(val target: String, val status: Int) : UrlConnectionHttpClient() {
+    private class FakeHttp(
+        val target: String,
+        val status: Int,
+        val body: String? = null,
+    ) : UrlConnectionHttpClient() {
         val resolutions = mutableListOf<String>()
         val gets = mutableListOf<String>()
         override fun resolveFinalUrl(url: String): String {
@@ -96,7 +137,7 @@ class TikTokPhotoResolutionTest {
         }
         override fun get(url: String): Response {
             gets += url
-            return Response(status, url, if (status == 200) {
+            return Response(status, url, body ?: if (status == 200) {
                 """{"title":"A public post","author_name":"Example"}"""
             } else "Bad Request")
         }

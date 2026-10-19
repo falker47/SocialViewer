@@ -98,6 +98,20 @@ android {
             }
             playUploadSigning?.let { signingConfig = it }
         }
+
+        // Release-optimized diagnostics on a separate package. This artifact is
+        // never a Play update and uses no release signing credentials in CI.
+        create("linkQa") {
+            initWith(getByName("release"))
+            applicationIdSuffix = ".linkqa"
+            versionNameSuffix = "-link-qa"
+            signingConfig = signingConfigs.getByName("debug")
+            isDebuggable = false
+            matchingFallbacks += listOf("release")
+            optimization {
+                enable = true
+            }
+        }
     }
 
     compileOptions {

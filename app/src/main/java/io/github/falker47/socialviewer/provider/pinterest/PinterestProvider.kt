@@ -5,6 +5,7 @@ import io.github.falker47.socialviewer.domain.SocialContent
 import io.github.falker47.socialviewer.network.UrlConnectionHttpClient
 import io.github.falker47.socialviewer.provider.SocialProvider
 import java.net.URI
+import java.net.URISyntaxException
 
 private const val PINTEREST_DOCUMENT_BASE_URL = "https://www.pinterest.com/"
 private const val PINTEREST_WIDGET_SCRIPT = "https://assets.pinterest.com/js/pinit.js"
@@ -45,16 +46,17 @@ internal fun canonicalPinterestUrlFor(
     }
 
     val finalUrl = http.resolveFinalUrl(rawUrl)
-    val finalUri = runCatching { URI(finalUrl) }
-        .getOrElse { throw IllegalArgumentException("Redirect Pinterest non valido", it) }
+    val finalUri = try {
+        URI(finalUrl)
+    } catch (_: URISyntaxException) {
+        throw PinterestPinRequiredException()
+    }
 
     return PinterestUrlPolicy.canonicalPinUrl(
         scheme = finalUri.scheme,
         host = finalUri.host,
         path = finalUri.path,
-    ) ?: throw IllegalArgumentException(
-        "Il link di condivisione Pinterest non ha risolto a un Pin pubblico supportato",
-    )
+    ) ?: throw PinterestPinRequiredException()
 }
 
 internal fun resolveCanonicalPinterest(canonicalUrl: String): SocialContent =
