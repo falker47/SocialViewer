@@ -10,6 +10,7 @@
     <string name="home_tagline">Apri il contenuto, non il feed.</string>
     <string name="home_paste_placeholder">Incolla un link pubblico…</string>
     <string name="paste_and_open">Incolla e apri</string>
+    <string name="clear_link">Cancella link</string>
     <string name="open">Apri</string>
     <string name="supported_links">Link supportati</string>
     <string name="settings_subtitle">Aspetto, privacy e configurazione</string>

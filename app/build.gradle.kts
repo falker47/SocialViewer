@@ -104,7 +104,7 @@ android {
         create("linkQa") {
             initWith(getByName("release"))
             applicationIdSuffix = ".linkqa"
-            versionNameSuffix = "-link-qa2"
+            versionNameSuffix = "-link-qa3"
             signingConfig = signingConfigs.getByName("debug")
             isDebuggable = false
             matchingFallbacks += listOf("release")

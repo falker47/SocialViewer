@@ -122,7 +122,7 @@ jobs:
           for expected in (
               "package: name='io.github.falker47.socialviewer.linkqa'",
               "versionCode='8'",
-              "versionName='0.1.7-link-qa2'",
+              "versionName='0.1.7-link-qa3'",
               "application-label:'SocialViewer Link QA'",
           ):
               assert expected in badging, expected

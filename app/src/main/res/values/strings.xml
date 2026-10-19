@@ -11,6 +11,7 @@
     <string name="home_tagline">Open the content, not the feed.</string>
     <string name="home_paste_placeholder">Paste a public link…</string>
     <string name="paste_and_open">Paste and open</string>
+    <string name="clear_link">Clear link</string>
     <string name="open">Open</string>
     <string name="supported_links">Supported links</string>
     <string name="settings_subtitle">Appearance, privacy and configuration</string>

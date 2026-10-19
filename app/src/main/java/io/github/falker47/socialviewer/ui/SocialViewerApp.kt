@@ -49,6 +49,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.ChevronRight
+import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Code
 import androidx.compose.material.icons.outlined.DarkMode
 import androidx.compose.material.icons.outlined.DeleteOutline
@@ -578,11 +579,22 @@ private fun HomePrimaryContent(
             isError = error != null,
             supportingText = error?.let { message -> { Text(message) } },
             trailingIcon = {
-                IconButton(onClick = onPasteAndOpen) {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_content_paste_24),
-                        contentDescription = stringResource(R.string.paste_and_open),
-                    )
+                Row {
+                    IconButton(onClick = onPasteAndOpen) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_content_paste_24),
+                            contentDescription = stringResource(R.string.paste_and_open),
+                        )
+                    }
+                    IconButton(
+                        onClick = { onValueChange("") },
+                        enabled = value.isNotEmpty() || error != null,
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Close,
+                            contentDescription = stringResource(R.string.clear_link),
+                        )
+                    }
                 }
             },
             keyboardOptions = KeyboardOptions(
