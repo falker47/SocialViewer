@@ -37,6 +37,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
@@ -580,12 +581,6 @@ private fun HomePrimaryContent(
             supportingText = error?.let { message -> { Text(message) } },
             trailingIcon = {
                 Row {
-                    IconButton(onClick = onPasteAndOpen) {
-                        Icon(
-                            painter = painterResource(R.drawable.ic_content_paste_24),
-                            contentDescription = stringResource(R.string.paste_and_open),
-                        )
-                    }
                     IconButton(
                         onClick = { onValueChange("") },
                         enabled = value.isNotEmpty() || error != null,
@@ -593,6 +588,14 @@ private fun HomePrimaryContent(
                         Icon(
                             imageVector = Icons.Outlined.Close,
                             contentDescription = stringResource(R.string.clear_link),
+                            modifier = Modifier.offset(x = 2.dp),
+                        )
+                    }
+                    IconButton(onClick = onPasteAndOpen) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_content_paste_24),
+                            contentDescription = stringResource(R.string.paste_and_open),
+                            modifier = Modifier.offset(x = (-2).dp),
                         )
                     }
                 }

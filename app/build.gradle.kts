@@ -62,8 +62,8 @@ android {
         applicationId = "io.github.falker47.socialviewer"
         minSdk = 26
         targetSdk = 37
-        versionCode = 8
-        versionName = "0.1.7"
+        versionCode = 9
+        versionName = "0.1.8"
         resourceConfigurations += listOf("en", "it")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -104,7 +104,7 @@ android {
         create("linkQa") {
             initWith(getByName("release"))
             applicationIdSuffix = ".linkqa"
-            versionNameSuffix = "-link-qa3"
+            versionNameSuffix = "-link-qa4"
             signingConfig = signingConfigs.getByName("debug")
             isDebuggable = false
             matchingFallbacks += listOf("release")

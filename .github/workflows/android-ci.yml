@@ -121,8 +121,8 @@ jobs:
           badging = Path('app/build/outputs/apk/linkQa/QA-BADGING.txt').read_text()
           for expected in (
               "package: name='io.github.falker47.socialviewer.linkqa'",
-              "versionCode='8'",
-              "versionName='0.1.7-link-qa3'",
+              "versionCode='9'",
+              "versionName='0.1.8-link-qa4'",
               "application-label:'SocialViewer Link QA'",
           ):
               assert expected in badging, expected
