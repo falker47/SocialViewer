@@ -116,18 +116,12 @@ import androidx.compose.ui.unit.sp
 import io.github.falker47.socialviewer.R
 import io.github.falker47.socialviewer.domain.SocialContent
 import io.github.falker47.socialviewer.provider.ProviderRegistry
-import io.github.falker47.socialviewer.util.UrlExtractor
 import kotlinx.coroutines.launch
 import kotlin.math.sqrt
 
 private enum class AppScreen {
     Viewer,
     Settings,
-}
-
-private sealed interface ManualLinkResult {
-    data class Valid(val url: String) : ManualLinkResult
-    data class Invalid(val message: String, val displayValue: String) : ManualLinkResult
 }
 
 private const val PREF_ONBOARDING_COMPLETE = "onboarding_complete"
@@ -1774,40 +1768,6 @@ private fun ErrorScreen(
         Spacer(Modifier.height(6.dp))
         TextButton(onClick = onBack) { Text(stringResource(R.string.back_to_home)) }
     }
-}
-
-private fun validateManualLink(
-    rawValue: String,
-    registry: ProviderRegistry,
-    context: Context,
-): ManualLinkResult {
-    val trimmed = rawValue.trim()
-    val extracted = UrlExtractor.firstHttpUrl(trimmed)
-    val candidate = extracted ?: trimmed
-
-    if (candidate.isBlank()) {
-        return ManualLinkResult.Invalid(
-            message = context.getString(R.string.error_no_link_clipboard),
-            displayValue = "",
-        )
-    }
-
-    val uri = Uri.parse(candidate)
-    if (!uri.scheme.equals("https", ignoreCase = true) || uri.host.isNullOrBlank()) {
-        return ManualLinkResult.Invalid(
-            message = context.getString(R.string.error_invalid_link),
-            displayValue = candidate,
-        )
-    }
-
-    if (registry.providerFor(candidate) == null) {
-        return ManualLinkResult.Invalid(
-            message = context.getString(R.string.error_unsupported_service),
-            displayValue = candidate,
-        )
-    }
-
-    return ManualLinkResult.Valid(candidate)
 }
 
 private fun readClipboardText(context: Context): String? {

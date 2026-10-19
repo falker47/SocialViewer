@@ -7,6 +7,7 @@ import io.github.falker47.socialviewer.provider.ProviderContentUnavailableExcept
 import io.github.falker47.socialviewer.provider.ProviderHttpException
 import io.github.falker47.socialviewer.provider.ProviderInvalidResponseException
 import io.github.falker47.socialviewer.provider.ProviderPolicyBlockedException
+import io.github.falker47.socialviewer.provider.UnsupportedProviderException
 import io.github.falker47.socialviewer.provider.pinterest.PinterestPinRequiredException
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -144,6 +145,15 @@ class ViewerErrorCopyTest {
                 expectedArgs = emptyList(),
                 english = "This Pinterest link did not lead to a supported public Pin. Open a direct link to the Pin.",
                 italian = "Questo link Pinterest non ha portato a un Pin pubblico supportato. Apri il link diretto al Pin.",
+            ),
+            MessageCase(
+                error = UnsupportedProviderException("https://example.org/private-link-token"),
+                titleRes = R.string.error_title_unsupported_link,
+                messageRes = R.string.error_unsupported_service,
+                resourceName = "error_unsupported_service",
+                expectedArgs = emptyList(),
+                english = "This service isn’t supported yet.",
+                italian = "Questo servizio non è ancora supportato.",
             ),
         )
 

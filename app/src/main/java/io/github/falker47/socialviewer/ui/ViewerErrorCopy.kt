@@ -7,6 +7,7 @@ import io.github.falker47.socialviewer.provider.ProviderContentUnavailableExcept
 import io.github.falker47.socialviewer.provider.ProviderHttpException
 import io.github.falker47.socialviewer.provider.ProviderInvalidResponseException
 import io.github.falker47.socialviewer.provider.ProviderPolicyBlockedException
+import io.github.falker47.socialviewer.provider.UnsupportedProviderException
 import io.github.falker47.socialviewer.provider.pinterest.PinterestPinRequiredException
 import java.io.IOException
 import java.net.SocketTimeoutException
@@ -45,6 +46,11 @@ internal fun viewerErrorCopyFor(error: Throwable): ViewerErrorCopy =
             titleRes = R.string.error_title_open_failed,
             messageRes = R.string.error_provider_invalid_response_format,
             messageArgs = listOf(error.providerName, error.statusCode),
+        )
+
+        is UnsupportedProviderException -> ViewerErrorCopy(
+            titleRes = R.string.error_title_unsupported_link,
+            messageRes = R.string.error_unsupported_service,
         )
 
         is PinterestPinRequiredException -> ViewerErrorCopy(

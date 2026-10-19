@@ -10,6 +10,12 @@ interface SocialProvider {
     fun supports(uri: Uri): Boolean
 
     /**
+     * Explain a recognized but unsupported destination using local URL checks only.
+     * This diagnostic does not make the URL eligible for resolution.
+     */
+    fun unsupportedUrlError(uri: Uri): Exception? = null
+
+    /**
      * Resolve a public social URL into renderable content.
      *
      * Implementations must use official/public embedding mechanisms where available.

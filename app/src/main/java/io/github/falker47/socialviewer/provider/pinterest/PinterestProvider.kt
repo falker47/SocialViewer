@@ -19,6 +19,13 @@ class PinterestProvider(
     override fun supports(uri: Uri): Boolean =
         PinterestUrlPolicy.supports(uri.scheme, uri.host, uri.path)
 
+    override fun unsupportedUrlError(uri: Uri): Exception? =
+        if (PinterestUrlPolicy.recognizesService(uri.scheme, uri.host) && !supports(uri)) {
+            PinterestPinRequiredException()
+        } else {
+            null
+        }
+
     override fun resolve(uri: Uri): SocialContent {
         val canonical = canonicalPinterestUrlFor(
             scheme = uri.scheme,
