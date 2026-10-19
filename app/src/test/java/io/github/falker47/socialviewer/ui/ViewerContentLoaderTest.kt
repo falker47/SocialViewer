@@ -86,7 +86,14 @@ class ViewerContentLoaderTest {
         }
 
         assertEquals(ViewerState.Error("Error", "Failed", "A"), state)
-        assertSame(failure, result.exceptionOrNull())
+        val propagated = result.exceptionOrNull()
+        assertEquals(IOException::class.java, propagated?.javaClass)
+        assertEquals("The request failed", propagated?.message)
+        // Coroutine stacktrace recovery may copy the exception and retain the original as its cause.
+        assertTrue(
+            "The original resolver failure must remain in the cause chain",
+            generateSequence(propagated) { it.cause }.any { it === failure },
+        )
     }
 
     @Test(timeout = 10_000)
