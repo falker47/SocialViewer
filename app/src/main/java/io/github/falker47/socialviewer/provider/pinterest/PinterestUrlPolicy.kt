@@ -16,6 +16,12 @@ object PinterestUrlPolicy {
         canonicalPinUrl(scheme, host, path) != null ||
             requiresRedirectResolution(scheme, host, path)
 
+    fun recognizesService(scheme: String?, host: String?): Boolean {
+        if (!scheme.equals("https", ignoreCase = true)) return false
+        val normalizedHost = host?.lowercase() ?: return false
+        return isSupportedPinHost(normalizedHost) || normalizedHost == "pin.it"
+    }
+
     fun canonicalPinUrl(
         scheme: String?,
         host: String?,

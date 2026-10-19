@@ -3,7 +3,10 @@ package io.github.falker47.socialviewer.provider.tiktok
 import android.net.Uri
 import io.github.falker47.socialviewer.domain.SocialContent
 import io.github.falker47.socialviewer.network.UrlConnectionHttpClient
+import io.github.falker47.socialviewer.provider.ProviderHttpException
+import io.github.falker47.socialviewer.provider.ProviderInvalidResponseException
 import io.github.falker47.socialviewer.provider.SocialProvider
+import org.json.JSONException
 import org.json.JSONObject
 
 class TikTokProvider(
@@ -46,13 +49,19 @@ class TikTokProvider(
 
         val response = http.get(oEmbedUrl)
         val json = when {
-            response.statusCode in 200..299 -> JSONObject(response.body)
+            response.statusCode in 200..299 -> try {
+                JSONObject(response.body)
+            } catch (_: JSONException) {
+                // Parser errors can include the response body. Keep it out of the
+                // exception as well as the localized message shown to the user.
+                throw ProviderInvalidResponseException(displayName, response.statusCode)
+            }
             // The reported vm link resolves successfully to a /@user/photo/id URL,
             // but oEmbed returns 400 for that image post. Missing metadata must not
             // prevent the official image player from handling this supported format.
             // Do not generalize this to video, access, rate-limit or server errors.
             isCanonicalPhoto && response.statusCode == 400 -> null
-            else -> error("TikTok oEmbed ha risposto HTTP ${response.statusCode}")
+            else -> throw ProviderHttpException(displayName, response.statusCode)
         }
 
         return SocialContent(

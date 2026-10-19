@@ -37,6 +37,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
@@ -49,6 +50,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.ChevronRight
+import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Code
 import androidx.compose.material.icons.outlined.DarkMode
 import androidx.compose.material.icons.outlined.DeleteOutline
@@ -116,32 +118,12 @@ import androidx.compose.ui.unit.sp
 import io.github.falker47.socialviewer.R
 import io.github.falker47.socialviewer.domain.SocialContent
 import io.github.falker47.socialviewer.provider.ProviderRegistry
-import io.github.falker47.socialviewer.util.UrlExtractor
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import kotlin.math.sqrt
-
-sealed interface ViewerState {
-    data object Home : ViewerState
-    data class XConsent(val url: String) : ViewerState
-    data class Loading(val url: String) : ViewerState
-    data class Ready(val content: SocialContent) : ViewerState
-    data class Error(
-        val title: String,
-        val message: String,
-        val url: String?,
-    ) : ViewerState
-}
 
 private enum class AppScreen {
     Viewer,
     Settings,
-}
-
-private sealed interface ManualLinkResult {
-    data class Valid(val url: String) : ManualLinkResult
-    data class Invalid(val message: String, val displayValue: String) : ManualLinkResult
 }
 
 private const val PREF_ONBOARDING_COMPLETE = "onboarding_complete"
@@ -271,20 +253,21 @@ fun SocialViewerApp(
 
     LaunchedEffect(state) {
         val loading = state as? ViewerState.Loading ?: return@LaunchedEffect
-        state = try {
-            val content = withContext(Dispatchers.IO) {
-                registry.resolve(loading.url)
-            }
-            ViewerState.Ready(content)
-        } catch (t: Throwable) {
-            val copy = viewerErrorCopyFor(t)
-            ViewerState.Error(
-                title = context.getString(copy.titleRes),
-                message = context.getString(
-                    copy.messageRes,
-                    *copy.messageArgs.toTypedArray(),
-                ),
-                url = loading.url,
+        val result = resolveViewerContent { registry.resolve(loading.url) }
+        publishViewerResultIfCurrent(loading, state) {
+            state = result.fold(
+                onSuccess = { content -> ViewerState.Ready(content) },
+                onFailure = { error ->
+                    val copy = viewerErrorCopyFor(error)
+                    ViewerState.Error(
+                        title = context.getString(copy.titleRes),
+                        message = context.getString(
+                            copy.messageRes,
+                            *copy.messageArgs.toTypedArray(),
+                        ),
+                        url = loading.url,
+                    )
+                },
             )
         }
     }
@@ -597,11 +580,24 @@ private fun HomePrimaryContent(
             isError = error != null,
             supportingText = error?.let { message -> { Text(message) } },
             trailingIcon = {
-                IconButton(onClick = onPasteAndOpen) {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_content_paste_24),
-                        contentDescription = stringResource(R.string.paste_and_open),
-                    )
+                Row {
+                    IconButton(
+                        onClick = { onValueChange("") },
+                        enabled = value.isNotEmpty() || error != null,
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Close,
+                            contentDescription = stringResource(R.string.clear_link),
+                            modifier = Modifier.offset(x = 2.dp),
+                        )
+                    }
+                    IconButton(onClick = onPasteAndOpen) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_content_paste_24),
+                            contentDescription = stringResource(R.string.paste_and_open),
+                            modifier = Modifier.offset(x = (-2).dp),
+                        )
+                    }
                 }
             },
             keyboardOptions = KeyboardOptions(
@@ -1787,40 +1783,6 @@ private fun ErrorScreen(
         Spacer(Modifier.height(6.dp))
         TextButton(onClick = onBack) { Text(stringResource(R.string.back_to_home)) }
     }
-}
-
-private fun validateManualLink(
-    rawValue: String,
-    registry: ProviderRegistry,
-    context: Context,
-): ManualLinkResult {
-    val trimmed = rawValue.trim()
-    val extracted = UrlExtractor.firstHttpUrl(trimmed)
-    val candidate = extracted ?: trimmed
-
-    if (candidate.isBlank()) {
-        return ManualLinkResult.Invalid(
-            message = context.getString(R.string.error_no_link_clipboard),
-            displayValue = "",
-        )
-    }
-
-    val uri = Uri.parse(candidate)
-    if (!uri.scheme.equals("https", ignoreCase = true) || uri.host.isNullOrBlank()) {
-        return ManualLinkResult.Invalid(
-            message = context.getString(R.string.error_invalid_link),
-            displayValue = candidate,
-        )
-    }
-
-    if (registry.providerFor(candidate) == null) {
-        return ManualLinkResult.Invalid(
-            message = context.getString(R.string.error_unsupported_service),
-            displayValue = candidate,
-        )
-    }
-
-    return ManualLinkResult.Valid(candidate)
 }
 
 private fun readClipboardText(context: Context): String? {

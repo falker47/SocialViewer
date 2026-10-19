@@ -15,7 +15,7 @@ open class UrlConnectionHttpClient {
         return try {
             val code = connection.responseCode
             if (code !in 200..399) {
-                error("HTTP $code durante la risoluzione del link")
+                throw LinkResolutionHttpException(code)
             }
             connection.url.toString()
         } finally {

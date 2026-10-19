@@ -9,7 +9,7 @@ class ProviderRegistry(
     fun resolve(rawUrl: String): SocialContent {
         val uri = Uri.parse(rawUrl)
         val provider = providers.firstOrNull { it.supports(uri) }
-            ?: throw UnsupportedProviderException(rawUrl)
+            ?: throw unsupportedUrlError(uri)
         return provider.resolve(uri)
     }
 
@@ -17,6 +17,15 @@ class ProviderRegistry(
         val uri = Uri.parse(rawUrl)
         return providers.firstOrNull { it.supports(uri) }
     }
+
+    fun validationErrorFor(rawUrl: String): Exception? {
+        val uri = Uri.parse(rawUrl)
+        return if (providers.any { it.supports(uri) }) null else unsupportedUrlError(uri)
+    }
+
+    private fun unsupportedUrlError(uri: Uri): Exception =
+        providers.firstNotNullOfOrNull { it.unsupportedUrlError(uri) }
+            ?: UnsupportedProviderException(uri.toString())
 }
 
 class UnsupportedProviderException(url: String) :

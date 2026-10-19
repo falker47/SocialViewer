@@ -11,6 +11,7 @@
     <string name="home_tagline">Open the content, not the feed.</string>
     <string name="home_paste_placeholder">Paste a public link…</string>
     <string name="paste_and_open">Paste and open</string>
+    <string name="clear_link">Clear link</string>
     <string name="open">Open</string>
     <string name="supported_links">Supported links</string>
     <string name="settings_subtitle">Appearance, privacy and configuration</string>
@@ -85,6 +86,14 @@
     <string name="error_content_unavailable_format">%1$s content isn’t available.</string>
     <string name="error_title_open_failed">Can’t open content</string>
     <string name="error_unexpected">An unexpected error occurred.</string>
+    <string name="error_title_connection_failed">Connection failed</string>
+    <string name="error_request_timeout">The service did not respond in time. Try again.</string>
+    <string name="error_connection_failed">The connection to the service could not be completed. Try again.</string>
+    <string name="error_link_http_format">The service returned HTTP %1$d while opening the link. Try again.</string>
+    <string name="error_provider_metadata_http_format">%1$s did not return the content details (HTTP %2$d). Try again.</string>
+    <string name="error_provider_invalid_response_format">Invalid response from %1$s (HTTP %2$d). Try again.</string>
+    <string name="error_title_unsupported_link">Unsupported link</string>
+    <string name="error_pinterest_pin_required">This Pinterest link did not lead to a supported public Pin. Open a direct link to the Pin.</string>
     <string name="error_provider_not_configured_format">%1$s isn’t configured in this build.</string>
     <string name="error_youtube_mfk">Videos marked as Made for Kids on YouTube aren’t opened in SocialViewer.</string>
 </resources>
