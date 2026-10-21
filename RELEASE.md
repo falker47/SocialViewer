@@ -5,8 +5,8 @@ SocialViewer targets **Google Play** as its initial public distribution channel.
 ## Fixed release identity
 
 - Application ID: `io.github.falker47.socialviewer`
-- Current source version prepared for Closed Testing: `0.1.8` (`versionCode = 9`); **not yet uploaded or published**. Release gates: `docs/RELEASE_0.1.8_LINKS.md`.
-- Play Console observed on 19 October 2026: `0.1.7` (8) is available to the existing closed testers; no unpublished changes were listed before preparing 0.1.8.
+- Next source version prepared for the existing Closed Testing track: `0.1.9` (`versionCode = 10`). See `docs/RELEASE_0.1.9_TIKTOK_429.md`. Signed bundle and Play publication are not yet verified.
+- Last recorded Play Console checkpoint: `0.1.8` (9) available to selected closed testers on 20 October 2026. This historical observation does not establish the current live Play Console state.
 - Minimum SDK: 26
 - Target / compile SDK: 37
 - Publishing format: Android App Bundle (`.aab`)
