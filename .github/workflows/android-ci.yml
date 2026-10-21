@@ -103,11 +103,11 @@ jobs:
           retention-days: 14
 
       - name: Assemble isolated optimized link QA APK
-        if: github.head_ref == 'fix/viewer-loading-errors'
+        if: github.head_ref == 'fix/viewer-loading-errors' || github.head_ref == 'fix/tiktok-oembed-429-player-fallback'
         run: ./gradlew --no-daemon assembleLinkQa
 
       - name: Verify link QA identity and optimization
-        if: github.head_ref == 'fix/viewer-loading-errors'
+        if: github.head_ref == 'fix/viewer-loading-errors' || github.head_ref == 'fix/tiktok-oembed-429-player-fallback'
         env:
           SOURCE_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
@@ -143,7 +143,7 @@ jobs:
           cat app/build/outputs/apk/linkQa/QA-README.txt
 
       - name: Upload isolated link QA APK
-        if: github.head_ref == 'fix/viewer-loading-errors'
+        if: github.head_ref == 'fix/viewer-loading-errors' || github.head_ref == 'fix/tiktok-oembed-429-player-fallback'
         uses: actions/upload-artifact@v4
         with:
           name: socialviewer-link-qa-${{ github.event.pull_request.head.sha || github.sha }}
