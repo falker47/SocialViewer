@@ -67,13 +67,36 @@ class TikTokPhotoResolutionTest {
         assertEquals(400, error.statusCode)
     }
 
-    @Test fun photoAccessErrorsAreNotSilentlyAccepted() {
-        for (status in listOf(401, 403, 404, 429, 500)) {
-            val error = assertThrows(ProviderHttpException::class.java) {
-                TikTokProvider(FakeHttp(photo, status)).resolve(Uri.parse(photo))
+    @Test fun oEmbedRateLimitStillAllowsOfficialPlayerForShortAndCanonicalLinks() {
+        // Short-link redirects are mocked; the fixture does not claim a live target.
+        for ((url, target) in listOf(
+            video to video,
+            "https://vm.tiktok.com/ZGdQ3ga1n/" to video,
+            photo to photo,
+            "https://vt.tiktok.com/example/" to photo,
+        )) {
+            val http = FakeHttp(target, 429)
+            val content = TikTokProvider(http).resolve(Uri.parse(url))
+            val expectedPostId = target.substringBefore('?').substringAfterLast('/')
+
+            assertEquals(target, content.canonicalUrl)
+            assertTrue(content.embedHtml.contains("/player/v1/$expectedPostId?"))
+            assertNull(content.title)
+            assertNull(content.authorName)
+            assertEquals("cookie-consent", content.reloadOnCookieName)
+            assertEquals(1, http.gets.size)
+        }
+    }
+
+    @Test fun providerAccessAndServerErrorsAreNotSilentlyAccepted() {
+        for (url in listOf(video, photo)) {
+            for (status in listOf(401, 403, 404, 500)) {
+                val error = assertThrows(ProviderHttpException::class.java) {
+                    TikTokProvider(FakeHttp(url, status)).resolve(Uri.parse(url))
+                }
+                assertEquals("TikTok", error.providerName)
+                assertEquals(status, error.statusCode)
             }
-            assertEquals("TikTok", error.providerName)
-            assertEquals(status, error.statusCode)
         }
     }
 

@@ -56,10 +56,12 @@ class TikTokProvider(
                 // exception as well as the localized message shown to the user.
                 throw ProviderInvalidResponseException(displayName, response.statusCode)
             }
-            // The reported vm link resolves successfully to a /@user/photo/id URL,
-            // but oEmbed returns 400 for that image post. Missing metadata must not
-            // prevent the official image player from handling this supported format.
-            // Do not generalize this to video, access, rate-limit or server errors.
+            // Metadata is optional for the official player. A rate-limited
+            // oEmbed endpoint must not block a public post's player from loading;
+            // the player still enforces TikTok's own access restrictions.
+            response.statusCode == 429 -> null
+            // TikTok can reject photo metadata while allowing the official photo
+            // player. Keep this 400 fallback restricted to canonical photo posts.
             isCanonicalPhoto && response.statusCode == 400 -> null
             else -> throw ProviderHttpException(displayName, response.statusCode)
         }
