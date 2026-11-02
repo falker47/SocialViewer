@@ -23,9 +23,21 @@ class OpenOriginalIntentRegressionTest {
             source.contains("selector = browserSelector"),
         )
         assertEquals(
-            "Every original-content action must use the browser-only helper",
-            3,
+            "Three original-content actions plus the explicit Instagram web fallback must use the browser-only helper",
+            4,
             Regex("""openOriginalExternal\(context,""").findAll(source).count(),
+        )
+    }
+
+    @Test
+    fun instagramReelWebFallbackUsesBrowserOnlyEscapeInsteadOfInAppNavigation() {
+        val source = socialViewerAppSource()
+
+        assertTrue(
+            source.contains("InstagramUrlPolicy.mobileWebReelUrl(current.content.canonicalUrl)"),
+        )
+        assertTrue(
+            source.contains("webUrl -> { openOriginalExternal(context, webUrl) }"),
         )
     }
 
