@@ -7,34 +7,31 @@ import java.io.File
 
 class InstagramReelProductionBoundaryTest {
     @Test
-    fun instagramReelFirstPartyPageIsAvailableInNormalProductionBuilds() {
+    fun productionInstagramReelsUseTheOfficialEmbedAndExternalBrowserEscape() {
         val shell = readSource("src/main/java/io/github/falker47/socialviewer/ui/SocialViewerApp.kt")
-        val player = readSource("src/main/java/io/github/falker47/socialviewer/ui/InstagramReelWebView.kt")
+        val embed = readSource("src/main/java/io/github/falker47/socialviewer/ui/EmbedWebView.kt")
 
-        // The QA prototype succeeded on a device, but the old implementation
-        // hides that player behind a package-id check.
-        assertFalse(shell.contains("BuildConfig.APPLICATION_ID.endsWith(\".linkqa\")"))
-        assertTrue(shell.contains("content.providerId == \"instagram\""))
-        assertTrue(shell.contains("InstagramUrlPolicy.mobileWebReelUrl(content.canonicalUrl)"))
-        assertTrue(shell.contains("InstagramReelWebView("))
+        // Permission for full Instagram webpages inside an app WebView is not
+        // verified. Keep rendering on Meta's official embed and provide an
+        // explicit external browser escape when that embed cannot play inline.
+        assertFalse(shell.contains("InstagramReelWebView("))
+        assertFalse(shell.contains("InstagramUrlPolicy.mobileWebReelUrl(content.canonicalUrl)"))
+        assertTrue(shell.contains("EmbedWebView("))
+        assertTrue(shell.contains("InstagramUrlPolicy.mobileWebReelUrl(url) ?: url"))
 
-        // Preserve provider-page boundaries instead of opening Instagram
-        // as a generic in-app browser.
-        assertTrue(player.contains("InstagramUrlPolicy.allowsInAppReelNavigation("))
-        assertTrue(player.contains("setAcceptThirdPartyCookies(currentWebView, false)"))
-        assertTrue(player.contains("settings.javaScriptCanOpenWindowsAutomatically = false"))
-        assertTrue(player.contains("settings.setSupportMultipleWindows(false)"))
-        assertTrue(player.contains("settings.mediaPlaybackRequiresUserGesture = true"))
+        assertTrue(embed.contains("setAcceptThirdPartyCookies(currentWebView, false)"))
+        assertTrue(embed.contains("return request.isForMainFrame"))
+        assertTrue(embed.contains("webChromeClient = fullscreenController"))
     }
 
     @Test
     fun ordinaryInstagramPostsAndOtherProvidersKeepTheirOfficialEmbedPaths() {
         val shell = readSource("src/main/java/io/github/falker47/socialviewer/ui/SocialViewerApp.kt")
 
-        // URL policy returns null on Instagram /p/ posts and on any other
-        // provider, so the regular official embed is still selected.
-        assertTrue(shell.contains("content.providerId == \"instagram\""))
-        assertTrue(shell.contains("if (firstPartyReelUrl != null)"))
+        // Instagram posts/Reels and other providers share the existing
+        // provider-approved embed renderer; there is no full-site WebView path.
+        assertFalse(shell.contains("firstPartyReelUrl"))
+        assertFalse(shell.contains("InstagramReelWebView("))
         assertTrue(shell.contains("EmbedWebView("))
         assertTrue(shell.contains("RedditPagePreview("))
     }

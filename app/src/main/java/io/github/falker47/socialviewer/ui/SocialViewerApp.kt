@@ -1662,14 +1662,6 @@ private fun PlayerScreen(
     ) {
         mutableStateOf(false)
     }
-    // Public Instagram Reels use their official first-party mobile page for
-    // in-app playback. Posts and other providers keep their existing embeds.
-    val firstPartyReelUrl = if (content.providerId == "instagram") {
-        InstagramUrlPolicy.mobileWebReelUrl(content.canonicalUrl)
-    } else {
-        null
-    }
-
     Box(modifier = modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
             Row(
@@ -1720,13 +1712,7 @@ private fun PlayerScreen(
                     modifier = Modifier.fillMaxWidth().fillMaxHeight()
                         .widthIn(max = 840.dp).background(Color.Black),
                 ) {
-                    if (firstPartyReelUrl != null) {
-                        InstagramReelWebView(
-                            reelWebUrl = firstPartyReelUrl,
-                            modifier = Modifier.fillMaxSize(),
-                            onContentReady = { embedReady = true },
-                        )
-                    } else if (!RedditPagePreview(content.embedHtml, content.documentBaseUrl, Modifier.fillMaxSize()) { embedReady = true }) {
+                    if (!RedditPagePreview(content.embedHtml, content.documentBaseUrl, Modifier.fillMaxSize()) { embedReady = true }) {
                         EmbedWebView(
                             html = content.embedHtml,
                             baseUrl = content.documentBaseUrl,

@@ -30,17 +30,17 @@ If favorites/history ever become a feature, they must be explicitly opt-in and m
 
 ## AD-004 — WebView is an implementation detail
 
-`SocialContent` carries embed HTML, a canonical link and a provider document base URL. TikTok uses its official dedicated player; Instagram posts and Threads use Meta's official tokenless oEmbed markup, while Instagram Reels use the provider's official first-party mobile Reel page inside a strictly bounded WebView after the oEmbed eligibility preflight; Reddit uses official Embed/oEmbed markup; Pinterest uses the official Pin Widget; X uses official X oEmbed plus `platform.x.com/widgets.js`; Bluesky uses official `embed.bsky.app` oEmbed; YouTube uses the official privacy-enhanced IFrame player at `youtube-nocookie.com`. Provider-specific presentation remains bounded to a single user-selected item.
+`SocialContent` carries embed HTML, a canonical link and a provider document base URL. TikTok uses its official dedicated player; Instagram posts, Reels and Threads use Meta's official oEmbed markup; Reddit uses official Embed/oEmbed markup; Pinterest uses the official Pin Widget; X uses official X oEmbed plus `platform.x.com/widgets.js`; Bluesky uses official `embed.bsky.app` oEmbed; YouTube uses the official privacy-enhanced IFrame player at `youtube-nocookie.com`. Provider-specific presentation remains bounded to a single user-selected item.
 
 Threads does not require a new renderer hierarchy: the existing provider-aware document base URL remains sufficient. Third-party cookies stay disabled, provider first-party preferences may persist locally, and main-frame navigation stays blocked.
 
-### Instagram Reel first-party page — bounded single-item choice
+### Instagram Reel playback boundary
 
-Meta's official oEmbed is still used for public-item eligibility/metadata, but its Reel HTML may display only a preview and an external action instead of an inline player. The first-party `https://www.instagram.com/reel/{shortcode}/?l=1` page was tested on an Android device and plays the specifically reported Reel in a WebView. The `l=1` query flag is **observed, not a documented stable player API**.
+Instagram posts and Reels use Meta's official oEmbed HTML as the only in-app rendering path. Depending on the Reel, the provider may supply a playable embed or only a preview and its own external action.
 
-For a canonical Reel only, SocialViewer loads that page in a dedicated WebView (JavaScript/DOM storage enabled; third-party cookies and popups disabled; file/content access blocked; explicit user gesture required for media). The WebView allows main-frame destinations **only for the same Reel**, blocking navigations to profiles, feeds, login and other content. The first-party page still belongs to Instagram and may expose provider-native UI or change without notice. Main-frame navigation checks alone cannot exclude all possible provider-native same-document interactions; visual/physical regression gates remain required.
+The `?l=1` mobile-web query is an observed, undocumented behavior. SocialViewer uses it only for the user's explicit **Guarda sul web** browser action. It does not load Instagram's full mobile webpage in its own WebView: the permission needed for that distribution path is not verified, and main-frame URL checks cannot guarantee that provider-native same-document or SPA interactions remain on one item.
 
-The single `Guarda sul web` escape opens the same Reel in the external browser with `?l=1`; Instagram posts and other providers keep their existing embeds/links. No DOM/JavaScript injection, scraping, video extraction, bypass of login/age/access controls or SocialViewer-controlled feed is permitted.
+If Instagram does not allow a Reel to play in its official embed, SocialViewer leaves playback to Instagram's browser page after the user chooses the external action. It does not inject page scripts, scrape, extract or download media, proxy or rehost content, force login, or bypass access controls.
 
 ## AD-005 — Deep links are user-managed and provider-aware
 

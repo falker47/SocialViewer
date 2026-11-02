@@ -1,6 +1,6 @@
 # Social Viewer — Privacy Policy
 
-**Last updated: 29 September 2026**
+**Last updated: 2 November 2026**
 
 Developer: **Maurizio Falconi (falker47)**  
 Project label: **Falker Studio**  
@@ -41,7 +41,7 @@ Those services may receive information required to serve and operate the embedde
 
 Depending on the provider, these data may be used by that provider for content delivery and app functionality, analytics, fraud prevention/security/compliance, advertising or marketing, and personalization. Social Viewer itself does not operate an advertising SDK, analytics backend, recommendation system or user-profile database.
 
-For a public Instagram Reel, Social Viewer may load that Reel's official Instagram mobile webpage directly inside a bounded in-app WebView rather than the embedded preview; normal Instagram posts continue to use the provider's official embed. Instagram operates the page and may display its own controls, cookies, messages or other UI. Social Viewer limits main-frame navigation to the shared Reel, blocks third-party cookies and provides a single explicit external browser action; it does not suppress provider-native tracking or claim anonymity. Provider site data can be cleared in Settings.
+Instagram public posts and Reels use Meta's official embed in Social Viewer. An embed may not permit inline playback for every Reel. The single **Guarda sul web** action can open the selected Reel in the external browser; browser-side cookies and processing are then governed by that browser and Instagram. Social Viewer does not load Instagram's full mobile webpage in its own WebView.
 
 The provider's processing is governed by its own privacy policy and terms. Social Viewer does not bypass private content, authentication requirements, age gates, removals, regional restrictions or other provider access controls.
 
@@ -86,7 +86,7 @@ For privacy questions:
 
 # Social Viewer — Informativa sulla privacy
 
-**Ultimo aggiornamento: 29 settembre 2026**
+**Ultimo aggiornamento: 2 novembre 2026**
 
 Sviluppatore: **Maurizio Falconi (falker47)**  
 Marchio progettuale: **Falker Studio**  
@@ -127,7 +127,7 @@ Questi servizi possono ricevere informazioni necessarie a fornire e gestire il c
 
 A seconda del provider, questi dati possono essere usati dal provider per erogazione del contenuto e funzionalità dell'app, analisi, prevenzione frodi/sicurezza/conformità, pubblicità o marketing e personalizzazione. Social Viewer non gestisce direttamente SDK pubblicitari, backend di analytics, sistemi di raccomandazione o database di profili utente.
 
-Per un Reel Instagram pubblico, Social Viewer può caricare direttamente la pagina mobile ufficiale del singolo Reel in una WebView interna, anziché mostrare soltanto l'anteprima incorporata; i normali post Instagram continuano a usare l'embed ufficiale. La pagina è gestita da Instagram e può mostrare i propri controlli, cookie, messaggi o altri elementi. Social Viewer limita la navigazione principale al Reel condiviso, blocca i cookie di terze parti e mantiene un'unica azione esplicita per aprire il browser; non impedisce né nasconde necessariamente i tracciamenti del provider. I dati sito possono essere cancellati dalle Impostazioni.
+I post e i Reel pubblici di Instagram usano l'embed ufficiale Meta dentro Social Viewer. L'embed potrebbe non consentire la riproduzione interna di ogni Reel. L'unica azione **Guarda sul web** può aprire il Reel selezionato nel browser esterno; cookie e trattamenti nel browser sono regolati dal browser e da Instagram. Social Viewer non carica la pagina mobile completa di Instagram nella propria WebView.
 
 Il trattamento del provider è regolato dalle rispettive informative privacy e condizioni. Social Viewer non aggira contenuti privati, autenticazione, limiti di età, rimozioni, restrizioni geografiche o altri controlli di accesso dei provider.
 

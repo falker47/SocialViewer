@@ -26,7 +26,7 @@ class InstagramUrlPolicyTest {
     }
 
     @Test
-    fun reelWebFallbackOnlyAcceptsCanonicalInstagramReels() {
+    fun externalWebContinuationOnlyAcceptsCanonicalInstagramReels() {
         // A real user's public Reel plays after Instagram's "Continue on web" action,
         // which produces the same permalink with ?l=1.
         assertEquals(
@@ -53,55 +53,6 @@ class InstagramUrlPolicyTest {
         assertNull(
             InstagramUrlPolicy.mobileWebReelUrl(
                 "https://www.instagram.com/reel/DfNMUcrBOxp/#player",
-            ),
-        )
-    }
-
-    @Test
-    fun firstPartyWebViewNavigationStaysOnTheSameReel() {
-        val allowed = "https://www.instagram.com/reel/DfNMUcrBOxp/?l=1"
-
-        assertTrue(InstagramUrlPolicy.allowsInAppReelNavigation(allowed, allowed))
-        assertTrue(
-            InstagramUrlPolicy.allowsInAppReelNavigation(
-                allowed,
-                "https://www.instagram.com/reel/DfNMUcrBOxp/",
-            ),
-        )
-        assertFalse(
-            InstagramUrlPolicy.allowsInAppReelNavigation(
-                allowed,
-                "https://www.instagram.com/reel/OtherReel/?l=1",
-            ),
-        )
-        assertFalse(
-            InstagramUrlPolicy.allowsInAppReelNavigation(
-                allowed,
-                "https://www.instagram.com/accounts/login/",
-            ),
-        )
-        assertFalse(
-            InstagramUrlPolicy.allowsInAppReelNavigation(
-                allowed,
-                "https://instagram.com/reel/DfNMUcrBOxp/?l=1",
-            ),
-        )
-        assertFalse(
-            InstagramUrlPolicy.allowsInAppReelNavigation(
-                allowed,
-                "https://www.instagram.com/reel/DfNMUcrBOxp/?l=1&other=true",
-            ),
-        )
-        assertFalse(
-            InstagramUrlPolicy.allowsInAppReelNavigation(
-                allowed,
-                "https://www.instagram.com/reel/DfNMUcrBOxp/?l=1#profile",
-            ),
-        )
-        assertFalse(
-            InstagramUrlPolicy.allowsInAppReelNavigation(
-                allowed,
-                "http://www.instagram.com/reel/DfNMUcrBOxp/?l=1",
             ),
         )
     }

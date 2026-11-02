@@ -82,6 +82,7 @@ class OpenOriginalIntentRegressionTest {
             File("app/$relativePath"),
         ).firstOrNull(File::isFile)
             ?.readText()
+            ?.replace("\r\n", "\n")
             ?: error("SocialViewerApp.kt not found from unit-test working directory")
     }
 }
