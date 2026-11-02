@@ -76,6 +76,7 @@
     <string name="open_original">Open original</string>
     <string name="loading_content">Opening content…</string>
     <string name="original">Original</string>
+    <string name="instagram_watch_on_web">Reel won\'t play? Watch on web</string>
     <string name="retry">Retry</string>
     <string name="back_to_home">Back to home</string>
     <string name="error_invalid_link">This doesn’t look like a valid link.</string>
