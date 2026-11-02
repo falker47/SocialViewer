@@ -153,6 +153,17 @@ With direct-link handling enabled for at least one supported provider:
 
 Record PASS only if every original-content escape path opens in a browser outside SocialViewer while generic external links such as Privacy, source code and portfolio still use their normal external-link behavior.
 
+### Instagram Reel web fallback (issue #38; physical-device gate)
+
+1. Open \`https://www.instagram.com/reel/DfNMUcrBOxp/\` in SocialViewer.
+2. The official Instagram oEmbed must remain visible; a separate **Non parte? Guarda sul web** (or English equivalent) action must appear below it.
+3. Tap that action. Android must open a browser, not loop back into SocialViewer, and the destination must be the same Reel with \`?l=1\`.
+4. On the physical test phone, the Reel must play without installing or logging into Instagram. If Instagram changes the behaviour, record the actual landing/result instead of claiming PASS.
+5. On an Instagram **post** and a TikTok/Threads item, the Reel-only web action must be absent. Existing **Originale** must remain unchanged and functional.
+6. Verify that the previously working Instagram Reel oEmbed still plays, and that the app does not alter cookies, provider script markup or in-app navigation boundaries.
+
+The \`l=1\` parameter is observed through Instagram's mobile **Continue on web** experience, **not** a documented stable Meta API. This is a user-invoked best-effort official-web fallback; do not claim that playback now works *inside* SocialViewer.
+
 ## 11. Share-sheet fallback
 
 Share a public TikTok URL as text from another app and choose **SocialViewer**.
