@@ -15,7 +15,7 @@ Please remain opted in for **14 consecutive days**, try opening a few public soc
 Implemented providers:
 
 - **TikTok** — verified baseline.
-- **Instagram** — verified public posts and Reels via Meta's official tokenless oEmbed path.
+- **Instagram** — public posts use Meta's official tokenless oEmbed. Public Reels are preflighted via the same official provider and, in this candidate, use Instagram's first-party mobile single-Reel page in a bounded WebView for playback; `Guarda sul web` remains an external fallback.
 - **Threads** — verified public post permalinks, shorthand `/t/` URLs, legacy `threads.net` compatibility and `/t/` direct opening via Meta's official tokenless oEmbed path.
 - **Facebook** — **In pausa / unsupported** for the real-world share-link flow. PR #4 remains an unmerged technical record and is not counted as a supported provider.
 - **YouTube / Shorts** — verified for public watch URLs, `youtu.be`, Shorts and the narrow `/live/` alias through the official privacy-enhanced IFrame player. Made For Kids videos fail closed before embedding; removed/unavailable content is handled cleanly.

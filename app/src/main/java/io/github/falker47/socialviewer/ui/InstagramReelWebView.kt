@@ -18,13 +18,13 @@ import androidx.compose.ui.viewinterop.AndroidView
 import io.github.falker47.socialviewer.provider.instagram.InstagramUrlPolicy
 
 /**
- * Link-QA-only experiment. Opens the provider's own mobile Reel page as a
- * first-party document without scraping/rehosting or entering general browsing.
- * The normal production Instagram path remains the official oEmbed renderer.
+ * Renders a single public Instagram Reel using the provider's official mobile
+ * web page as a first-party document. Does not scrape, modify or rehost media.
+ * Navigation remains limited to the explicitly selected Reel.
  */
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
-internal fun InstagramReelQaWebView(
+internal fun InstagramReelWebView(
     reelWebUrl: String,
     modifier: Modifier = Modifier,
     onContentReady: () -> Unit = {},

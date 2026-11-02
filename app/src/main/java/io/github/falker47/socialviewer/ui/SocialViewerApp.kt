@@ -2,7 +2,6 @@ package io.github.falker47.socialviewer.ui
 
 import io.github.falker47.socialviewer.preview.RedditPagePreview
 import io.github.falker47.socialviewer.provider.instagram.InstagramUrlPolicy
-import io.github.falker47.socialviewer.BuildConfig
 
 import android.app.Activity
 import android.content.ClipboardManager
@@ -1663,12 +1662,9 @@ private fun PlayerScreen(
     ) {
         mutableStateOf(false)
     }
-    // QA-only feasibility experiment: production continues to render Meta's
-    // official oEmbed, which is not always an inline-playable Reel player.
-    val firstPartyReelQaUrl = if (
-        BuildConfig.APPLICATION_ID.endsWith(".linkqa") &&
-        content.providerId == "instagram"
-    ) {
+    // Public Instagram Reels use their official first-party mobile page for
+    // in-app playback. Posts and other providers keep their existing embeds.
+    val firstPartyReelUrl = if (content.providerId == "instagram") {
         InstagramUrlPolicy.mobileWebReelUrl(content.canonicalUrl)
     } else {
         null
@@ -1724,9 +1720,9 @@ private fun PlayerScreen(
                     modifier = Modifier.fillMaxWidth().fillMaxHeight()
                         .widthIn(max = 840.dp).background(Color.Black),
                 ) {
-                    if (firstPartyReelQaUrl != null) {
-                        InstagramReelQaWebView(
-                            reelWebUrl = firstPartyReelQaUrl,
+                    if (firstPartyReelUrl != null) {
+                        InstagramReelWebView(
+                            reelWebUrl = firstPartyReelUrl,
                             modifier = Modifier.fillMaxSize(),
                             onContentReady = { embedReady = true },
                         )

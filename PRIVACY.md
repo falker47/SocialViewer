@@ -41,6 +41,8 @@ Those services may receive information required to serve and operate the embedde
 
 Depending on the provider, these data may be used by that provider for content delivery and app functionality, analytics, fraud prevention/security/compliance, advertising or marketing, and personalization. Social Viewer itself does not operate an advertising SDK, analytics backend, recommendation system or user-profile database.
 
+For a public Instagram Reel, Social Viewer may load that Reel's official Instagram mobile webpage directly inside a bounded in-app WebView rather than the embedded preview; normal Instagram posts continue to use the provider's official embed. Instagram operates the page and may display its own controls, cookies, messages or other UI. Social Viewer limits main-frame navigation to the shared Reel, blocks third-party cookies and provides a single explicit external browser action; it does not suppress provider-native tracking or claim anonymity. Provider site data can be cleared in Settings.
+
 The provider's processing is governed by its own privacy policy and terms. Social Viewer does not bypass private content, authentication requirements, age gates, removals, regional restrictions or other provider access controls.
 
 ## 4. YouTube
@@ -124,6 +126,8 @@ Per risolvere o mostrare un link pubblico, Social Viewer si collega direttamente
 Questi servizi possono ricevere informazioni necessarie a fornire e gestire il contenuto incorporato, tra cui URL/identificativo del contenuto pubblico richiesto, posizione approssimativa dedotta dall'indirizzo IP, identificatori dell'app o del dispositivo, informazioni del browser/WebView o del dispositivo, interazioni o dati di riproduzione nell'embed e cookie o preferenze del provider quando applicabili.
 
 A seconda del provider, questi dati possono essere usati dal provider per erogazione del contenuto e funzionalità dell'app, analisi, prevenzione frodi/sicurezza/conformità, pubblicità o marketing e personalizzazione. Social Viewer non gestisce direttamente SDK pubblicitari, backend di analytics, sistemi di raccomandazione o database di profili utente.
+
+Per un Reel Instagram pubblico, Social Viewer può caricare direttamente la pagina mobile ufficiale del singolo Reel in una WebView interna, anziché mostrare soltanto l'anteprima incorporata; i normali post Instagram continuano a usare l'embed ufficiale. La pagina è gestita da Instagram e può mostrare i propri controlli, cookie, messaggi o altri elementi. Social Viewer limita la navigazione principale al Reel condiviso, blocca i cookie di terze parti e mantiene un'unica azione esplicita per aprire il browser; non impedisce né nasconde necessariamente i tracciamenti del provider. I dati sito possono essere cancellati dalle Impostazioni.
 
 Il trattamento del provider è regolato dalle rispettive informative privacy e condizioni. Social Viewer non aggira contenuti privati, autenticazione, limiti di età, rimozioni, restrizioni geografiche o altri controlli di accesso dei provider.
 

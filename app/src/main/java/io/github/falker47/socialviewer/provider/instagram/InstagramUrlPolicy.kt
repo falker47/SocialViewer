@@ -42,8 +42,8 @@ object InstagramUrlPolicy {
 
     /**
      * First-party mobile web path observed after Instagram's "Continue on web" action.
-     * This query flag is undocumented; use only for an explicit external-browser fallback.
-     * Require a canonical Reel permalink to avoid leaking arbitrary input/query data.
+     * The query flag is not documented as a stable API; only apply it to canonical
+     * public Reel URLs, for bounded first-party playback or external web fallback.
      */
     fun mobileWebReelUrl(permalink: String): String? {
         val parsed = runCatching { java.net.URI(permalink) }.getOrNull() ?: return null
@@ -58,8 +58,8 @@ object InstagramUrlPolicy {
     }
 
     /**
-     * QA-only boundary for the official first-party mobile Reel page.
-     * Never allow following its links to profiles, feeds, login or other Reels.
+     * Single-content boundary for the official first-party Reel page.
+     * Main-frame navigation must not lead to profiles, feeds, login or other Reels.
      */
     fun allowsInAppReelNavigation(allowedWebUrl: String, destinationUrl: String): Boolean {
         val canonical = allowedWebUrl.removeSuffix("?l=1")
