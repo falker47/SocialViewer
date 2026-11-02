@@ -16,15 +16,15 @@ class OpenOriginalIntentRegressionTest {
         )
         assertTrue(
             "Open-original helper must preserve ACTION_VIEW with the original URL",
-            source.contains("Intent(Intent.ACTION_VIEW, Uri.parse(url))"),
+            source.contains("Intent(Intent.ACTION_VIEW, Uri.parse(browserUrl))"),
         )
         assertTrue(
             "Open-original helper must resolve through a selector instead of app-link ownership",
             source.contains("selector = browserSelector"),
         )
         assertEquals(
-            "Three original-content actions plus the explicit Instagram web fallback must use the browser-only helper",
-            4,
+            "Three web actions must use the shared browser-only helper",
+            3,
             Regex("""openOriginalExternal\(context,""").findAll(source).count(),
         )
     }
@@ -34,10 +34,10 @@ class OpenOriginalIntentRegressionTest {
         val source = socialViewerAppSource()
 
         assertTrue(
-            source.contains("InstagramUrlPolicy.mobileWebReelUrl(current.content.canonicalUrl)"),
+            source.contains("val browserUrl = InstagramUrlPolicy.mobileWebReelUrl(url) ?: url"),
         )
         assertTrue(
-            source.contains("webUrl -> { openOriginalExternal(context, webUrl) }"),
+            source.contains("Intent(Intent.ACTION_VIEW, Uri.parse(browserUrl))"),
         )
     }
 

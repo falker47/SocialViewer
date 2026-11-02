@@ -392,12 +392,6 @@ fun SocialViewerApp(
                             content = current.content,
                             onBack = { state = ViewerState.Home },
                             onOpenOriginal = { openOriginalExternal(context, current.content.canonicalUrl) },
-                            onOpenInstagramWeb = if (current.content.providerId == "instagram") {
-                                InstagramUrlPolicy.mobileWebReelUrl(current.content.canonicalUrl)
-                                    ?.let { webUrl -> { openOriginalExternal(context, webUrl) } }
-                            } else {
-                                null
-                            },
                             modifier = Modifier.padding(padding),
                         )
 
@@ -1659,7 +1653,6 @@ private fun PlayerScreen(
     content: SocialContent,
     onBack: () -> Unit,
     onOpenOriginal: () -> Unit,
-    onOpenInstagramWeb: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
     var embedReady by remember(
@@ -1729,20 +1722,6 @@ private fun PlayerScreen(
                             onContentReady = { embedReady = true },
                         )
                     }
-                }
-            }
-            if (onOpenInstagramWeb != null) {
-                TextButton(
-                    onClick = onOpenInstagramWeb,
-                    modifier = Modifier.align(Alignment.CenterHorizontally),
-                ) {
-                    Text(stringResource(R.string.instagram_watch_on_web))
-                    Spacer(Modifier.size(6.dp))
-                    Icon(
-                        imageVector = Icons.Outlined.OpenInNew,
-                        contentDescription = null,
-                        modifier = Modifier.size(16.dp),
-                    )
                 }
             }
         }
@@ -1840,10 +1819,13 @@ private fun openExternal(context: Context, url: String) {
 }
 
 private fun openOriginalExternal(context: Context, url: String) {
+    // The same browser escape serves every provider; only Instagram Reels need
+    // the observed first-party mobile web continuation parameter.
+    val browserUrl = InstagramUrlPolicy.mobileWebReelUrl(url) ?: url
     val browserSelector = Intent(Intent.ACTION_MAIN).apply {
         addCategory(Intent.CATEGORY_APP_BROWSER)
     }
-    val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(url)).apply {
+    val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(browserUrl)).apply {
         selector = browserSelector
     }
     context.startActivity(browserIntent)
