@@ -42,6 +42,24 @@ class OpenOriginalIntentRegressionTest {
     }
 
     @Test
+    fun viewerUsesOneSharedWebActionInsteadOfDuplicateInstagramCta() {
+        val source = socialViewerAppSource()
+
+        assertTrue(
+            "Browser-only helper must apply Instagram's special URL before opening",
+            source.contains("InstagramUrlPolicy.mobileWebReelUrl(url) ?: url"),
+        )
+        assertTrue(
+            "The three native web actions should all use the same browser escape",
+            Regex("""openOriginalExternal\\(context,""").findAll(source).count() == 3,
+        )
+        assertTrue(
+            "The extra Instagram-only web action must be removed",
+            !source.contains("onOpenInstagramWeb"),
+        )
+    }
+
+    @Test
     fun genericExternalLinksKeepNormalActionViewBehavior() {
         val source = socialViewerAppSource()
 
