@@ -1,6 +1,7 @@
 package io.github.falker47.socialviewer.ui
 
 import io.github.falker47.socialviewer.preview.RedditPagePreview
+import io.github.falker47.socialviewer.provider.instagram.InstagramUrlPolicy
 
 import android.app.Activity
 import android.content.ClipboardManager
@@ -391,6 +392,12 @@ fun SocialViewerApp(
                             content = current.content,
                             onBack = { state = ViewerState.Home },
                             onOpenOriginal = { openOriginalExternal(context, current.content.canonicalUrl) },
+                            onOpenInstagramWeb = if (current.content.providerId == "instagram") {
+                                InstagramUrlPolicy.mobileWebReelUrl(current.content.canonicalUrl)
+                                    ?.let { webUrl -> { openOriginalExternal(context, webUrl) } }
+                            } else {
+                                null
+                            },
                             modifier = Modifier.padding(padding),
                         )
 
@@ -1652,6 +1659,7 @@ private fun PlayerScreen(
     content: SocialContent,
     onBack: () -> Unit,
     onOpenOriginal: () -> Unit,
+    onOpenInstagramWeb: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
     var embedReady by remember(
@@ -1721,6 +1729,20 @@ private fun PlayerScreen(
                             onContentReady = { embedReady = true },
                         )
                     }
+                }
+            }
+            if (onOpenInstagramWeb != null) {
+                TextButton(
+                    onClick = onOpenInstagramWeb,
+                    modifier = Modifier.align(Alignment.CenterHorizontally),
+                ) {
+                    Text(stringResource(R.string.instagram_watch_on_web))
+                    Spacer(Modifier.size(6.dp))
+                    Icon(
+                        imageVector = Icons.Outlined.OpenInNew,
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp),
+                    )
                 }
             }
         }
