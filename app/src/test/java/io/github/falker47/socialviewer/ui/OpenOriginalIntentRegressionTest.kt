@@ -51,7 +51,7 @@ class OpenOriginalIntentRegressionTest {
         )
         assertTrue(
             "The three native web actions should all use the same browser escape",
-            Regex("""openOriginalExternal\\(context,""").findAll(source).count() == 3,
+            Regex("""openOriginalExternal\(context,""").findAll(source).count() == 3,
         )
         assertTrue(
             "The extra Instagram-only web action must be removed",
