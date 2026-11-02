@@ -58,6 +58,55 @@ class InstagramUrlPolicyTest {
     }
 
     @Test
+    fun firstPartyWebViewNavigationStaysOnTheSameReel() {
+        val allowed = "https://www.instagram.com/reel/DfNMUcrBOxp/?l=1"
+
+        assertTrue(InstagramUrlPolicy.allowsInAppReelNavigation(allowed, allowed))
+        assertTrue(
+            InstagramUrlPolicy.allowsInAppReelNavigation(
+                allowed,
+                "https://www.instagram.com/reel/DfNMUcrBOxp/",
+            ),
+        )
+        assertFalse(
+            InstagramUrlPolicy.allowsInAppReelNavigation(
+                allowed,
+                "https://www.instagram.com/reel/OtherReel/?l=1",
+            ),
+        )
+        assertFalse(
+            InstagramUrlPolicy.allowsInAppReelNavigation(
+                allowed,
+                "https://www.instagram.com/accounts/login/",
+            ),
+        )
+        assertFalse(
+            InstagramUrlPolicy.allowsInAppReelNavigation(
+                allowed,
+                "https://instagram.com/reel/DfNMUcrBOxp/?l=1",
+            ),
+        )
+        assertFalse(
+            InstagramUrlPolicy.allowsInAppReelNavigation(
+                allowed,
+                "https://www.instagram.com/reel/DfNMUcrBOxp/?l=1&other=true",
+            ),
+        )
+        assertFalse(
+            InstagramUrlPolicy.allowsInAppReelNavigation(
+                allowed,
+                "https://www.instagram.com/reel/DfNMUcrBOxp/?l=1#profile",
+            ),
+        )
+        assertFalse(
+            InstagramUrlPolicy.allowsInAppReelNavigation(
+                allowed,
+                "http://www.instagram.com/reel/DfNMUcrBOxp/?l=1",
+            ),
+        )
+    }
+
+    @Test
     fun rejectsProfilesStoriesAndLookalikeHosts() {
         assertFalse(InstagramUrlPolicy.supports("https", "www.instagram.com", "/alice/"))
         assertFalse(InstagramUrlPolicy.supports("https", "www.instagram.com", "/stories/alice/123/"))
