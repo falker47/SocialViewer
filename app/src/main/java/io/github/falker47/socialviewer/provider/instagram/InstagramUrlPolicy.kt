@@ -57,6 +57,16 @@ object InstagramUrlPolicy {
         return "$canonical?l=1"
     }
 
+    /**
+     * QA-only boundary for the official first-party mobile Reel page.
+     * Never allow following its links to profiles, feeds, login or other Reels.
+     */
+    fun allowsInAppReelNavigation(allowedWebUrl: String, destinationUrl: String): Boolean {
+        val canonical = allowedWebUrl.removeSuffix("?l=1")
+        if (mobileWebReelUrl(canonical) != allowedWebUrl) return false
+        return destinationUrl == allowedWebUrl || destinationUrl == canonical
+    }
+
     private fun isValidShortcode(value: String): Boolean =
         value.isNotBlank() &&
             value.all { char ->

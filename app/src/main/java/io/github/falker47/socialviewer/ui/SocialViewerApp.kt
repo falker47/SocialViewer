@@ -2,6 +2,7 @@ package io.github.falker47.socialviewer.ui
 
 import io.github.falker47.socialviewer.preview.RedditPagePreview
 import io.github.falker47.socialviewer.provider.instagram.InstagramUrlPolicy
+import io.github.falker47.socialviewer.BuildConfig
 
 import android.app.Activity
 import android.content.ClipboardManager
@@ -1662,6 +1663,16 @@ private fun PlayerScreen(
     ) {
         mutableStateOf(false)
     }
+    // QA-only feasibility experiment: production continues to render Meta's
+    // official oEmbed, which is not always an inline-playable Reel player.
+    val firstPartyReelQaUrl = if (
+        BuildConfig.APPLICATION_ID.endsWith(".linkqa") &&
+        content.providerId == "instagram"
+    ) {
+        InstagramUrlPolicy.mobileWebReelUrl(content.canonicalUrl)
+    } else {
+        null
+    }
 
     Box(modifier = modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
@@ -1713,7 +1724,13 @@ private fun PlayerScreen(
                     modifier = Modifier.fillMaxWidth().fillMaxHeight()
                         .widthIn(max = 840.dp).background(Color.Black),
                 ) {
-                    if (!RedditPagePreview(content.embedHtml, content.documentBaseUrl, Modifier.fillMaxSize()) { embedReady = true }) {
+                    if (firstPartyReelQaUrl != null) {
+                        InstagramReelQaWebView(
+                            reelWebUrl = firstPartyReelQaUrl,
+                            modifier = Modifier.fillMaxSize(),
+                            onContentReady = { embedReady = true },
+                        )
+                    } else if (!RedditPagePreview(content.embedHtml, content.documentBaseUrl, Modifier.fillMaxSize()) { embedReady = true }) {
                         EmbedWebView(
                             html = content.embedHtml,
                             baseUrl = content.documentBaseUrl,

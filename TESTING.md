@@ -164,6 +164,19 @@ Record PASS only if every native web escape opens in a browser outside SocialVie
 
 Instagram `l=1` is an observed first-party browser behaviour, **not** a documented stable Meta API. The web action does **not** prove in-app Instagram playback. Do not relax embedded WebView navigation or cookies without a separately verified bounded playback path.
 
+### QA-only first-party Instagram Reel playback feasibility (spike PR #40)
+
+This is an experiment on the separately installed `Link QA` package only. Play / debug / release keep the existing Instagram official oEmbed. The QA variant loads the original first-party Instagram Reel webpage at `?l=1` inside its WebView, without modifying the provider page's DOM, cookies policy or media files.
+
+1. In the `Link QA` app, paste `https://www.instagram.com/reel/DfNMUcrBOxp/`. Confirm that Instagram's full mobile Reel page opens **inside SocialViewer Link QA**, not in Chrome.
+2. Tap Play: record whether the video and audio actually play inside the WebView without Instagram app installation or login. An image alone, a loading spinner or a prompt to install Instagram is **not PASS**.
+3. Try to open another Reel, profile, home/feed or login inside this QA WebView. Navigations to other pages must be blocked. Do **not** enter credentials or sign in.
+4. Tap the **single** `Guarda sul web` / `Watch on web` action. Confirm it still opens `?l=1` in the external browser without looping into SocialViewer.
+5. In Link QA test an Instagram post plus a TikTok item: these must still use the normal oEmbed/shared WebView path; no first-party Instagram mode for other content.
+6. Compare the same Reel in the standard Play version, where the official oEmbed intentionally remains unchanged. Report layout/feed/login prompts, stuck loading, playback errors and audio/fullscreen behaviour.
+
+Fail the experimental feasibility gate if the provider's first-party mobile page refuses Android WebView, needs login, shows unsafe navigable feed, or requires unapproved manipulation. Never publish this proof-of-concept in Play.
+
 ## 11. Share-sheet fallback
 
 Share a public TikTok URL as text from another app and choose **SocialViewer**.
