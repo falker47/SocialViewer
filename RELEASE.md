@@ -5,8 +5,9 @@ SocialViewer targets **Google Play** as its initial public distribution channel.
 ## Fixed release identity
 
 - Application ID: `io.github.falker47.socialviewer`
-- Next source version prepared for the existing Closed Testing track: `0.1.9` (`versionCode = 10`). See `docs/RELEASE_0.1.9_TIKTOK_429.md`. Signed bundle and Play publication are not yet verified.
-- Last recorded Play Console checkpoint: `0.1.8` (9) available to selected closed testers on 20 October 2026. This historical observation does not establish the current live Play Console state.
+- The `main` source follows the `0.1.9` (`versionCode = 10`) release line; see `docs/RELEASE_0.1.9_TIKTOK_429.md` for historical evidence.
+- [Draft PR #40](https://github.com/falker47/SocialViewer/pull/40) separately prepares `0.1.10` (`versionCode = 11`). The 3 November checkpoint reports a signed AAB produced in a local environment; this repository does not independently verify or distribute it.
+- Last documented Play checkpoint: `0.1.9` (10) on Closed Testing as observed 2 November 2026. The prior `0.1.8` (9) observation of 20 October is historical. Recheck live Play Console before any upload or publication.
 - Minimum SDK: 26
 - Target / compile SDK: 37
 - Publishing format: Android App Bundle (`.aab`)
@@ -111,7 +112,13 @@ app/build/outputs/bundle/release/
 
 Before uploading, confirm the exact generated filename rather than assuming it.
 
-## First Play Console gate
+## Current release gate — separate from this documentation change
+
+The signed 0.1.10 artifact, actual Play track state, privacy policy, Data Safety and device QA must be reconciled in the release workflow. This edit authorizes no upload, approval, review submission or rollout. See the [Product Vision](docs/PRODUCT_VISION.md) for positioning.
+
+## Historical initial Play Console checklist
+
+This section documents the earlier first-app setup process. The SocialViewer Play Console entry and testing tracks already exist; do not recreate the app or replace signing credentials based on this historical checklist.
 
 After this repository plumbing is green:
 
