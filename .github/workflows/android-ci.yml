@@ -162,9 +162,9 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
-      - name: Assemble isolated Play-like QA APK and run its unit tests
+      - name: Assemble isolated Play-like QA APK (after shared unit tests)
         if: github.head_ref == 'spike/instagram-reel-inapp-webview-38'
-        run: ./gradlew --no-daemon testPlayQaUnitTest assemblePlayQa
+        run: ./gradlew --no-daemon assemblePlayQa
 
       - name: Verify Play-like QA package identity and signing
         if: github.head_ref == 'spike/instagram-reel-inapp-webview-38'

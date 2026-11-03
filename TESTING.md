@@ -30,7 +30,9 @@ After installing the Play QA artifact from the CI run matching its source SHA:
 7. Compare with separately installed official Play version; it still uses Meta
    oEmbed and is intentionally unchanged.
 
-Build: `./gradlew testPlayQaUnitTest assemblePlayQa`. CI verifies the package,
+Build: `./gradlew testDebugUnitTest assemblePlayQa`. The shared Kotlin logic is tested
+on the debug variant; AGP 9.4 does not expose a `testPlayQaUnitTest` task in
+this project. CI verifies the package,
 version, R8 mapping, non-debuggable state, signature and APK checksum.
 No approval for distribution or hard guarantee of same-document isolation is
 implied by this QA.

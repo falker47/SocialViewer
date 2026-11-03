@@ -13,7 +13,9 @@ Prepared: 3 November 2026. Source branch `spike/instagram-reel-inapp-webview-38`
 - The experimental first-party Instagram Reel WebView has a fail-closed
   state guard so a pending Compose AndroidView update cannot reload a page
   after a rejected navigation.
-- CI builds and inspects both isolated packages and runs `testPlayQaUnitTest`.
+- CI runs the existing `testDebugUnitTest` suite for shared logic and
+  builds/inspects both isolated QA packages; `testPlayQaUnitTest` is not
+  available in this project's AGP 9.4 configuration.
 
 ## What is proved and what remains
 
