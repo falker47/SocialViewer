@@ -96,4 +96,5 @@
     <string name="error_pinterest_pin_required">This Pinterest link did not lead to a supported public Pin. Open a direct link to the Pin.</string>
     <string name="error_provider_not_configured_format">%1$s isn’t configured in this build.</string>
     <string name="error_youtube_mfk">Videos marked as Made for Kids on YouTube aren’t opened in SocialViewer.</string>
+    <string name="instagram_reel_qa_navigation_blocked">Instagram attempted to leave the selected Reel. This QA view was closed for safety. Use Watch on web if needed.</string>
 </resources>

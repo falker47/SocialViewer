@@ -8,11 +8,24 @@ import android.webkit.WebResourceRequest
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color as ComposeColor
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import io.github.falker47.socialviewer.R
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
 import io.github.falker47.socialviewer.provider.instagram.InstagramUrlPolicy
@@ -33,6 +46,33 @@ internal fun InstagramReelQaWebView(
     val webViewHolder = remember { arrayOfNulls<WebView>(1) }
     val fullscreenController = remember(context) { EmbedFullscreenController(context) }
     val currentOnContentReady = rememberUpdatedState(onContentReady)
+    var navigationBlocked by remember(reelWebUrl) { mutableStateOf(false) }
+
+    // A history notification may report SPA URL changes missed by main-frame
+    // interception. This is a fail-closed QA observation, not a guarantee that
+    // a provider page cannot change content without changing its URL.
+    fun failClosed(view: WebView) {
+        if (view.tag != reelWebUrl || navigationBlocked) return
+        view.tag = null
+        view.stopLoading()
+        navigationBlocked = true
+        currentOnContentReady.value.invoke()
+    }
+
+    if (navigationBlocked) {
+        Box(
+            modifier = modifier.background(ComposeColor.Black),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text = stringResource(R.string.instagram_reel_qa_navigation_blocked),
+                color = ComposeColor.White,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(24.dp),
+            )
+        }
+        return
+    }
 
     AndroidView(
         modifier = modifier,
@@ -69,19 +109,30 @@ internal fun InstagramReelQaWebView(
                                 request.url.toString(),
                             )
 
+                    override fun doUpdateVisitedHistory(
+                        view: WebView,
+                        url: String,
+                        isReload: Boolean,
+                    ) {
+                        super.doUpdateVisitedHistory(view, url, isReload)
+                        if (!InstagramUrlPolicy.allowsInAppReelNavigation(reelWebUrl, url)) {
+                            failClosed(view)
+                        }
+                    }
+
                     override fun onPageStarted(view: WebView, url: String, favicon: Bitmap?) {
                         if (!InstagramUrlPolicy.allowsInAppReelNavigation(reelWebUrl, url)) {
-                            view.stopLoading()
+                            failClosed(view)
                         }
                     }
 
                     override fun onPageFinished(view: WebView, url: String) {
-                        if (
-                            view.tag == reelWebUrl &&
-                            InstagramUrlPolicy.allowsInAppReelNavigation(reelWebUrl, url)
-                        ) {
-                            currentOnContentReady.value.invoke()
+                        if (view.tag != reelWebUrl) return
+                        if (!InstagramUrlPolicy.allowsInAppReelNavigation(reelWebUrl, url)) {
+                            failClosed(view)
+                            return
                         }
+                        currentOnContentReady.value.invoke()
                     }
                 }
 

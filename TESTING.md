@@ -4,6 +4,33 @@ This checklist is the gate for changes that touch UI, intents, WebView behavior,
 
 Baseline note: TikTok playback plus the light Home/onboarding/Settings flow were verified during the 2026-09-23 MVP pass. Re-run the relevant sections after changes rather than assuming a previous pass covers new code.
 
+## Instagram Reel #38 — isolated Link QA boundary experiment (not Play)
+
+PR #40 Link QA loads the first-party Instagram Reel page. Its previous APK
+had user-confirmed video/audio playback for DfNMUcrBOxp. This does not
+establish Meta permission or a guarantee against unrelated SPA content.
+
+The QA history observer now fails closed if Android reports an off-Reel URL.
+This includes some SPA visited-history changes. It is reactive and cannot
+prevent same-URL page changes or guarantee no unintended content is drawn.
+
+On a real phone with SocialViewer Link QA only (leave Play 0.1.9 intact):
+
+1. Open https://www.instagram.com/reel/DfNMUcrBOxp/ and verify video/audio.
+2. Open a second public Reel; test play, pause, fullscreen and rotation.
+3. Tap a profile, another Reel, a feed entry, and any login prompt. None
+   may become usable in Link QA. An off-Reel history change must close the
+   QA viewer and show its localized safety warning.
+4. Use Guarda sul web and confirm it opens the external browser.
+5. Test an ordinary Instagram post and TikTok, Threads, YouTube, Reddit,
+   Pinterest, X and Bluesky. CI builds omit the YouTube API key, so an
+   unavailable YouTube video is not a production regression signal.
+6. Report any feed/login or other Reel displayed without an URL change, or
+   any loss of in-app playback. Either blocks production of this route.
+
+No merge, Play upload, or release follows from a green CI or physical QA;
+Meta authorization for the full Instagram page remains unverified.
+
 ## 1. Clone, open and sync
 
 Clone `falker47/SocialViewer` and open the repository root (`SocialViewer`) in Android Studio, not the `app` subfolder.

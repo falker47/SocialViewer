@@ -95,4 +95,5 @@
     <string name="error_pinterest_pin_required">Questo link Pinterest non ha portato a un Pin pubblico supportato. Apri il link diretto al Pin.</string>
     <string name="error_provider_not_configured_format">%1$s non è configurato in questa build.</string>
     <string name="error_youtube_mfk">I video YouTube destinati ai bambini non vengono aperti in SocialViewer.</string>
+    <string name="instagram_reel_qa_navigation_blocked">Instagram ha tentato di lasciare il Reel selezionato. La vista QA è stata chiusa per sicurezza. Se necessario, usa Guarda sul web.</string>
 </resources>

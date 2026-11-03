@@ -22,6 +22,19 @@ class InstagramReelQaBoundaryTest {
         assertTrue(page.contains("settings.mediaPlaybackRequiresUserGesture = true"))
     }
 
+    @Test
+    fun spaHistoryChangesFailClosedRatherThanDisplayingAnotherReel() {
+        val page = readSource("src/main/java/io/github/falker47/socialviewer/ui/InstagramReelQaWebView.kt")
+
+        // This callback supplements, but cannot replace, a physical SPA audit.
+        assertTrue(page.contains("override fun doUpdateVisitedHistory("))
+        assertTrue(page.contains("!InstagramUrlPolicy.allowsInAppReelNavigation(reelWebUrl, url)"))
+        assertTrue(page.contains("navigationBlocked = true"))
+        assertTrue(page.contains("if (navigationBlocked)"))
+        assertTrue(page.contains("view.tag = null"))
+        assertTrue(page.contains("settings.javaScriptCanOpenWindowsAutomatically = false"))
+    }
+
     private fun readSource(relativePath: String): String =
         sequenceOf(File(relativePath), File("app/$relativePath"))
             .firstOrNull(File::isFile)
