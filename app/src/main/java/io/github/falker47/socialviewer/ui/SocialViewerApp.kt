@@ -1663,10 +1663,10 @@ private fun PlayerScreen(
     ) {
         mutableStateOf(false)
     }
-    // Explicit build-time gate for isolated, separately installable QA apps.
-    // Official Play release and ordinary debug keep Meta's official oEmbed.
-    val firstPartyReelQaUrl = if (
-        BuildConfig.INSTAGRAM_REEL_PAGE_QA &&
+    // The same Reel renderer is used in release and both QA variants.
+    // Ordinary debug retains oEmbed for differential verification.
+    val firstPartyReelUrl = if (
+        BuildConfig.INSTAGRAM_REEL_FIRST_PARTY_ENABLED &&
         content.providerId == "instagram"
     ) {
         InstagramUrlPolicy.mobileWebReelUrl(content.canonicalUrl)
@@ -1724,9 +1724,9 @@ private fun PlayerScreen(
                     modifier = Modifier.fillMaxWidth().fillMaxHeight()
                         .widthIn(max = 840.dp).background(Color.Black),
                 ) {
-                    if (firstPartyReelQaUrl != null) {
+                    if (firstPartyReelUrl != null) {
                         InstagramReelQaWebView(
-                            reelWebUrl = firstPartyReelQaUrl,
+                            reelWebUrl = firstPartyReelUrl,
                             modifier = Modifier.fillMaxSize(),
                             onContentReady = { embedReady = true },
                         )

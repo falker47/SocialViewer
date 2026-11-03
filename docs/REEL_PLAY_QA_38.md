@@ -4,9 +4,8 @@ Prepared: 3 November 2026. Source branch `spike/instagram-reel-inapp-webview-38`
 
 ## What changed
 
-- An explicit build-time flag `BuildConfig.INSTAGRAM_REEL_PAGE_QA` is OFF by
-  default (ordinary debug and Play `release`) and ON only for isolated
-  `linkQa` and `playQa` builds.
+- BuildConfig uses `INSTAGRAM_REEL_FIRST_PARTY_ENABLED` (OFF in normal
+  debug, ON in official `release` and both isolated QA variants).
 - `playQa` uses R8-optimized release settings and separate
   `io.github.falker47.socialviewer.playqa` application identity,
   with the debug test certificate, not the Google Play upload key.
@@ -29,11 +28,11 @@ isolation. Do not add DOM hacks, media extraction, content proxying or bypasses.
 A provider-approved playback path or applicable permission, together with
 demonstrable product confinement, is still required before a production merge.
 
-This build does **not** modify `release` behavior, package identity or Play
-version code (`0.1.9`, code `10`) and must not be uploaded to Google Play.
-A later official RC must use a checked unused versionCode and actual secure
-release-signing credentials. The privacy-policy draft PR #75 currently
-describes the official oEmbed production behavior and must not be released as
-a description of a production full-page Instagram WebView.
+Release source on PR #40 now enables the previously verified Reel WebView.
+Provisional source version: `0.1.10` / code 11, official app ID unchanged.
+CI builds an unsigned AAB, not uploadable to Play; the existing signing
+keystore, production YouTube key and unused Play versionCode still require
+live verification. Privacy policy draft PR #75 must be updated before
+publication to describe the release behavior correctly.
 
 Physical test matrix: see `TESTING.md`.

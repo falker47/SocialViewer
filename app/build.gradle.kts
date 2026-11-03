@@ -62,14 +62,14 @@ android {
         applicationId = "io.github.falker47.socialviewer"
         minSdk = 26
         targetSdk = 37
-        versionCode = 10
-        versionName = "0.1.9"
+        versionCode = 11
+        versionName = "0.1.10"
         resourceConfigurations += listOf("en", "it")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        // Production/debug stay on the official Meta embed. Experimental
-        // full-page Reel playback is opt-in only in separately installable QA apps.
-        buildConfigField("boolean", "INSTAGRAM_REEL_PAGE_QA", "false")
+        // Debug keeps the official Meta oEmbed. Release explicitly enables the
+        // first-party Reel page renderer already validated through Link QA.
+        buildConfigField("boolean", "INSTAGRAM_REEL_FIRST_PARTY_ENABLED", "false")
         buildConfigField(
             "String",
             "YOUTUBE_API_KEY",
@@ -93,6 +93,8 @@ android {
 
     buildTypes {
         release {
+            // Official Play source candidate: same canonical Reel path as Link QA.
+            buildConfigField("boolean", "INSTAGRAM_REEL_FIRST_PARTY_ENABLED", "true")
             // AGP 9.4: R8 performs code shrinking, obfuscation, optimization,
             // and optimized resource shrinking. Platform keep rules are implicit.
             // Custom rules, if needed, belong in src/main/keepRules/*.keep.
@@ -108,7 +110,7 @@ android {
             initWith(getByName("release"))
             applicationIdSuffix = ".linkqa"
             versionNameSuffix = "-link-qa4"
-            buildConfigField("boolean", "INSTAGRAM_REEL_PAGE_QA", "true")
+            buildConfigField("boolean", "INSTAGRAM_REEL_FIRST_PARTY_ENABLED", "true")
             signingConfig = signingConfigs.getByName("debug")
             isDebuggable = false
             matchingFallbacks += listOf("release")
@@ -122,7 +124,7 @@ android {
             initWith(getByName("release"))
             applicationIdSuffix = ".playqa"
             versionNameSuffix = "-play-qa1"
-            buildConfigField("boolean", "INSTAGRAM_REEL_PAGE_QA", "true")
+            buildConfigField("boolean", "INSTAGRAM_REEL_FIRST_PARTY_ENABLED", "true")
             signingConfig = signingConfigs.getByName("debug")
             isDebuggable = false
             matchingFallbacks += listOf("release")

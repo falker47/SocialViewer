@@ -4,38 +4,28 @@ This checklist is the gate for changes that touch UI, intents, WebView behavior,
 
 Baseline note: TikTok playback plus the light Home/onboarding/Settings flow were verified during the 2026-09-23 MVP pass. Re-run the relevant sections after changes rather than assuming a previous pass covers new code.
 
-## Instagram Reel #38 — Play-like isolated QA (not Google Play)
+## Instagram Reel #38 — official 0.1.10 release candidate
 
-The `playQa` build is a separately installed, release-optimized, non-debuggable
-app called **SocialViewer Play QA**, package
-`io.github.falker47.socialviewer.playqa`. It deliberately uses the same
-experimental Reel WebView as `linkQa`, gated by an explicit
-`INSTAGRAM_REEL_PAGE_QA` BuildConfig field. Normal `release` and `debug`
-keep the official oEmbed. This is **not** a release APK and must not replace
-Google Play's `io.github.falker47.socialviewer` package. It is signed with a
-throwaway CI debug certificate.
+The canonical Reel playback path is the **same first-party WebView**
+already verified on the owner's phone in Link QA on 3 November 2026.
+The official Play release build (`io.github.falker47.socialviewer`) now
+enables that renderer for canonical public Instagram Reel URLs only.
+Ordinary Instagram posts and the seven other providers use their prior
+routes; debug keeps Meta oEmbed for comparison.
 
-After installing the Play QA artifact from the CI run matching its source SHA:
+**Do not ask for another full Reel playback QA** just to repeat an
+already accepted behavior. After a signed AAB exists and has been installed
+from Play, verify only the distribution-specific changes: updating the
+existing app without losing data, launch, one quick accepted Reel smoke,
+YouTube configuration against Play signing, and the external-browser CTA.
+The earlier physical playback result is retained as evidence for the
+renderer code path; it does not verify the signed Play binary.
 
-1. Reproduce video/audio, pause/resume and fullscreen for
-   `https://www.instagram.com/reel/DfNMUcrBOxp/`.
-2. Open a second public Reel. Confirm video/audio and rotate fullscreen.
-3. From a playing Reel, tap profile, suggested Reel, Home, login, or feed links.
-   No unrelated page may become usable. Report any alternate content appearing
-   **without a URL change**; URL guards cannot prevent this reliably.
-4. Confirm `Guarda sul web` opens the external browser without app-link loops.
-5. Verify ordinary Instagram post plus TikTok, Threads, YouTube, Reddit,
-   Pinterest, X and Bluesky; note CI's YouTube key is intentionally absent.
-6. Verify preferences/cookies, English/Italian and light/dark appearance.
-7. Compare with separately installed official Play version; it still uses Meta
-   oEmbed and is intentionally unchanged.
-
-Build: `./gradlew testDebugUnitTest assemblePlayQa`. The shared Kotlin logic is tested
-on the debug variant; AGP 9.4 does not expose a `testPlayQaUnitTest` task in
-this project. CI verifies the package,
-version, R8 mapping, non-debuggable state, signature and APK checksum.
-No approval for distribution or hard guarantee of same-document isolation is
-implied by this QA.
+CI produces the release AAB *unsigned*, checks package, version, SHA and
+the build. Never upload that CI artifact to Google Play.
+Remaining gates: current Play versionCode and track status, actual signing,
+hosted privacy/Data Safety alignment, and provider/Play conditions.
+Full-site WebView URL guards cannot prohibit same-URL content changes.
 
 ## Instagram Reel #38 — isolated Link QA boundary experiment (not Play)
 

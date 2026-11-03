@@ -73,8 +73,8 @@ jobs:
       - name: Assemble debug APK
         run: ./gradlew --no-daemon assembleDebug
 
-      # Preserve the existing packaging check for main and other PRs. This
-      # device-retest-only branch must not prepare an AAB before owner approval.
+      # Keep the unsigned packaging check for main and PRs. This does not
+      # create a signed or Google Play-uploadable release.
       - name: Verify unsigned release AAB packaging outside device-retest PR
         if: github.head_ref != 'fix/tiktok-shortlink-youtube-fullscreen'
         run: ./gradlew --no-daemon bundleRelease
@@ -82,6 +82,56 @@ jobs:
       - name: Assemble unsigned release APK for comparison
         if: github.head_ref != 'fix/tiktok-shortlink-youtube-fullscreen'
         run: ./gradlew --no-daemon assembleRelease
+
+      - name: Verify official release candidate and unsigned bundle
+        if: github.head_ref == 'spike/instagram-reel-inapp-webview-38'
+        env:
+          SOURCE_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$SOURCE_HEAD"
+          apk="app/build/outputs/apk/release/app-release-unsigned.apk"
+          bundle="app/build/outputs/bundle/release/app-release.aab"
+          test -s "$apk"
+          test -s "$bundle"
+          "$ANDROID_HOME/build-tools/37.0.0/aapt" dump badging "$apk" > app/build/outputs/bundle/release/RELEASE-BADGING.txt
+          python3 - <<'PY'
+          from pathlib import Path
+          badging = Path("app/build/outputs/bundle/release/RELEASE-BADGING.txt").read_text()
+          for expected in (
+              "package: name='io.github.falker47.socialviewer'",
+              "versionCode='11'",
+              "versionName='0.1.10'",
+              "application-label:'SocialViewer'",
+          ):
+              assert expected in badging, expected
+          assert "application-debuggable" not in badging
+          PY
+          unzip -t "$bundle" >/dev/null
+          {
+            echo "Official SocialViewer source release candidate (UNSIGNED - not uploadable)"
+            echo "Source HEAD: $SOURCE_HEAD"
+            echo "Checkout SHA: $(git rev-parse HEAD)"
+            echo "Application ID: io.github.falker47.socialviewer"
+            echo "Version: 0.1.10 / code 11"
+            echo "Canonical Instagram Reel: first-party WebView enabled in release source"
+            echo "CI excludes release signing material and the YouTube production key"
+            echo "DO NOT upload this bundle to Play; build playReleaseBundle in secure environment"
+            echo "Verify code availability, privacy and Data Safety before any Play submission"
+            sha256sum "$bundle"
+          } > app/build/outputs/bundle/release/RELEASE-README.txt
+
+      - name: Upload unsigned official release candidate
+        if: github.head_ref == 'spike/instagram-reel-inapp-webview-38'
+        uses: actions/upload-artifact@v4
+        with:
+          name: socialviewer-release-0.1.10-unsigned-${{ github.event.pull_request.head.sha || github.sha }}
+          path: |
+            app/build/outputs/bundle/release/app-release.aab
+            app/build/outputs/bundle/release/RELEASE-README.txt
+            app/build/outputs/bundle/release/RELEASE-BADGING.txt
+          if-no-files-found: error
+          retention-days: 14
 
       - name: Capture release runtime dependency graph
         if: github.head_ref != 'fix/tiktok-shortlink-youtube-fullscreen'
@@ -128,8 +178,8 @@ jobs:
           badging = Path('app/build/outputs/apk/linkQa/QA-BADGING.txt').read_text()
           for expected in (
               "package: name='io.github.falker47.socialviewer.linkqa'",
-              "versionCode='10'",
-              "versionName='0.1.9-link-qa4'",
+              "versionCode='11'",
+              "versionName='0.1.10-link-qa4'",
               "application-label:'SocialViewer Link QA'",
           ):
               assert expected in badging, expected
@@ -182,8 +232,8 @@ jobs:
           badging = Path("app/build/outputs/apk/playQa/QA-BADGING.txt").read_text()
           for expected in (
               "package: name='io.github.falker47.socialviewer.playqa'",
-              "versionCode='10'",
-              "versionName='0.1.9-play-qa1'",
+              "versionCode='11'",
+              "versionName='0.1.10-play-qa1'",
               "application-label:'SocialViewer Play QA'",
           ):
               assert expected in badging, expected
@@ -195,7 +245,7 @@ jobs:
             echo "Checked-out SHA: $(git rev-parse HEAD)"
             echo "Package: io.github.falker47.socialviewer.playqa (NOT a Play update)"
             echo "Build type: playQa; same experimental Instagram renderer as Link QA"
-            echo "Version: 0.1.9-play-qa1 / code 10"
+            echo "Version: 0.1.10-play-qa1 / code 11"
             echo "R8-optimized and non-debuggable; debug test signing; no upload key"
             echo "YouTube API key absent in public CI; production YouTube cannot be validated"
             echo "No provider permission or same-document isolation guarantee is implied"

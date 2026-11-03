@@ -6,14 +6,14 @@ import java.io.File
 
 class InstagramReelQaBoundaryTest {
     @Test
-    fun fullInstagramPageIsOnlyUsedByExplicitNonPlayQaBuilds() {
+    fun firstPartyReelPageIsRestrictedToCanonicalInstagramReels() {
         val shell = readSource("src/main/java/io/github/falker47/socialviewer/ui/SocialViewerApp.kt")
         val page = readSource("src/main/java/io/github/falker47/socialviewer/ui/InstagramReelQaWebView.kt")
 
-        assertTrue(shell.contains("BuildConfig.INSTAGRAM_REEL_PAGE_QA"))
+        assertTrue(shell.contains("BuildConfig.INSTAGRAM_REEL_FIRST_PARTY_ENABLED"))
         assertTrue(shell.contains("content.providerId == \"instagram\""))
         assertTrue(shell.contains("InstagramUrlPolicy.mobileWebReelUrl(content.canonicalUrl)"))
-        assertTrue(shell.contains("if (firstPartyReelQaUrl != null)"))
+        assertTrue(shell.contains("if (firstPartyReelUrl != null)"))
 
         assertTrue(page.contains("request.isForMainFrame &&"))
         assertTrue(page.contains("InstagramUrlPolicy.allowsInAppReelNavigation("))
@@ -36,19 +36,24 @@ class InstagramReelQaBoundaryTest {
     }
 
     @Test
-    fun qaFlagIsEnabledOnlyForExplicitIsolatedBuilds() {
+    fun releaseAndBothQaVariantsSelectTheValidatedReelRenderer() {
         val gradle = readProjectFile("app/build.gradle.kts")
         val workflow = readProjectFile(".github/workflows/android-ci.yml")
 
-        assertTrue(gradle.contains("buildConfigField(\"boolean\", \"INSTAGRAM_REEL_PAGE_QA\", \"false\")"))
+        assertTrue(gradle.contains("buildConfigField(\"boolean\", \"INSTAGRAM_REEL_FIRST_PARTY_ENABLED\", \"false\")"))
         assertTrue(gradle.contains("create(\"linkQa\")"))
         assertTrue(gradle.contains("create(\"playQa\")"))
         assertTrue(gradle.contains("applicationIdSuffix = \".playqa\""))
         assertTrue(
-            "Both isolated QA builds must explicitly opt in; debug and Play release opt out",
-            Regex("buildConfigField\\(\"boolean\", \"INSTAGRAM_REEL_PAGE_QA\", \"true\"\\)")
-                .findAll(gradle).count() == 2,
+            "Release and both QA builds opt in; debug retains oEmbed",
+            Regex("buildConfigField\\(\"boolean\", \"INSTAGRAM_REEL_FIRST_PARTY_ENABLED\", \"true\"\\)")
+                .findAll(gradle).count() == 3,
         )
+        assertTrue(gradle.contains("applicationId = \"io.github.falker47.socialviewer\""))
+        assertTrue(gradle.contains("versionCode = 11"))
+        assertTrue(gradle.contains("versionName = \"0.1.10\""))
+        val releaseBlock = gradle.substringAfter("    buildTypes {").substringBefore("        // Release-optimized diagnostics")
+        assertTrue(releaseBlock.contains("buildConfigField(\"boolean\", \"INSTAGRAM_REEL_FIRST_PARTY_ENABLED\", \"true\")"))
         assertTrue(workflow.contains("assemblePlayQa"))
         assertTrue(workflow.contains("app-playQa.apk"))
     }
