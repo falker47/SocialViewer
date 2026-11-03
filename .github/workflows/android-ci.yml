@@ -21,6 +21,10 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v7
+        with:
+          # The experimental Link QA must be built from the PR HEAD itself,
+          # not GitHub's synthetic PR merge commit. Other PR CI is unchanged.
+          ref: ${{ github.head_ref == 'spike/instagram-reel-inapp-webview-38' && github.event.pull_request.head.sha || github.sha }}
 
       - name: Set up JDK 17
         uses: actions/setup-java@v6
@@ -112,6 +116,9 @@ jobs:
           SOURCE_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
           set -euo pipefail
+          if [ "${GITHUB_HEAD_REF:-}" = "spike/instagram-reel-inapp-webview-38" ]; then
+            test "$(git rev-parse HEAD)" = "$SOURCE_HEAD"
+          fi
           apk="app/build/outputs/apk/linkQa/app-linkQa.apk"
           test -s "$apk"
           test -s app/build/outputs/mapping/linkQa/mapping.txt
