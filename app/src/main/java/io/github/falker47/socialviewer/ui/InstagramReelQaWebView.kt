@@ -31,7 +31,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import io.github.falker47.socialviewer.provider.instagram.InstagramUrlPolicy
 
 /**
- * Link-QA-only experiment. Opens the provider's own mobile Reel page as a
+ * Isolated QA-only experiment. Opens the provider's own mobile Reel page as a
  * first-party document without scraping/rehosting or entering general browsing.
  * The normal production Instagram path remains the official oEmbed renderer.
  */
@@ -151,7 +151,9 @@ internal fun InstagramReelQaWebView(
             }
         },
         update = { view ->
-            if (view.tag != reelWebUrl) {
+            // After an off-Reel navigation has failed closed, a pending Compose
+            // update must never re-arm this WebView or reload the target.
+            if (!navigationBlocked && view.tag != reelWebUrl) {
                 view.tag = reelWebUrl
                 view.loadUrl(reelWebUrl)
             }

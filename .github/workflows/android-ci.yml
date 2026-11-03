@@ -162,6 +162,59 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
+      - name: Assemble isolated Play-like QA APK and run its unit tests
+        if: github.head_ref == 'spike/instagram-reel-inapp-webview-38'
+        run: ./gradlew --no-daemon testPlayQaUnitTest assemblePlayQa
+
+      - name: Verify Play-like QA package identity and signing
+        if: github.head_ref == 'spike/instagram-reel-inapp-webview-38'
+        env:
+          SOURCE_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$SOURCE_HEAD"
+          apk="app/build/outputs/apk/playQa/app-playQa.apk"
+          test -s "$apk"
+          test -s app/build/outputs/mapping/playQa/mapping.txt
+          "$ANDROID_HOME/build-tools/37.0.0/aapt" dump badging "$apk" > app/build/outputs/apk/playQa/QA-BADGING.txt
+          python3 - <<'PY'
+          from pathlib import Path
+          badging = Path("app/build/outputs/apk/playQa/QA-BADGING.txt").read_text()
+          for expected in (
+              "package: name='io.github.falker47.socialviewer.playqa'",
+              "versionCode='10'",
+              "versionName='0.1.9-play-qa1'",
+              "application-label:'SocialViewer Play QA'",
+          ):
+              assert expected in badging, expected
+          assert "application-debuggable" not in badging
+          PY
+          "$ANDROID_HOME/build-tools/37.0.0/apksigner" verify --verbose --print-certs "$apk" > app/build/outputs/apk/playQa/QA-SIGNATURE.txt
+          {
+            echo "Source HEAD: $SOURCE_HEAD"
+            echo "Checked-out SHA: $(git rev-parse HEAD)"
+            echo "Package: io.github.falker47.socialviewer.playqa (NOT a Play update)"
+            echo "Build type: playQa; same experimental Instagram renderer as Link QA"
+            echo "Version: 0.1.9-play-qa1 / code 10"
+            echo "R8-optimized and non-debuggable; debug test signing; no upload key"
+            echo "YouTube API key absent in public CI; production YouTube cannot be validated"
+            echo "No provider permission or same-document isolation guarantee is implied"
+            sha256sum "$apk"
+          } > app/build/outputs/apk/playQa/QA-README.txt
+
+      - name: Upload isolated Play-like QA APK
+        if: github.head_ref == 'spike/instagram-reel-inapp-webview-38'
+        uses: actions/upload-artifact@v4
+        with:
+          name: socialviewer-play-qa-${{ github.event.pull_request.head.sha || github.sha }}
+          path: |
+            app/build/outputs/apk/playQa/*.apk
+            app/build/outputs/apk/playQa/QA-README.txt
+            app/build/outputs/apk/playQa/QA-BADGING.txt
+            app/build/outputs/apk/playQa/QA-SIGNATURE.txt
+          if-no-files-found: error
+          retention-days: 14
+
       - name: Record debug artifact provenance and limitations
         env:
           SOURCE_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}

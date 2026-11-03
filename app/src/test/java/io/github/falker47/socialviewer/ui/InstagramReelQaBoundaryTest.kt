@@ -6,7 +6,7 @@ import java.io.File
 
 class InstagramReelQaBoundaryTest {
     @Test
-    fun fullInstagramPageIsOnlyUsedByIsolatedLinkQaAndNeverGeneralProviders() {
+    fun fullInstagramPageIsOnlyUsedByExplicitNonPlayQaBuilds() {
         val shell = readSource("src/main/java/io/github/falker47/socialviewer/ui/SocialViewerApp.kt")
         val page = readSource("src/main/java/io/github/falker47/socialviewer/ui/InstagramReelQaWebView.kt")
 

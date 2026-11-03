@@ -4,6 +4,37 @@ This checklist is the gate for changes that touch UI, intents, WebView behavior,
 
 Baseline note: TikTok playback plus the light Home/onboarding/Settings flow were verified during the 2026-09-23 MVP pass. Re-run the relevant sections after changes rather than assuming a previous pass covers new code.
 
+## Instagram Reel #38 — Play-like isolated QA (not Google Play)
+
+The `playQa` build is a separately installed, release-optimized, non-debuggable
+app called **SocialViewer Play QA**, package
+`io.github.falker47.socialviewer.playqa`. It deliberately uses the same
+experimental Reel WebView as `linkQa`, gated by an explicit
+`INSTAGRAM_REEL_PAGE_QA` BuildConfig field. Normal `release` and `debug`
+keep the official oEmbed. This is **not** a release APK and must not replace
+Google Play's `io.github.falker47.socialviewer` package. It is signed with a
+throwaway CI debug certificate.
+
+After installing the Play QA artifact from the CI run matching its source SHA:
+
+1. Reproduce video/audio, pause/resume and fullscreen for
+   `https://www.instagram.com/reel/DfNMUcrBOxp/`.
+2. Open a second public Reel. Confirm video/audio and rotate fullscreen.
+3. From a playing Reel, tap profile, suggested Reel, Home, login, or feed links.
+   No unrelated page may become usable. Report any alternate content appearing
+   **without a URL change**; URL guards cannot prevent this reliably.
+4. Confirm `Guarda sul web` opens the external browser without app-link loops.
+5. Verify ordinary Instagram post plus TikTok, Threads, YouTube, Reddit,
+   Pinterest, X and Bluesky; note CI's YouTube key is intentionally absent.
+6. Verify preferences/cookies, English/Italian and light/dark appearance.
+7. Compare with separately installed official Play version; it still uses Meta
+   oEmbed and is intentionally unchanged.
+
+Build: `./gradlew testPlayQaUnitTest assemblePlayQa`. CI verifies the package,
+version, R8 mapping, non-debuggable state, signature and APK checksum.
+No approval for distribution or hard guarantee of same-document isolation is
+implied by this QA.
+
 ## Instagram Reel #38 — isolated Link QA boundary experiment (not Play)
 
 PR #40 Link QA loads the first-party Instagram Reel page. Its previous APK

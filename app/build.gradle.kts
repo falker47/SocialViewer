@@ -67,6 +67,9 @@ android {
         resourceConfigurations += listOf("en", "it")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        // Production/debug stay on the official Meta embed. Experimental
+        // full-page Reel playback is opt-in only in separately installable QA apps.
+        buildConfigField("boolean", "INSTAGRAM_REEL_PAGE_QA", "false")
         buildConfigField(
             "String",
             "YOUTUBE_API_KEY",
@@ -105,6 +108,21 @@ android {
             initWith(getByName("release"))
             applicationIdSuffix = ".linkqa"
             versionNameSuffix = "-link-qa4"
+            buildConfigField("boolean", "INSTAGRAM_REEL_PAGE_QA", "true")
+            signingConfig = signingConfigs.getByName("debug")
+            isDebuggable = false
+            matchingFallbacks += listOf("release")
+            optimization {
+                enable = true
+            }
+        }
+        // Pre-release parity check for the exact Android playback path in an
+        // isolated APK. Never use this application ID for Play upload.
+        create("playQa") {
+            initWith(getByName("release"))
+            applicationIdSuffix = ".playqa"
+            versionNameSuffix = "-play-qa1"
+            buildConfigField("boolean", "INSTAGRAM_REEL_PAGE_QA", "true")
             signingConfig = signingConfigs.getByName("debug")
             isDebuggable = false
             matchingFallbacks += listOf("release")

@@ -1663,10 +1663,10 @@ private fun PlayerScreen(
     ) {
         mutableStateOf(false)
     }
-    // QA-only feasibility experiment: production continues to render Meta's
-    // official oEmbed, which is not always an inline-playable Reel player.
+    // Explicit build-time gate for isolated, separately installable QA apps.
+    // Official Play release and ordinary debug keep Meta's official oEmbed.
     val firstPartyReelQaUrl = if (
-        BuildConfig.APPLICATION_ID.endsWith(".linkqa") &&
+        BuildConfig.INSTAGRAM_REEL_PAGE_QA &&
         content.providerId == "instagram"
     ) {
         InstagramUrlPolicy.mobileWebReelUrl(content.canonicalUrl)
