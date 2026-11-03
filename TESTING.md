@@ -161,17 +161,17 @@ Expected: the app starts resolving the URL. This path is supported but intention
 
 ## 12. Appearance / dark mode
 
-Open Settings → **Aspetto** and verify:
+The current UI offers **Chiaro / Light** and **Scuro / Dark**. The first selection is initialized once from the device theme; an explicit choice is then persisted. There is no continuously following **Sistema / System** mode (earlier instructions were obsolete).
 
-1. On a fresh install, **Sistema** is selected by default.
-2. With **Sistema**, switch Android between light and dark theme; SocialViewer must follow the system theme.
-3. Select **Chiaro** while Android is dark; the SocialViewer chrome must remain light.
-4. Select **Scuro** while Android is light; the SocialViewer chrome must remain dark.
-5. Fully close and relaunch the app; the selected mode must persist.
-6. In dark mode inspect Home, top bar, URL input, direct-link card, Settings, the clear-site-data dialog, snackbar, Loading, Error, and the chrome above the player. No SocialViewer surface should remain accidentally light.
-7. Verify both coach marks remain readable against the scrim in dark mode. A fresh app-data run with Android dark + default **Sistema** is sufficient.
-8. Open a TikTok and confirm the remote player itself is not recolored; its black player background remains unchanged.
-9. Re-run clipboard paste/open and direct-link configuration to confirm no regression in those flows.
+1. On fresh app data, initialize once in Android light mode; the initial choice should be Light.
+2. Reset app data, initialize in Android dark mode; the initial choice should be Dark.
+3. Switch Android's system theme after initialization; SocialViewer should retain its saved appearance.
+4. Select Chiaro with Android dark and Scuro with Android light; verify the chosen app chrome.
+5. Relaunch and verify the persisted selection.
+6. Check Home, top bar, URL field, Settings, dialogs, snackbars, Loading, Error and viewer chrome in dark mode.
+7. Verify onboarding coach marks remain readable with the dark scrim.
+8. Confirm the remote provider player has not been recolored.
+9. Re-run clipboard/open and direct-link handling to detect regressions.
 
 ## 13. Negative tests
 
