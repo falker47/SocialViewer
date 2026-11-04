@@ -155,6 +155,55 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
+      # Isolated device QA for the softer light theme; never overwrite the Play app.
+      - name: Assemble Soft Light QA APK
+        if: github.head_ref == 'ui/soft-light-theme-20261104'
+        run: ./gradlew --no-daemon assembleLinkQa
+
+      - name: Verify Soft Light QA identity and provenance
+        if: github.head_ref == 'ui/soft-light-theme-20261104'
+        env:
+          SOURCE_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -euo pipefail
+          apk="app/build/outputs/apk/linkQa/app-linkQa.apk"
+          badging="app/build/outputs/apk/linkQa/QA-BADGING.txt"
+          test -s "$apk"
+          "$ANDROID_HOME/build-tools/37.0.0/apksigner" verify "$apk"
+          "$ANDROID_HOME/build-tools/37.0.0/aapt" dump badging "$apk" > "$badging"
+          grep -Fq "package: name='io.github.falker47.socialviewer.linkqa'" "$badging"
+          grep -Fq "versionCode='10'" "$badging"
+          grep -Fq "versionName='0.1.9-link-qa4'" "$badging"
+          if grep -q 'application-debuggable' "$badging"; then
+            echo "QA APK must not be debuggable" >&2
+            exit 1
+          fi
+          {
+            echo "SocialViewer Soft Light — Android device QA only."
+            echo "Source branch: ui/soft-light-theme-20261104"
+            echo "Source PR head: $SOURCE_HEAD"
+            echo "CI checkout: $(git rev-parse HEAD)"
+            echo "Package: io.github.falker47.socialviewer.linkqa"
+            echo "Version: 0.1.9-link-qa4 (code 10), isolated from Play."
+            echo "Release-optimized, non-debuggable, signed by CI debug certificate."
+            echo "No Play upload key or production YouTube API key."
+            echo "Do not interpret YouTube keyless failures as a Soft Light regression."
+            echo "No store upload, release or production update."
+            sha256sum "$apk"
+          } > app/build/outputs/apk/linkQa/QA-README.txt
+
+      - name: Upload Soft Light QA APK
+        if: github.head_ref == 'ui/soft-light-theme-20261104'
+        uses: actions/upload-artifact@v4
+        with:
+          name: socialviewer-softlight-qa-${{ github.event.pull_request.head.sha || github.sha }}
+          path: |
+            app/build/outputs/apk/linkQa/*.apk
+            app/build/outputs/apk/linkQa/QA-README.txt
+            app/build/outputs/apk/linkQa/QA-BADGING.txt
+          if-no-files-found: error
+          retention-days: 14
+
       - name: Record debug artifact provenance and limitations
         env:
           SOURCE_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
