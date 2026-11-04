@@ -30,9 +30,17 @@ If favorites/history ever become a feature, they must be explicitly opt-in and m
 
 ## AD-004 — WebView is an implementation detail
 
-`SocialContent` carries renderable embed HTML plus a provider document base URL. TikTok uses its official dedicated player; Instagram and Threads use Meta's official tokenless oEmbed markup; Reddit uses official Reddit Embed/oEmbed markup; Pinterest uses the official Pin Widget; X uses official X oEmbed markup plus `platform.x.com/widgets.js`; Bluesky uses official `embed.bsky.app` oEmbed markup; YouTube uses the official privacy-enhanced IFrame player at `youtube-nocookie.com`. All render through the shared WebView without moving provider retrieval logic into the Android shell.
+`SocialContent` carries embed HTML, a canonical link and a provider document base URL. TikTok uses its official dedicated player; Instagram posts, Reels and Threads use Meta's official oEmbed markup; Reddit uses official Embed/oEmbed markup; Pinterest uses the official Pin Widget; X uses official X oEmbed plus `platform.x.com/widgets.js`; Bluesky uses official `embed.bsky.app` oEmbed; YouTube uses the official privacy-enhanced IFrame player at `youtube-nocookie.com`. Provider-specific presentation remains bounded to a single user-selected item.
 
 Threads does not require a new renderer hierarchy: the existing provider-aware document base URL remains sufficient. Third-party cookies stay disabled, provider first-party preferences may persist locally, and main-frame navigation stays blocked.
+
+### Instagram Reel playback boundary
+
+Instagram posts and Reels use Meta's official oEmbed HTML as the only in-app rendering path. Depending on the Reel, the provider may supply a playable embed or only a preview and its own external action.
+
+The `?l=1` mobile-web query is an observed, undocumented behavior. SocialViewer uses it only for the user's explicit **Guarda sul web** browser action. It does not load Instagram's full mobile webpage in its own WebView: the permission needed for that distribution path is not verified, and main-frame URL checks cannot guarantee that provider-native same-document or SPA interactions remain on one item.
+
+If Instagram does not allow a Reel to play in its official embed, SocialViewer leaves playback to Instagram's browser page after the user chooses the external action. It does not inject page scripts, scrape, extract or download media, proxy or rehost content, force login, or bypass access controls.
 
 ## AD-005 — Deep links are user-managed and provider-aware
 

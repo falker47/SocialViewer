@@ -5,8 +5,8 @@ SocialViewer targets **Google Play** as its initial public distribution channel.
 ## Fixed release identity
 
 - Application ID: `io.github.falker47.socialviewer`
-- Next source version prepared for the existing Closed Testing track: `0.1.9` (`versionCode = 10`). See `docs/RELEASE_0.1.9_TIKTOK_429.md`. Signed bundle and Play publication are not yet verified.
-- Last recorded Play Console checkpoint: `0.1.8` (9) available to selected closed testers on 20 October 2026. This historical observation does not establish the current live Play Console state.
+- Live Play Console checked on 2 November 2026: closed track `Test chiusi - SocialViewer` has `0.1.9` (`versionCode = 10`) available to testers; internal testing has `0.1.4` (`versionCode = 5`); Production is inactive; no pending publication submission was shown. The dashboard showed 12 testers active for 13 consecutive days, short of the 14-day production-access requirement. The highest relevant live version code is 10.
+- Prepared source candidate for the existing closed track: `0.1.10` (`versionCode = 11`). See `docs/RELEASE_0.1.10_INSTAGRAM_EMBED.md`. A signed bundle and any Play upload remain unverified.
 - Minimum SDK: 26
 - Target / compile SDK: 37
 - Publishing format: Android App Bundle (`.aab`)
@@ -111,18 +111,13 @@ app/build/outputs/bundle/release/
 
 Before uploading, confirm the exact generated filename rather than assuming it.
 
-## First Play Console gate
+## Remaining Play Console gates
 
-After this repository plumbing is green:
+The SocialViewer Play app, Play App Signing identity and existing internal/closed test tracks are already present. For the current candidate:
 
-1. Generate and securely back up a dedicated RSA JKS upload key / keystore.
-2. Configure the four `PLAY_UPLOAD_*` values locally.
-3. Build the signed AAB with `playReleaseBundle` using the existing non-empty YouTube Data API key. For a local signed-release playback check, the API-key restriction may additionally authorize package `io.github.falker47.socialviewer` with the upload-key SHA-1.
-4. In Play Console, create the SocialViewer app, accept the Play App Signing terms and keep the default Google-generated app-signing key. The initial Create app form does not define the Android package; the uploaded bundle carries the frozen application ID.
-5. Create an internal-testing release and upload the signed AAB. This establishes the Play package/signing identity; do not roll it out to production.
-6. Open Play Console → App integrity / App signing and read the **app-signing certificate SHA-1**.
-7. Add package `io.github.falker47.socialviewer` + that Play app-signing SHA-1 to the Android restrictions of the YouTube Data API key. Google API-key restrictions can authorize more than one package/certificate pair, so the debug/upload identities may remain only where they are still needed for testing.
-8. Install the Play-generated build from the internal test track and run the signed release-candidate smoke gate.
-9. Proceed to store listing, privacy/Data Safety and production rollout only after that gate passes.
-
-Privacy policy, Data Safety, store listing assets and production rollout belong to later release-readiness milestones.
+1. Read the existing upload-key configuration from the authorized secure environment. Do not generate a replacement key. If it is unavailable, stop before signing.
+2. Confirm the existing non-empty YouTube Data API key and its Android restriction for package `io.github.falker47.socialviewer` + the **Play app-signing certificate SHA-1**. Limit the API restriction to YouTube Data API v3. Do not print or rotate the key.
+3. Run `gradlew.bat playReleaseBundle`, then independently verify the AAB's package, version, upload certificate, SHA-256 and integrity.
+4. Install the signed bundle through the existing test track and complete the physical QA gate against that exact Play-installed revision.
+5. Confirm the privacy-policy URL, Data Safety answers and store listing against the shipped build before any track submission.
+6. Production access remains unavailable until Play's 12-tester / 14-day condition is met and production access is granted. Do not activate a production release without the developer's explicit approval.

@@ -10,12 +10,14 @@ Social Viewer is currently available to Android volunteers through Google Play c
 
 Please remain opted in for **14 consecutive days**, try opening a few public social links, and send bug reports or device-specific feedback to [falker.dev@gmail.com](mailto:falker.dev@gmail.com). The app itself requires no Social Viewer account.
 
-## Current baseline — v0.1.5
+## Current Play baseline — v0.1.9
+
+The existing closed-testing track currently serves v0.1.9 (`versionCode` 10). The prepared source candidate is v0.1.10 (`versionCode` 11); it has not been signed or uploaded.
 
 Implemented providers:
 
 - **TikTok** — verified baseline.
-- **Instagram** — verified public posts and Reels via Meta's official tokenless oEmbed path.
+- **Instagram** — public posts and Reels use Meta's official oEmbed in the app. Inline Reel playback depends on what Instagram provides in the embed; the single `Guarda sul web` action opens a Reel in the external browser with the observed `?l=1` parameter.
 - **Threads** — verified public post permalinks, shorthand `/t/` URLs, legacy `threads.net` compatibility and `/t/` direct opening via Meta's official tokenless oEmbed path.
 - **Facebook** — **In pausa / unsupported** for the real-world share-link flow. PR #4 remains an unmerged technical record and is not counted as a supported provider.
 - **YouTube / Shorts** — verified for public watch URLs, `youtu.be`, Shorts and the narrow `/live/` alias through the official privacy-enhanced IFrame player. Made For Kids videos fail closed before embedding; removed/unavailable content is handled cleanly.
@@ -171,7 +173,7 @@ Examples: `feature/dark-mode`, `feature/instagram-provider`, `feature/multi-prov
 
 Provider expansion is closed for the first public release: TikTok, Instagram, Threads, YouTube, Reddit, Pinterest, X and Bluesky are verified. Facebook, LinkedIn and Mastodon remain blocked under their documented constraints; Snapchat is out of scope.
 
-The active milestone is **Google Play release-readiness**. The first slice adds release-variant lint/AAB CI coverage, secure upload-key plumbing and a fail-fast publish configuration gate. Network/WebView hardening, launcher/store assets, licensing/privacy documentation and the signed release-candidate smoke gate remain separate follow-up milestones.
+The active milestone is **Google Play release-readiness**. The v0.1.10 candidate keeps Instagram posts and Reels on Meta's official in-app embed and uses an explicit external-browser action when a Reel cannot play there. The current public privacy page has a supporting update in draft PR [#75](https://github.com/falker47/Nexus-portfolio/pull/75). The signed release bundle and Play-installed device smoke test remain open gates; see [RELEASE.md](RELEASE.md).
 
 ## Non-goals
 

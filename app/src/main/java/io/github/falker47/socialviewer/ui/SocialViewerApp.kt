@@ -1,6 +1,7 @@
 package io.github.falker47.socialviewer.ui
 
 import io.github.falker47.socialviewer.preview.RedditPagePreview
+import io.github.falker47.socialviewer.provider.instagram.InstagramUrlPolicy
 
 import android.app.Activity
 import android.content.ClipboardManager
@@ -1661,7 +1662,6 @@ private fun PlayerScreen(
     ) {
         mutableStateOf(false)
     }
-
     Box(modifier = modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
             Row(
@@ -1818,10 +1818,13 @@ private fun openExternal(context: Context, url: String) {
 }
 
 private fun openOriginalExternal(context: Context, url: String) {
+    // The same browser escape serves every provider; only Instagram Reels need
+    // the observed first-party mobile web continuation parameter.
+    val browserUrl = InstagramUrlPolicy.mobileWebReelUrl(url) ?: url
     val browserSelector = Intent(Intent.ACTION_MAIN).apply {
         addCategory(Intent.CATEGORY_APP_BROWSER)
     }
-    val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(url)).apply {
+    val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(browserUrl)).apply {
         selector = browserSelector
     }
     context.startActivity(browserIntent)

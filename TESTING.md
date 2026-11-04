@@ -139,19 +139,34 @@ Use gesture navigation if the device is configured for it; repeat once with the 
 
 Record PASS only if Android Back and the visible in-app back controls have equivalent navigation semantics inside SocialViewer.
 
-## 10. Open-original escape hatch
+## 10. One web escape for all providers
 
 With direct-link handling enabled for at least one supported provider:
 
 1. Tap a supported provider link from another app so SocialViewer opens it directly.
-2. In the player, tap **Originale** / **Apri originale**.
+2. In the player, tap the single **Guarda sul web** / **Watch on web** button; no redundant Instagram-specific action is present.
 3. Android must open the URL in a browser context, bypassing SocialViewer's direct-link ownership.
 4. If a browser choice is required because no default browser is configured, choose one of the available browsers.
 5. Confirm the destination opens outside SocialViewer and does not loop back into the current item.
-6. Repeat once from an unavailable/error state that exposes **Originale**.
-7. Repeat the X privacy-notice **Apri originale** path if X is available for the smoke run.
+6. Repeat once from an unavailable/error state that exposes **Guarda sul web**.
+7. Repeat the X privacy-notice **Guarda sul web** path if X is available for the smoke run.
 
-Record PASS only if every original-content escape path opens in a browser outside SocialViewer while generic external links such as Privacy, source code and portfolio still use their normal external-link behavior.
+Record PASS only if every native web escape opens in a browser outside SocialViewer while generic external links such as Privacy, source code and portfolio still use their normal external-link behavior.
+
+### Instagram Reel embed and browser fallback (issue #38; physical-device gate)
+
+1. Open `https://www.instagram.com/reel/DfNMUcrBOxp/` in SocialViewer. Verify the app uses Meta's official oEmbed renderer; if the provider permits inline playback, test picture and audio.
+2. If the official embed shows only a preview, tap the single `Guarda sul web` / `Watch on web` action. Verify the selected Reel opens in the external browser with `?l=1`, stays outside SocialViewer, and plays there if Instagram permits it.
+3. Repeat with a second public Reel. Open a normal Instagram post, TikTok and one other supported provider; verify their official renderers and canonical browser fallbacks remain intact.
+4. Verify there is one web action, no App Links loop, correct audio/fullscreen/orientation behavior for playable embeds, return to Home, provider errors, cookie/site-data clearing and localized labels. Do not log in or enter credentials.
+5. Confirm the in-app Instagram renderer stays on the provider's official embed; SocialViewer must not load the full Instagram mobile website in its WebView.
+6. Before a Play release, test the **signed Play-installed package** from an existing closed/internal track with the configured YouTube key and app-signing identity; unsigned CI or a separate Link QA identity is not production acceptance.
+
+Instagram `l=1` is an observed browser behavior, **not** a documented stable Meta player API. It is used only by the explicit external browser action.
+
+### Historical physical QA scope (PR #40)
+
+On the separate Link QA proof of concept at `187d4b6`, the user confirmed that public Reel `DfNMUcrBOxp` played with audio inside a WebView and that tapping its profile or another Reel left the original Reel on screen. This evidence applies to that QA revision and does not establish that the current release build is authorized or bounded. The release candidate keeps this full-page path out of the app and uses Meta's official embed plus the external browser escape.
 
 ## 11. Share-sheet fallback
 
