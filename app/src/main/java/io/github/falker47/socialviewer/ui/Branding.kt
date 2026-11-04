@@ -22,23 +22,24 @@ private val TealLight = Color(0xFF7BDAD0)
 private val TealContainer = Color(0xFFA3F2E9)
 private val TealDarkContainer = Color(0xFF005049)
 
+// A softer, low-glare light palette; the dark theme and brand teal remain unchanged.
 private val SocialViewerLightColors = lightColorScheme(
     primary = Teal,
     onPrimary = Color.White,
-    primaryContainer = TealContainer,
+    primaryContainer = Color(0xFFBADCD5),
     onPrimaryContainer = Color(0xFF00201D),
     secondary = Color(0xFF4A635F),
     onSecondary = Color.White,
-    secondaryContainer = Color(0xFFCDE8E3),
+    secondaryContainer = Color(0xFFC8DDD6),
     onSecondaryContainer = Color(0xFF06201D),
-    background = Color(0xFFF7FAF9),
+    background = Color(0xFFE8EDE9),
     onBackground = Graphite,
-    surface = Color(0xFFF7FAF9),
+    surface = Color(0xFFF1F3F0),
     onSurface = Graphite,
-    surfaceVariant = Color(0xFFE1E9E7),
+    surfaceVariant = Color(0xFFDDE5DF),
     onSurfaceVariant = Color(0xFF414947),
-    outline = Color(0xFF717977),
-    outlineVariant = Color(0xFFC1C9C7),
+    outline = Color(0xFF68736E),
+    outlineVariant = Color(0xFFBAC8C0),
 )
 
 private val SocialViewerDarkColors = darkColorScheme(
