@@ -5,8 +5,8 @@ SocialViewer targets **Google Play** as its initial public distribution channel.
 ## Fixed release identity
 
 - Application ID: `io.github.falker47.socialviewer`
-- Source release candidate on PR #40: `0.1.10` (`versionCode = 11`), using the same first-party Instagram Reel renderer previously validated on-device in Link QA. This is **not** a Play publication.
-- Last documented Play Console checkpoint: `0.1.9` (code 10) on Closed Testing, observed 2 November 2026. Check the **current** Play Console track and unused versionCode 11 before an upload.
+- This branch prepares `0.1.11` (`versionCode = 12`) by applying the physically approved Soft Light palette to the unchanged functional source of the `0.1.10`/code 11 Instagram Reel candidate (PR #40, SHA `73b5a64`). It does **not** merge PR #40 into `main`, and it does **not** itself publish to Play.
+- Play Console evidence supplied on 4 November 2026: the existing Closed Testing track was active with `0.1.10`/code 11, available to selected testers in 178 countries/regions, published 3 November at 18:50 (local). This confirms the track's displayed version, **not** the exact uploaded AAB/source SHA nor unused codes on other tracks. Before signing/uploading code 12, verify that 12 is unused across tracks and that the proposed source does not remove features from the installed release.
 - CI builds an **unsigned** official-release AAB for verification. Upload requires existing secure signing credentials, the YouTube production key and aligned privacy/Data Safety disclosures.
 - Minimum SDK: 26
 - Target / compile SDK: 37
