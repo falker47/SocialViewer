@@ -1,8 +1,14 @@
 # SocialViewer
 
-Privacy-minimal Android viewer for **single public social-media links**.
+**Apri il contenuto, non il feed.** / **Open the content, not the feed.**
 
-SocialViewer is intentionally not a social client: no feed, no SocialViewer account, no viewing history, no recommendations, no analytics, and no backend. A user opens a public link someone explicitly sent them; the app resolves the matching provider and renders that one piece of content.
+SocialViewer is for people who receive a public social post or video from a friend or relative but do not use, or do not want to install, that social network's app. It serves both relatives unfamiliar with social media and people reducing time spent in feeds.
+
+**Main journey:** receive a link → tap it → SocialViewer opens a supported individual item → view it → return to the conversation. Direct opening depends on Android settings, installed apps and provider restrictions. Manual URL entry and Android Share are alternative routes.
+
+SocialViewer is not a feed aggregator, and it has no SocialViewer account, viewing history, recommendation engine, analytics SDK or developer backend. It does not download, extract or rehost media, circumvent provider restrictions or guarantee every public item is available without a provider login.
+
+The [canonical Product Vision](docs/PRODUCT_VISION.md) explains audiences, examples, boundaries and terms. [Architecture](ARCHITECTURE.md) explains how the app works.
 
 ## Android closed beta — testers welcome
 
@@ -10,7 +16,9 @@ Social Viewer is currently available to Android volunteers through Google Play c
 
 Please remain opted in for **14 consecutive days**, try opening a few public social links, and send bug reports or device-specific feedback to [falker.dev@gmail.com](mailto:falker.dev@gmail.com). The app itself requires no Social Viewer account.
 
-## Current baseline — v0.1.5
+## Implemented providers on `main` (documentation snapshot: 3 November 2026)
+
+This section describes source integrations, **not** the Google Play version. The v0.1.5 heading was historical and outdated. Source version `0.1.10` (code 11) is prepared separately in [Draft PR #40](https://github.com/falker47/SocialViewer/pull/40), not merged in this branch. Check Play Console for actual distribution.
 
 Implemented providers:
 

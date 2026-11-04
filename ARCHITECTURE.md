@@ -1,5 +1,7 @@
 # Architecture decisions
 
+The mission, audience, primary direct-link journey and limits are defined in the [Product Vision](docs/PRODUCT_VISION.md). This file documents technical decisions rather than product positioning.
+
 ## AD-001 — Provider boundary
 
 Every social network implements `SocialProvider` and returns a normalized `SocialContent`. Platform-specific URL parsing, redirects, API/oEmbed calls, and metadata extraction stay inside that provider.
