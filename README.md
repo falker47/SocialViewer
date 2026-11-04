@@ -1,118 +1,97 @@
 # SocialViewer
 
-Privacy-minimal Android viewer for **single public social-media links**.
+**Open the content, not the feed.**
 
-SocialViewer is intentionally not a social client: no feed, no SocialViewer account, no viewing history, no recommendations, no analytics, and no backend. A user opens a public link someone explicitly sent them; the app resolves the matching provider and renders that one piece of content.
+SocialViewer is an Android app that helps you view individual public social-media posts and videos shared by friends or family, without having to install the original social network's app.
 
-## Android closed beta — testers welcome
+It's designed for people who rarely use social media, want to spend less time scrolling, or simply want to see something someone sent them.
 
-Social Viewer is currently available to Android volunteers through Google Play closed testing. To join, use the [Falker Studio Testers page](https://falker47.github.io/Nexus-portfolio/testers.html) for the Google Group, Play opt-in, and installation steps (also for returning testers).
+Open the shared content, watch or read it, and return to your conversation. No feed to browse, no recommendations to follow, and no SocialViewer account to create.
 
-Please remain opted in for **14 consecutive days**, try opening a few public social links, and send bug reports or device-specific feedback to [falker.dev@gmail.com](mailto:falker.dev@gmail.com). The app itself requires no Social Viewer account.
+## Get SocialViewer
 
-## Current baseline — v0.1.5
+SocialViewer is currently available through **Google Play closed testing**. A public production release is not yet confirmed.
 
-Implemented providers:
+[**Join the Android test**](https://falker47.github.io/Nexus-portfolio/testers.html)
 
-- **TikTok** — verified baseline.
-- **Instagram** — verified public posts and Reels via Meta's official tokenless oEmbed path.
-- **Threads** — verified public post permalinks, shorthand `/t/` URLs, legacy `threads.net` compatibility and `/t/` direct opening via Meta's official tokenless oEmbed path.
-- **Facebook** — **In pausa / unsupported** for the real-world share-link flow. PR #4 remains an unmerged technical record and is not counted as a supported provider.
-- **YouTube / Shorts** — verified for public watch URLs, `youtu.be`, Shorts and the narrow `/live/` alias through the official privacy-enhanced IFrame player. Made For Kids videos fail closed before embedding; removed/unavailable content is handled cleanly.
-- **Reddit** — verified public post permalinks, single-comment permalinks and Reddit `/s/` share aliases through Reddit's official oEmbed/Embeds surface. Real-device testing showed that legacy `redd.it/{id}` short links currently resolve only to a bare `/comments/{id}` form that Reddit oEmbed does not accept; under the no-extra-API/no-scraping boundary, `redd.it` is therefore unsupported rather than advertised as working. Full comment-thread browsing is not part of this provider slice.
-- **Pinterest** — verified single public Pins through Pinterest's official Pin Widget. Numeric, regional/SEO Pin URLs and real `pin.it` share aliases are normalized to one canonical Pin; board/profile/feed surfaces remain out of scope.
-- **X** — verified single public posts from `x.com/{user}/status/{id}` and legacy `twitter.com` permalinks through X's official `publish.x.com/oembed` + `platform.x.com/widgets.js` path. No X API key, paid API read, backend or login is used. X remains manual-paste/Android-Share-only.
-- **Bluesky** — verified single public posts from `bsky.app/profile/{handle|DID}/post/{rkey}` through Bluesky's official `embed.bsky.app/oembed` path. Handle and DID permalinks normalize to one strict single-post flow; `bsky.app` post links support user-managed Android direct opening without claiming profile pages.
-- Public availability/metadata are checked through TikTok's oEmbed endpoint.
-- Playback uses TikTok's official dedicated `/player/v1/{post_id}` embed player.
-- Canonical TikTok URLs plus `vm.tiktok.com` / `vt.tiktok.com` short links are supported.
-- Android `ACTION_VIEW` is the preferred direct-link path.
-- `ACTION_SEND` text sharing remains an unpromoted technical fallback.
-- Manual entry remains available; the trailing clipboard button pastes, validates, and opens in one tap.
-- First-run onboarding uses two coach marks on the real Home screen and respects the Android navigation-bar safe area.
-- Home and Settings summarize the real Android direct-link state for TikTok, Instagram, Threads, Reddit, Pinterest and Bluesky; configuration always opens Android's **Open by default** screen.
-- Settings exposes compact **Language** and **Appearance** controls side by side. Language is initialized once from the device locale (`it` → Italian, otherwise English) and can then be switched directly in-app between **IT / EN**. Appearance is initialized once from the device theme and then persists an explicit **Light / Dark** choice; there is no ongoing System theme mode.
+The tester page explains how to join the Google Group, opt in through Google Play, and install the app. Participants are asked to remain enrolled for 14 consecutive days and report any issues they encounter.
 
-TikTok, Instagram, Threads, YouTube, Reddit, Pinterest, X and Bluesky playback plus the shared multi-provider UI are verified. Bluesky completed its physical-device gate for handle/DID permalinks, query canonicalization, unavailable handling, direct opening, profile non-interception and existing-provider regressions.
+The version available through Google Play may differ from the source on `main`, as release builds can be prepared and tested separately.
 
-## Product rule
+## How it works
 
-SocialViewer only handles content that is both public and available through a provider-supported public/embed mechanism. It does not bypass login requirements, age gates, private accounts, removals, or other access controls. It does not create recommendation surfaces of its own; provider-native related/advertising surfaces that cannot be removed through supported controls may remain inside an official player. For YouTube, Made For Kids status is checked before embedding and MFK videos are rejected in-app.
+You can open a supported public link in three ways:
 
-## Architecture
+1. **Tap a link.** When Android's link-handling settings are configured, eligible links can open directly in SocialViewer.
+2. **Share it.** Use Android's Share menu to send a link to SocialViewer.
+3. **Paste it.** Open SocialViewer and paste a link into the input field. The clipboard button pastes and opens a valid link in one step.
 
-```text
-incoming Android intent / shared text
-              |
-              v
-          UrlExtractor
-              |
-              v
-        ProviderRegistry
-              |
-      +-------+---------+---------+
-      |           |           |           |
- TikTokProvider InstagramProvider ThreadsProvider YouTubeProvider RedditProvider PinterestProvider XProvider BlueskyProvider
-      |           |           |           |
-      +-----------+-----------+-----------+
-                  |
-              v
- public provider integration
-      |
-      v
-      SocialContent
-      |
-      v
- renderer
-```
+For direct opening, go to SocialViewer's Settings and use the link-handling configuration to access Android's **Open by default** settings.
 
-Each platform is isolated behind `SocialProvider`, so provider-specific URL parsing, redirects, API/oEmbed access, and rendering details can evolve without moving that logic into the Android shell.
+Direct opening is available for supported URL formats from TikTok, Instagram, Threads, Reddit, Pinterest and Bluesky. Android and other installed apps determine which application actually receives a link, so automatic opening cannot be guaranteed.
 
-See `ARCHITECTURE.md` for the current decisions.
+YouTube and X use manual paste or Android Share. Some Threads URLs also require these methods.
 
-## Privacy model
+The interface is available in English and Italian, with light and dark themes.
 
-SocialViewer itself:
+## Supported platforms
 
-- has no account system;
-- stores no viewing history;
-- has no database or backend;
-- contains no analytics or ad SDK;
-- requests no storage, contacts, location, camera, or microphone permissions;
-- disables cleartext HTTP traffic;
-- disables third-party cookies in the embedded WebView;
-- intentionally retains provider first-party consent/preferences across items;
-- stores a local one-time X embed-consent flag after explicit approval; it can be revoked in Settings;
-- exposes **Cancella dati del sito** to remove shared local provider cookies/preferences;
-- shows a compact Falker Studio Home footer with a non-intrusive “why it’s free” explanation, links to the public bilingual Privacy Policy / developer identity home, and optional external project support. Voluntary support unlocks no digital content, feature or benefit.
+The following integrations are implemented in the `main` source:
 
-The remote social platform/CDN still receives ordinary network metadata required to serve a public embed. This project does **not** claim network anonymity from the provider.
+| Platform | Supported content |
+|---|---|
+| **TikTok** | Individual public videos and supported shared links, including common shortened URLs |
+| **Instagram** | Public posts and Reels, subject to Meta's embedding restrictions |
+| **Threads** | Individual public posts, including supported short links |
+| **YouTube** | Public videos, Shorts and supported live-video links |
+| **Reddit** | Individual public posts and explicitly linked comments |
+| **Pinterest** | Individual public Pins, including `pin.it` links |
+| **X (Twitter)** | Individual public posts |
+| **Bluesky** | Individual public posts |
 
-## Android direct-link handling
+Integrations use provider-supported public embedding mechanisms rather than downloading or rehosting media.
 
-TikTok, Instagram, Threads, Reddit, Pinterest and Bluesky own their web domains, so SocialViewer cannot publish the providers' `assetlinks.json` files and cannot self-verify those domains. YouTube and X remain intentionally outside direct-link handling.
+**Important limitations**
 
-The manifest declares TikTok through `tiktok.com` plus `*.tiktok.com`, supported Instagram post/Reel paths, only the safely constrainable Threads shorthand `/t/` paths on `threads.com` and legacy `threads.net`, bounded Reddit single-content paths on `reddit.com` plus `*.reddit.com`, Pinterest canonical `/pin/` paths plus `pin.it` aliases, and Bluesky single-post paths matching `/profile/.*/post/.*` on `bsky.app`. Reddit direct links cover canonical `/r/{sub}/comments/{id}/...` post/comment permalinks and bounded `/s/` aliases without claiming ordinary subreddits, profiles, feeds, search, wiki or settings; `redd.it` remains deliberately unclaimed because its bare `/comments/{id}` target cannot be transformed into the oEmbed-compatible canonical permalink without an additional Reddit API or page-metadata extraction. Bluesky's provider-level URL policy remains stricter than the manifest filter and rejects ordinary profiles. Canonical Threads `/@user/post/...` permalinks and X status URLs remain manual-paste/Android-Share-only because the minSdk-26 path matcher cannot express those route shapes narrowly enough without overclaiming unsupported navigation. On modern Android versions, the user may explicitly associate SocialViewer with declared provider domains under **Open by default / supported links**. First-party apps or the browser may compete for the same domains.
+- Some Instagram Reels may display a preview without playable video. Opening the original content in a browser may be necessary.
+- Reddit's `redd.it` short links are not supported, and viewing a post does not provide a full comment-thread browser.
+- YouTube videos marked *Made for Kids* are rejected by the app's pre-embed checks.
+- Facebook is currently unsupported. Its share-link flow could not be supported reliably within the project's constraints.
+- Private, deleted, restricted or unavailable content cannot be accessed. Some providers may require their own account or login even for content that appears public.
 
-On Android 12+, SocialViewer reads the real per-domain user state through `DomainVerificationManager`, summarizes it per provider, and opens the Android system screen for changes. It does not expose a fake in-app toggle because Android does not provide a public API for an ordinary app to write the user's domain selections. Manual paste and Android Share remain fallbacks for every provider and remain the current YouTube and X routing modes. `redd.it` is not counted as supported under the current Reddit provider boundary. Settings explicitly labels the direct-link count so it is not confused with the total number of supported providers. For development/test devices, ADB can select all declared domains with `pm set-app-links-user-selection ... true all`; that shell capability is not available to the production app.
+SocialViewer cannot guarantee that every public link will work. Provider restrictions and changes to external embedding services can affect availability.
 
-## YouTube Data API configuration
+## Privacy
 
-YouTube playback itself is keyless, but current YouTube policy requires a Made For Kids lookup before embedding. The app therefore expects `YOUTUBE_API_KEY` at build time.
+SocialViewer is designed to minimize the data handled by the app itself.
 
-Use one of these local-only sources:
+It has no SocialViewer account system, developer-operated backend, viewing-history database, analytics SDK or advertising SDK. It requests internet access but no permissions for location, contacts, camera, microphone or personal files.
 
-- `YOUTUBE_API_KEY=...` in the repository `local.properties` file (already gitignored);
-- Gradle property `YOUTUBE_API_KEY`;
-- environment variable `YOUTUBE_API_KEY`.
+Some information is stored locally to make the app usable, including:
 
-Do not commit the key. Restrict it to the **YouTube Data API v3** and, for Android application restrictions, package `io.github.falker47.socialviewer` plus the signing certificate SHA-1. The client sends `X-Android-Package` and `X-Android-Cert` headers for this purpose.
+- Language, appearance and onboarding preferences.
+- First-party cookies and site preferences used by embedded providers.
+- Your consent choice before loading X embeds, which you can revoke in Settings.
 
-CI intentionally builds with an empty key; deterministic tests use fixtures and do not call YouTube live.
+Third-party cookies are disabled in the embedded WebView, and provider site data can be cleared from Settings.
 
-## Build
+**SocialViewer does not make you anonymous to social platforms.** Opening embedded content still connects to external services. Those providers may receive network and device information, process interactions, and display their own advertising or related-content elements.
 
-Repository: https://github.com/falker47/SocialViewer
+The app does not bypass authentication, age restrictions, private accounts or other provider access controls.
+
+Read the full [Privacy Policy](https://falker47.github.io/Nexus-portfolio/socialviewer-privacy.html), available in English and Italian.
+
+## Development
+
+SocialViewer is built with Kotlin, Jetpack Compose and Android WebView.
+
+Its architecture separates platform-specific integrations from the Android interface. Each `SocialProvider` handles its supported URLs and public content retrieval, while the shared application logic handles incoming links, loading states and rendering.
+
+This makes it possible to maintain or extend individual integrations without duplicating the core viewer.
+
+See [ARCHITECTURE.md](ARCHITECTURE.md) for the technical design.
+
+### Build locally
 
 Requirements:
 
@@ -120,70 +99,47 @@ Requirements:
 - JDK 17
 - Android SDK Platform 37
 
-Pinned project versions:
+Clone the repository, open its root directory in Android Studio, and synchronize the Gradle project. The Gradle Wrapper is already included.
 
-- AGP `9.4.0`
-- Gradle `9.6.0`
-- Compose compiler plugin `2.2.10`
-- Compose BOM `2026.09.00`
-- Activity Compose `1.13.0`
-- kotlinx.coroutines `1.11.0`
+Useful commands from the repository root:
 
-The standard Gradle Wrapper is committed. After cloning, open the repository root in Android Studio and sync; the old bootstrap scripts are no longer required for normal setup.
+- `./gradlew testDebugUnitTest` — run unit tests.
+- `./gradlew lintRelease` — check the release variant.
+- `./gradlew assembleDebug` — build a debug APK.
+- `./gradlew bundleRelease` — build a release Android App Bundle, unsigned unless signing is configured.
 
-CLI checks:
+On Windows, use `gradlew.bat` instead of `./gradlew`.
 
-```text
-gradlew.bat testDebugUnitTest
-gradlew.bat lintRelease
-gradlew.bat assembleDebug
-gradlew.bat bundleRelease
-```
+### YouTube API configuration
 
-The ordinary release bundle check is intentionally unsigned and can run without secrets. Google Play publication uses Play App Signing plus a developer-controlled upload key; the fail-fast signed publish path is `gradlew.bat playReleaseBundle` after local/secure signing configuration is present. See `RELEASE.md`.
+YouTube playback uses the official embedded player, but the app requires a YouTube Data API v3 key to check video availability and *Made for Kids* status before playback.
 
-Detailed smoke-test steps are in `TESTING.md`.
+Set `YOUTUBE_API_KEY` using one of the supported local sources:
 
-## Continuous integration
+- `local.properties` (gitignored)
+- A Gradle property
+- An environment variable
 
-GitHub Actions runs on pushes and pull requests targeting `main` and executes:
+Never commit API keys or signing credentials. Restrict the YouTube key to the required API and the appropriate Android package and signing certificate.
 
-```text
-testDebugUnitTest
-assembleDebug
-```
+CI intentionally runs without a production YouTube key, so successful automated checks do not establish that YouTube playback works in a distributed build.
 
-Device/WebView/provider behavior still requires a real Android smoke test before a feature is considered verified.
+### Testing and releases
 
-## Development workflow
+GitHub Actions runs unit tests, release lint and Android build/packaging checks. These verify the source and generated artifacts but cannot replace testing on an Android device.
 
-- `main` is the last verified baseline.
-- Non-trivial work uses a `feature/...` branch.
-- Open a PR back to `main`.
-- CI must be green.
-- Test device/emulator behavior when the change touches UI, WebView, intents, or providers.
-- Merge only after the relevant smoke test passes.
-- Truly isolated micro-fixes may go directly to `main` when they are easy to verify and revert.
+Provider playback, WebView behavior, direct-link handling and Play-signed builds require separate verification.
 
-Examples: `feature/dark-mode`, `feature/instagram-provider`, `feature/multi-provider-ui`.
+For detailed instructions, see [TESTING.md](TESTING.md) and [RELEASE.md](RELEASE.md).
 
-## Next milestone
+A signed release bundle requires the developer's upload-signing configuration and a production YouTube API key. Building an AAB does not automatically publish it to Google Play.
 
-Provider expansion is closed for the first public release: TikTok, Instagram, Threads, YouTube, Reddit, Pinterest, X and Bluesky are verified. Facebook, LinkedIn and Mastodon remain blocked under their documented constraints; Snapchat is out of scope.
+## License and credits
 
-The active milestone is **Google Play release-readiness**. The first slice adds release-variant lint/AAB CI coverage, secure upload-key plumbing and a fail-fast publish configuration gate. Network/WebView hardening, launcher/store assets, licensing/privacy documentation and the signed release-candidate smoke gate remain separate follow-up milestones.
+Developed by **Maurizio Falconi (falker47)** under the Falker Studio project identity.
 
-## Non-goals
+No license file is currently included in this repository. Public access to the source code does not by itself grant permission to reuse or redistribute it.
 
-- downloading or rehosting social videos;
-- extracting private/internal media URLs;
-- bypassing authentication or platform restrictions;
-- implementing a feed, messaging, comments client, or social graph;
-- collecting user analytics or viewing history.
+SocialViewer uses external social-media services and their official or public embedding mechanisms. Third-party content and services remain subject to their respective owners' terms.
 
-
-### Direct-link reliability note
-
-YouTube remains manual-paste / Android-Share-only. On the physical release test phone, Android routed a neutral YouTube web intent to the official YouTube app even after SocialViewer's YouTube domains were user-selected; the official app is system-configured for those domains. SocialViewer therefore does not advertise YouTube direct opening as reliable.
-
-Pinterest `pin.it` aliases are first-class direct-link inputs. They reuse the existing bounded redirect resolver and the same strict final-target validation used for canonical Pinterest Pins.
+For questions, bug reports or feedback, contact [falker.dev@gmail.com](mailto:falker.dev@gmail.com).
