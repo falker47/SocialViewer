@@ -50,8 +50,8 @@ class InstagramReelQaBoundaryTest {
                 .findAll(gradle).count() == 3,
         )
         assertTrue(gradle.contains("applicationId = \"io.github.falker47.socialviewer\""))
-        assertTrue(gradle.contains("versionCode = 11"))
-        assertTrue(gradle.contains("versionName = \"0.1.10\""))
+        assertTrue(gradle.contains("versionCode = 12"))
+        assertTrue(gradle.contains("versionName = \"0.1.11\""))
         val releaseBlock = gradle.substringAfter("    buildTypes {").substringBefore("        // Release-optimized diagnostics")
         assertTrue(releaseBlock.contains("buildConfigField(\"boolean\", \"INSTAGRAM_REEL_FIRST_PARTY_ENABLED\", \"true\")"))
         assertTrue(workflow.contains("assemblePlayQa"))
