@@ -4,6 +4,56 @@ This checklist is the gate for changes that touch UI, intents, WebView behavior,
 
 Baseline note: TikTok playback plus the light Home/onboarding/Settings flow were verified during the 2026-09-23 MVP pass. Re-run the relevant sections after changes rather than assuming a previous pass covers new code.
 
+## Instagram Reel #38 — official 0.1.10 release candidate
+
+The canonical Reel playback path is the **same first-party WebView**
+already verified on the owner's phone in Link QA on 3 November 2026.
+The official Play release build (`io.github.falker47.socialviewer`) now
+enables that renderer for canonical public Instagram Reel URLs only.
+Ordinary Instagram posts and the seven other providers use their prior
+routes; debug keeps Meta oEmbed for comparison.
+
+**Do not ask for another full Reel playback QA** just to repeat an
+already accepted behavior. After a signed AAB exists and has been installed
+from Play, verify only the distribution-specific changes: updating the
+existing app without losing data, launch, one quick accepted Reel smoke,
+YouTube configuration against Play signing, and the external-browser CTA.
+The earlier physical playback result is retained as evidence for the
+renderer code path; it does not verify the signed Play binary.
+
+CI produces the release AAB *unsigned*, checks package, version, SHA and
+the build. Never upload that CI artifact to Google Play.
+Remaining gates: current Play versionCode and track status, actual signing,
+hosted privacy/Data Safety alignment, and provider/Play conditions.
+Full-site WebView URL guards cannot prohibit same-URL content changes.
+
+## Instagram Reel #38 — isolated Link QA boundary experiment (not Play)
+
+PR #40 Link QA loads the first-party Instagram Reel page. Its previous APK
+had user-confirmed video/audio playback for DfNMUcrBOxp. This does not
+establish Meta permission or a guarantee against unrelated SPA content.
+
+The QA history observer now fails closed if Android reports an off-Reel URL.
+This includes some SPA visited-history changes. It is reactive and cannot
+prevent same-URL page changes or guarantee no unintended content is drawn.
+
+On a real phone with SocialViewer Link QA only (leave Play 0.1.9 intact):
+
+1. Open https://www.instagram.com/reel/DfNMUcrBOxp/ and verify video/audio.
+2. Open a second public Reel; test play, pause, fullscreen and rotation.
+3. Tap a profile, another Reel, a feed entry, and any login prompt. None
+   may become usable in Link QA. An off-Reel history change must close the
+   QA viewer and show its localized safety warning.
+4. Use Guarda sul web and confirm it opens the external browser.
+5. Test an ordinary Instagram post and TikTok, Threads, YouTube, Reddit,
+   Pinterest, X and Bluesky. CI builds omit the YouTube API key, so an
+   unavailable YouTube video is not a production regression signal.
+6. Report any feed/login or other Reel displayed without an URL change, or
+   any loss of in-app playback. Either blocks production of this route.
+
+No merge, Play upload, or release follows from a green CI or physical QA;
+Meta authorization for the full Instagram page remains unverified.
+
 ## 1. Clone, open and sync
 
 Clone `falker47/SocialViewer` and open the repository root (`SocialViewer`) in Android Studio, not the `app` subfolder.
@@ -139,19 +189,43 @@ Use gesture navigation if the device is configured for it; repeat once with the 
 
 Record PASS only if Android Back and the visible in-app back controls have equivalent navigation semantics inside SocialViewer.
 
-## 10. Open-original escape hatch
+## 10. One web escape for all providers
 
 With direct-link handling enabled for at least one supported provider:
 
 1. Tap a supported provider link from another app so SocialViewer opens it directly.
-2. In the player, tap **Originale** / **Apri originale**.
+2. In the player, tap the single **Guarda sul web** / **Watch on web** button; no redundant Instagram-specific action is present.
 3. Android must open the URL in a browser context, bypassing SocialViewer's direct-link ownership.
 4. If a browser choice is required because no default browser is configured, choose one of the available browsers.
 5. Confirm the destination opens outside SocialViewer and does not loop back into the current item.
 6. Repeat once from an unavailable/error state that exposes **Originale**.
 7. Repeat the X privacy-notice **Apri originale** path if X is available for the smoke run.
 
-Record PASS only if every original-content escape path opens in a browser outside SocialViewer while generic external links such as Privacy, source code and portfolio still use their normal external-link behavior.
+Record PASS only if every native web escape opens in a browser outside SocialViewer while generic external links such as Privacy, source code and portfolio still use their normal external-link behavior.
+
+### Instagram Reel web continuation (issue #38; physical-device gate)
+
+1. Open `https://www.instagram.com/reel/DfNMUcrBOxp/` in SocialViewer. The official oEmbed remains visible and there is **one** native web action, `Guarda sul web` / `Watch on web`.
+2. Tap that action. It must open the same Reel in the external browser with `?l=1`, without looping back into SocialViewer. Confirm that this Reel plays without installing Instagram.
+3. Open a normal Instagram post and a previously working Instagram Reel. Each has one native web action; posts preserve their canonical link, while Reels use `?l=1`. Existing playable embeds must remain playable.
+4. Open TikTok and Threads content and verify that their single web action opens the canonical URL, with no Instagram-specific query flag and no link routing loop.
+5. Recheck the X consent and unavailable-content escape paths. Their external-action labels must also read `Guarda sul web` or `Watch on web`.
+6. Inspect locale changes and a narrow-screen device to catch button overflow or truncation.
+
+Instagram `l=1` is an observed first-party browser behaviour, **not** a documented stable Meta API. The web action does **not** prove in-app Instagram playback. Do not relax embedded WebView navigation or cookies without a separately verified bounded playback path.
+
+### QA-only first-party Instagram Reel playback feasibility (spike PR #40)
+
+This is an experiment on the separately installed `Link QA` package only. Play / debug / release keep the existing Instagram official oEmbed. The QA variant loads the original first-party Instagram Reel webpage at `?l=1` inside its WebView, without modifying the provider page's DOM, cookies policy or media files.
+
+1. In the `Link QA` app, paste `https://www.instagram.com/reel/DfNMUcrBOxp/`. Confirm that Instagram's full mobile Reel page opens **inside SocialViewer Link QA**, not in Chrome.
+2. Tap Play: record whether the video and audio actually play inside the WebView without Instagram app installation or login. An image alone, a loading spinner or a prompt to install Instagram is **not PASS**.
+3. Try to open another Reel, profile, home/feed or login inside this QA WebView. Navigations to other pages must be blocked. Do **not** enter credentials or sign in.
+4. Tap the **single** `Guarda sul web` / `Watch on web` action. Confirm it still opens `?l=1` in the external browser without looping into SocialViewer.
+5. In Link QA test an Instagram post plus a TikTok item: these must still use the normal oEmbed/shared WebView path; no first-party Instagram mode for other content.
+6. Compare the same Reel in the standard Play version, where the official oEmbed intentionally remains unchanged. Report layout/feed/login prompts, stuck loading, playback errors and audio/fullscreen behaviour.
+
+Fail the experimental feasibility gate if the provider's first-party mobile page refuses Android WebView, needs login, shows unsafe navigable feed, or requires unapproved manipulation. Never publish this proof-of-concept in Play.
 
 ## 11. Share-sheet fallback
 

@@ -73,9 +73,9 @@
     <string name="x_consent_body">X may receive technical device and viewing data when we load an embedded post. SocialViewer blocks third-party cookies and uses dnt=true to disable use of the embed for personalization.</string>
     <string name="x_consent_remembered">Your choice is remembered on this device and can be revoked in Settings.</string>
     <string name="load_x_post">Load X post</string>
-    <string name="open_original">Open original</string>
+    <string name="open_original">Watch on web</string>
     <string name="loading_content">Opening content…</string>
-    <string name="original">Original</string>
+    <string name="original">Watch on web</string>
     <string name="retry">Retry</string>
     <string name="back_to_home">Back to home</string>
     <string name="error_invalid_link">This doesn’t look like a valid link.</string>
@@ -96,4 +96,5 @@
     <string name="error_pinterest_pin_required">This Pinterest link did not lead to a supported public Pin. Open a direct link to the Pin.</string>
     <string name="error_provider_not_configured_format">%1$s isn’t configured in this build.</string>
     <string name="error_youtube_mfk">Videos marked as Made for Kids on YouTube aren’t opened in SocialViewer.</string>
+    <string name="instagram_reel_qa_navigation_blocked">Instagram attempted to leave the selected Reel. This QA view was closed for safety. Use Watch on web if needed.</string>
 </resources>
