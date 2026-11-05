@@ -16,16 +16,46 @@ class OpenOriginalIntentRegressionTest {
         )
         assertTrue(
             "Open-original helper must preserve ACTION_VIEW with the original URL",
-            source.contains("Intent(Intent.ACTION_VIEW, Uri.parse(url))"),
+            source.contains("Intent(Intent.ACTION_VIEW, Uri.parse(browserUrl))"),
         )
         assertTrue(
             "Open-original helper must resolve through a selector instead of app-link ownership",
             source.contains("selector = browserSelector"),
         )
         assertEquals(
-            "Every original-content action must use the browser-only helper",
+            "Three web actions must use the shared browser-only helper",
             3,
             Regex("""openOriginalExternal\(context,""").findAll(source).count(),
+        )
+    }
+
+    @Test
+    fun instagramReelWebFallbackUsesBrowserOnlyEscapeInsteadOfInAppNavigation() {
+        val source = socialViewerAppSource()
+
+        assertTrue(
+            source.contains("val browserUrl = InstagramUrlPolicy.mobileWebReelUrl(url) ?: url"),
+        )
+        assertTrue(
+            source.contains("Intent(Intent.ACTION_VIEW, Uri.parse(browserUrl))"),
+        )
+    }
+
+    @Test
+    fun viewerUsesOneSharedWebActionInsteadOfDuplicateInstagramCta() {
+        val source = socialViewerAppSource()
+
+        assertTrue(
+            "Browser-only helper must apply Instagram's special URL before opening",
+            source.contains("InstagramUrlPolicy.mobileWebReelUrl(url) ?: url"),
+        )
+        assertTrue(
+            "The three native web actions should all use the same browser escape",
+            Regex("""openOriginalExternal\(context,""").findAll(source).count() == 3,
+        )
+        assertTrue(
+            "The extra Instagram-only web action must be removed",
+            !source.contains("onOpenInstagramWeb"),
         )
     }
 

@@ -26,6 +26,38 @@ class InstagramUrlPolicyTest {
     }
 
     @Test
+    fun reelWebFallbackOnlyAcceptsCanonicalInstagramReels() {
+        // A real user's public Reel plays after Instagram's "Continue on web" action,
+        // which produces the same permalink with ?l=1.
+        assertEquals(
+            "https://www.instagram.com/reel/DfNMUcrBOxp/?l=1",
+            InstagramUrlPolicy.mobileWebReelUrl(
+                "https://www.instagram.com/reel/DfNMUcrBOxp/",
+            ),
+        )
+        assertNull(
+            InstagramUrlPolicy.mobileWebReelUrl(
+                "https://www.instagram.com/p/DfNMUcrBOxp/",
+            ),
+        )
+        assertNull(
+            InstagramUrlPolicy.mobileWebReelUrl(
+                "https://other.example/reel/DfNMUcrBOxp/",
+            ),
+        )
+        assertNull(
+            InstagramUrlPolicy.mobileWebReelUrl(
+                "https://www.instagram.com/reel/DfNMUcrBOxp/?igsh=tracking",
+            ),
+        )
+        assertNull(
+            InstagramUrlPolicy.mobileWebReelUrl(
+                "https://www.instagram.com/reel/DfNMUcrBOxp/#player",
+            ),
+        )
+    }
+
+    @Test
     fun rejectsProfilesStoriesAndLookalikeHosts() {
         assertFalse(InstagramUrlPolicy.supports("https", "www.instagram.com", "/alice/"))
         assertFalse(InstagramUrlPolicy.supports("https", "www.instagram.com", "/stories/alice/123/"))

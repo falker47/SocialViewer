@@ -139,19 +139,30 @@ Use gesture navigation if the device is configured for it; repeat once with the 
 
 Record PASS only if Android Back and the visible in-app back controls have equivalent navigation semantics inside SocialViewer.
 
-## 10. Open-original escape hatch
+## 10. One web escape for all providers
 
 With direct-link handling enabled for at least one supported provider:
 
 1. Tap a supported provider link from another app so SocialViewer opens it directly.
-2. In the player, tap **Originale** / **Apri originale**.
+2. In the player, tap the single **Guarda sul web** / **Watch on web** button; no redundant Instagram-specific action is present.
 3. Android must open the URL in a browser context, bypassing SocialViewer's direct-link ownership.
 4. If a browser choice is required because no default browser is configured, choose one of the available browsers.
 5. Confirm the destination opens outside SocialViewer and does not loop back into the current item.
 6. Repeat once from an unavailable/error state that exposes **Originale**.
 7. Repeat the X privacy-notice **Apri originale** path if X is available for the smoke run.
 
-Record PASS only if every original-content escape path opens in a browser outside SocialViewer while generic external links such as Privacy, source code and portfolio still use their normal external-link behavior.
+Record PASS only if every native web escape opens in a browser outside SocialViewer while generic external links such as Privacy, source code and portfolio still use their normal external-link behavior.
+
+### Instagram Reel web continuation (issue #38; physical-device gate)
+
+1. Open `https://www.instagram.com/reel/DfNMUcrBOxp/` in SocialViewer. The official oEmbed remains visible and there is **one** native web action, `Guarda sul web` / `Watch on web`.
+2. Tap that action. It must open the same Reel in the external browser with `?l=1`, without looping back into SocialViewer. Confirm that this Reel plays without installing Instagram.
+3. Open a normal Instagram post and a previously working Instagram Reel. Each has one native web action; posts preserve their canonical link, while Reels use `?l=1`. Existing playable embeds must remain playable.
+4. Open TikTok and Threads content and verify that their single web action opens the canonical URL, with no Instagram-specific query flag and no link routing loop.
+5. Recheck the X consent and unavailable-content escape paths. Their external-action labels must also read `Guarda sul web` or `Watch on web`.
+6. Inspect locale changes and a narrow-screen device to catch button overflow or truncation.
+
+Instagram `l=1` is an observed first-party browser behaviour, **not** a documented stable Meta API. The web action does **not** prove in-app Instagram playback. Do not relax embedded WebView navigation or cookies without a separately verified bounded playback path.
 
 ## 11. Share-sheet fallback
 
