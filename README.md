@@ -8,13 +8,9 @@ It's designed for people who rarely use social media, want to spend less time sc
 
 Open the shared content, watch or read it, and return to your conversation. No feed to browse, no recommendations to follow, and no SocialViewer account to create.
 
-## Get SocialViewer
+## Get Social Viewer
 
-SocialViewer is currently available through **Google Play closed testing**. A public production release is not yet confirmed.
-
-[**Join the Android test**](https://falker47.github.io/Nexus-portfolio/testers.html)
-
-The tester page explains how to join the Google Group, opt in through Google Play, and install the app. Participants are asked to remain enrolled for 14 consecutive days and report any issues they encounter.
+[**Download Social Viewer on Google Play**](https://play.google.com/store/apps/details?id=io.github.falker47.socialviewer)
 
 The version available through Google Play may differ from the source on `main`, as release builds can be prepared and tested separately.
 
