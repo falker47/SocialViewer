@@ -40,6 +40,23 @@ object InstagramUrlPolicy {
         return "https://www.instagram.com/$kind/$shortcode/"
     }
 
+    /**
+     * First-party mobile web path observed after Instagram's "Continue on web" action.
+     * This query flag is undocumented; use only for an explicit external-browser fallback.
+     * Require a canonical Reel permalink to avoid leaking arbitrary input/query data.
+     */
+    fun mobileWebReelUrl(permalink: String): String? {
+        val parsed = runCatching { java.net.URI(permalink) }.getOrNull() ?: return null
+        if (parsed.rawQuery != null || parsed.rawFragment != null) return null
+
+        val canonical = canonicalUrl(parsed.scheme, parsed.host, parsed.path) ?: return null
+        if (permalink != canonical || !canonical.startsWith("https://www.instagram.com/reel/")) {
+            return null
+        }
+
+        return "$canonical?l=1"
+    }
+
     private fun isValidShortcode(value: String): Boolean =
         value.isNotBlank() &&
             value.all { char ->
