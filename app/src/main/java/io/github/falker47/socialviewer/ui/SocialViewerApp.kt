@@ -1,6 +1,8 @@
 package io.github.falker47.socialviewer.ui
 
 import io.github.falker47.socialviewer.preview.RedditPagePreview
+import io.github.falker47.socialviewer.provider.instagram.InstagramUrlPolicy
+import io.github.falker47.socialviewer.BuildConfig
 
 import android.app.Activity
 import android.content.ClipboardManager
@@ -1661,6 +1663,16 @@ private fun PlayerScreen(
     ) {
         mutableStateOf(false)
     }
+    // The same Reel renderer is used in release and both QA variants.
+    // Ordinary debug retains oEmbed for differential verification.
+    val firstPartyReelUrl = if (
+        BuildConfig.INSTAGRAM_REEL_FIRST_PARTY_ENABLED &&
+        content.providerId == "instagram"
+    ) {
+        InstagramUrlPolicy.mobileWebReelUrl(content.canonicalUrl)
+    } else {
+        null
+    }
 
     Box(modifier = modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
@@ -1712,7 +1724,13 @@ private fun PlayerScreen(
                     modifier = Modifier.fillMaxWidth().fillMaxHeight()
                         .widthIn(max = 840.dp).background(Color.Black),
                 ) {
-                    if (!RedditPagePreview(content.embedHtml, content.documentBaseUrl, Modifier.fillMaxSize()) { embedReady = true }) {
+                    if (firstPartyReelUrl != null) {
+                        InstagramReelQaWebView(
+                            reelWebUrl = firstPartyReelUrl,
+                            modifier = Modifier.fillMaxSize(),
+                            onContentReady = { embedReady = true },
+                        )
+                    } else if (!RedditPagePreview(content.embedHtml, content.documentBaseUrl, Modifier.fillMaxSize()) { embedReady = true }) {
                         EmbedWebView(
                             html = content.embedHtml,
                             baseUrl = content.documentBaseUrl,
@@ -1818,10 +1836,13 @@ private fun openExternal(context: Context, url: String) {
 }
 
 private fun openOriginalExternal(context: Context, url: String) {
+    // The same browser escape serves every provider; only Instagram Reels need
+    // the observed first-party mobile web continuation parameter.
+    val browserUrl = InstagramUrlPolicy.mobileWebReelUrl(url) ?: url
     val browserSelector = Intent(Intent.ACTION_MAIN).apply {
         addCategory(Intent.CATEGORY_APP_BROWSER)
     }
-    val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(url)).apply {
+    val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(browserUrl)).apply {
         selector = browserSelector
     }
     context.startActivity(browserIntent)

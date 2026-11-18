@@ -72,9 +72,9 @@
     <string name="x_consent_body">X può ricevere dati tecnici del dispositivo e della visualizzazione quando carichiamo un post incorporato. SocialViewer blocca i cookie di terze parti e usa dnt=true per disattivare l’uso dell’embed per personalizzazione.</string>
     <string name="x_consent_remembered">La scelta viene ricordata sul dispositivo e può essere revocata nelle impostazioni.</string>
     <string name="load_x_post">Carica post X</string>
-    <string name="open_original">Apri originale</string>
+    <string name="open_original">Guarda sul web</string>
     <string name="loading_content">Apertura del contenuto…</string>
-    <string name="original">Originale</string>
+    <string name="original">Guarda sul web</string>
     <string name="retry">Riprova</string>
     <string name="back_to_home">Torna all’inizio</string>
     <string name="error_invalid_link">Questo non sembra un link valido.</string>
@@ -95,4 +95,5 @@
     <string name="error_pinterest_pin_required">Questo link Pinterest non ha portato a un Pin pubblico supportato. Apri il link diretto al Pin.</string>
     <string name="error_provider_not_configured_format">%1$s non è configurato in questa build.</string>
     <string name="error_youtube_mfk">I video YouTube destinati ai bambini non vengono aperti in SocialViewer.</string>
+    <string name="instagram_reel_qa_navigation_blocked">Instagram ha tentato di lasciare il Reel selezionato. La vista QA è stata chiusa per sicurezza. Se necessario, usa Guarda sul web.</string>
 </resources>
