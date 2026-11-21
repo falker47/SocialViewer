@@ -43,7 +43,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -1384,58 +1383,58 @@ private fun CoachMarkOverlay(
                 ),
         )
 
-        Surface(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(safeArea)
-                .padding(margin)
-                .wrapContentSize(coachMarkAlignment(target, targetIsUpper, calloutGapPx, safeTopPx))
-                .widthIn(max = 520.dp),
-            shape = RoundedCornerShape(20.dp),
-            tonalElevation = 8.dp,
-            shadowElevation = 8.dp,
+        Box(
+            modifier = Modifier.fillMaxSize().padding(safeArea).padding(margin),
+            contentAlignment = coachMarkAlignment(target, targetIsUpper, calloutGapPx, safeTopPx),
         ) {
-            Column(modifier = Modifier.verticalScroll(rememberScrollState()).padding(20.dp)) {
-                if (step == 1) {
-                    Text(
-                        stringResource(R.string.onboarding_open_link_title),
-                        style = MaterialTheme.typography.titleLarge,
-                    )
-                    Spacer(Modifier.height(8.dp))
-                    Text(
-                        stringResource(R.string.onboarding_open_link_body),
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                    Spacer(Modifier.height(18.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.End,
-                    ) {
-                        Button(onClick = onNext) {
-                            Text(stringResource(R.string.next))
+            Surface(
+                modifier = Modifier.widthIn(max = 520.dp),
+                shape = RoundedCornerShape(20.dp),
+                tonalElevation = 8.dp,
+                shadowElevation = 8.dp,
+            ) {
+                Column(modifier = Modifier.verticalScroll(rememberScrollState()).padding(20.dp)) {
+                    if (step == 1) {
+                        Text(
+                            stringResource(R.string.onboarding_open_link_title),
+                            style = MaterialTheme.typography.titleLarge,
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        Text(
+                            stringResource(R.string.onboarding_open_link_body),
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
+                        Spacer(Modifier.height(18.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.End,
+                        ) {
+                            Button(onClick = onNext) {
+                                Text(stringResource(R.string.next))
+                            }
                         }
-                    }
-                } else {
-                    Text(
-                        stringResource(R.string.onboarding_direct_title),
-                        style = MaterialTheme.typography.titleLarge,
-                    )
-                    Spacer(Modifier.height(8.dp))
-                    Text(
-                        stringResource(R.string.onboarding_direct_body),
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                    Spacer(Modifier.height(18.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        TextButton(onClick = onSkip) {
-                            Text(stringResource(R.string.not_now))
-                        }
-                        Spacer(Modifier.weight(1f))
-                        Button(onClick = onConfigure) {
-                            Text(stringResource(R.string.configure_direct_opening))
+                    } else {
+                        Text(
+                            stringResource(R.string.onboarding_direct_title),
+                            style = MaterialTheme.typography.titleLarge,
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        Text(
+                            stringResource(R.string.onboarding_direct_body),
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
+                        Spacer(Modifier.height(18.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            TextButton(onClick = onSkip) {
+                                Text(stringResource(R.string.not_now))
+                            }
+                            Spacer(Modifier.weight(1f))
+                            Button(onClick = onConfigure) {
+                                Text(stringResource(R.string.configure_direct_opening))
+                            }
                         }
                     }
                 }
