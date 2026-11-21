@@ -164,6 +164,8 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--source-sha", default="")
     parser.add_argument("--output-dir", default="app/build/reports/size")
+    parser.add_argument("--require-r8", action="store_true",
+                        help="Exit unsuccessfully after reporting unless release AAB class renaming is verified")
     for kind, pattern in DEFAULT_GLOBS.items():
         parser.add_argument("--" + kind.replace("_", "-"), default=pattern, help="Input file glob")
     args = parser.parse_args()
@@ -243,6 +245,8 @@ def main() -> None:
         with open(summary_file, "a", encoding="utf-8") as handle:
             handle.write(md)
     print(md)
+    if args.require_r8 and mapping["status"] != "verified":
+        raise SystemExit(f"Required R8 class renaming evidence: {mapping['status']}")
 
 if __name__ == "__main__":
     main()

@@ -32,15 +32,18 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -113,12 +116,14 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.falker47.socialviewer.R
 import io.github.falker47.socialviewer.domain.SocialContent
 import io.github.falker47.socialviewer.provider.ProviderRegistry
 import kotlinx.coroutines.launch
+import kotlin.math.roundToInt
 import kotlin.math.sqrt
 
 private enum class AppScreen {
@@ -367,7 +372,7 @@ fun SocialViewerApp(
                             onOpenSupport = { openExternal(context, SUPPORT_PROJECT_URL) },
                             onInputTargetChanged = { inputTarget = it },
                             onDirectLinkTargetChanged = { directLinkTarget = it },
-                            modifier = Modifier.padding(padding),
+                            modifier = Modifier.padding(padding).consumeWindowInsets(padding).imePadding(),
                         )
 
                         is ViewerState.XConsent -> XConsentScreen(
@@ -1333,11 +1338,10 @@ private fun CoachMarkOverlay(
         val density = LocalDensity.current
         val containerHeightPx = with(density) { maxHeight.toPx() }
         val targetIsUpper = target.center.y < containerHeightPx / 2f
-        val calloutGap = 54.dp
-        val calloutGapPx = with(density) { calloutGap.toPx() }
-        val targetBottomDp = with(density) { target.bottom.toDp() }
-        val bottomDistanceToTargetTopDp =
-            with(density) { (containerHeightPx - target.top).toDp() }
+        val calloutGapPx = with(density) { 54.dp.toPx() }
+        val safeArea = WindowInsets.safeDrawing.asPaddingValues()
+        val margin = 20.dp
+        val safeTopPx = with(density) { safeArea.calculateTopPadding().roundToPx() + margin.roundToPx() }
 
         Canvas(
             modifier = Modifier
@@ -1382,19 +1386,16 @@ private fun CoachMarkOverlay(
 
         Surface(
             modifier = Modifier
-                .align(if (targetIsUpper) Alignment.TopCenter else Alignment.BottomCenter)
-                .padding(
-                    start = 20.dp,
-                    end = 20.dp,
-                    top = if (targetIsUpper) targetBottomDp + calloutGap else 20.dp,
-                    bottom = if (targetIsUpper) 20.dp else bottomDistanceToTargetTopDp + calloutGap,
-                )
+                .fillMaxSize()
+                .padding(safeArea)
+                .padding(margin)
+                .wrapContentSize(coachMarkAlignment(target, targetIsUpper, calloutGapPx, safeTopPx))
                 .widthIn(max = 520.dp),
             shape = RoundedCornerShape(20.dp),
             tonalElevation = 8.dp,
             shadowElevation = 8.dp,
         ) {
-            Column(modifier = Modifier.padding(20.dp)) {
+            Column(modifier = Modifier.verticalScroll(rememberScrollState()).padding(20.dp)) {
                 if (step == 1) {
                     Text(
                         stringResource(R.string.onboarding_open_link_title),
@@ -1442,6 +1443,16 @@ private fun CoachMarkOverlay(
         }
     }
 }
+
+/** Place the measured card beside its root-space target, within the safe viewport. */
+internal fun coachMarkAlignment(target: Rect, below: Boolean, gapPx: Float, safeTopPx: Int) =
+    Alignment { card, viewport, _ ->
+        val preferred = if (below) target.bottom + gapPx else target.top - gapPx - card.height
+        IntOffset(
+            x = (viewport.width - card.width) / 2,
+            y = (preferred.roundToInt() - safeTopPx).coerceIn(0, viewport.height - card.height),
+        )
+    }
 
 @Composable
 private fun CoachMarkArrow(

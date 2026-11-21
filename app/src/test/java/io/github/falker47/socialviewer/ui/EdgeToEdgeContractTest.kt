@@ -1,5 +1,9 @@
 package io.github.falker47.socialviewer.ui
 
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.LayoutDirection
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -13,6 +17,25 @@ import javax.xml.parsers.DocumentBuilderFactory
  * Android 15+ device QA of insets, the keyboard, or embedded WebViews.
  */
 class EdgeToEdgeContractTest {
+    @Test
+    fun measuredOnboardingCardStaysInsideTheInsetViewport() {
+        val card = IntSize(260, 270)
+        val viewport = IntSize(440, 320)
+        val target = Rect(50f, 200f, 160f, 250f)
+        val below = coachMarkAlignment(target, below = true, gapPx = 54f, safeTopPx = 44)
+        val above = coachMarkAlignment(target, below = false, gapPx = 54f, safeTopPx = 44)
+        assertEquals(IntOffset(90, 50), below.align(card, viewport, LayoutDirection.Ltr))
+        assertEquals(IntOffset(90, 0), above.align(card, viewport, LayoutDirection.Rtl))
+        assertEquals(IntOffset(90, 260), below.align(card, IntSize(440, 800), LayoutDirection.Ltr))
+    }
+
+    @Test
+    fun homeConsumesScaffoldPaddingBeforeApplyingKeyboardInsets() {
+        val source = mainSource("java/io/github/falker47/socialviewer/ui/SocialViewerApp.kt").readText()
+        val home = source.substringAfter("ViewerState.Home -> HomeScreen(").substringBefore("is ViewerState.XConsent")
+        assertTrue(home.contains("Modifier.padding(padding).consumeWindowInsets(padding).imePadding()"))
+    }
+
     @Test
     fun activityEnablesEdgeToEdgeAfterSuperAndBeforeCompose() {
         val source = mainSource("java/io/github/falker47/socialviewer/MainActivity.kt").readText()

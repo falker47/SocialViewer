@@ -4,6 +4,7 @@ import io
 import json
 import os
 import struct
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -87,6 +88,35 @@ class AndroidSizeAuditTest(unittest.TestCase):
         with zipfile.ZipFile(stream) as archive:
             self.assertEqual(report.audit_mapping(archive, set())["status"], "unconfirmed")
             self.assertEqual(report.audit_mapping(archive, {"a"})["status"], "unconfirmed")
+
+    def test_require_r8_exit_status_and_retained_reports(self):
+        cases = [(None, "embedded_mapping_missing", 1), ("absent", "unconfirmed", 1), ("a", "verified", 0)]
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            apk = root / "release.apk"
+            aab = root / "release.aab"
+            with zipfile.ZipFile(apk, "w") as archive:
+                archive.writestr("classes.dex", dex_fixture(["different"], [0]))
+            for target, status, code in cases:
+                with self.subTest(status=status):
+                    out = root / status
+                    with zipfile.ZipFile(aab, "w") as archive:
+                        archive.writestr("base/dex/classes.dex", dex_fixture(["a"], [0]))
+                        if target:
+                            archive.writestr(report.MAPPING_ENTRY,
+                                             f"# compiler: R8\n{report.APP_NAMESPACE}.Original -> {target}:\n")
+                    run = subprocess.run(
+                        [sys.executable, "-B", report.__file__, "--require-r8", "--output-dir", str(out),
+                         "--debug-apk", str(apk), "--release-apk", str(apk), "--release-aab", str(aab)],
+                        capture_output=True, text=True, env={**os.environ, "GITHUB_STEP_SUMMARY": ""},
+                    )
+                    self.assertEqual(run.returncode, code, run.stderr)
+                    results = json.loads((out / "metrics.json").read_text())
+                    self.assertEqual(results["artifacts"]["release_aab"]["r8_mapping"]["status"], status)
+                    self.assertFalse(results["release_apk_aab_dex_byte_identical"])
+                    self.assertIn("R8 class renaming", (out / "metrics.md").read_text())
+                    if code:
+                        self.assertIn(status, run.stderr)
 
     def test_corrupt_class_index_is_rejected(self):
         dex = bytearray(dex_fixture(["a"], [0]))

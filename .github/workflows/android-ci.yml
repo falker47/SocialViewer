@@ -98,7 +98,7 @@ jobs:
         if: github.head_ref != 'fix/tiktok-shortlink-youtube-fullscreen'
         env:
           SOURCE_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
-        run: python3 tools/android_size_report.py --source-sha "$SOURCE_HEAD"
+        run: python3 tools/android_size_report.py --source-sha "$SOURCE_HEAD" --require-r8
 
       - name: Upload size and dependency baseline
         if: github.head_ref != 'fix/tiktok-shortlink-youtube-fullscreen'
