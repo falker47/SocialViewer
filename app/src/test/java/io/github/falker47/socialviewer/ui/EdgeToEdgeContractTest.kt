@@ -37,6 +37,13 @@ class EdgeToEdgeContractTest {
     }
 
     @Test
+    fun homeKeepsASingleInputCompositionAcrossKeyboardHeightChanges() {
+        val source = mainSource("java/io/github/falker47/socialviewer/ui/SocialViewerApp.kt").readText()
+        val home = source.substringAfter("private fun HomeScreen(").substringBefore("private fun HomePrimaryContent(")
+        assertEquals(1, Regex("""\bHomePrimaryContent\s*\(""").findAll(home).count())
+    }
+
+    @Test
     fun activityEnablesEdgeToEdgeAfterSuperAndBeforeCompose() {
         val source = mainSource("java/io/github/falker47/socialviewer/MainActivity.kt").readText()
         val create = source.indexOf("super.onCreate(savedInstanceState)")

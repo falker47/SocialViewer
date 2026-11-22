@@ -456,13 +456,20 @@ private fun HomeScreen(
 
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
         val compactHeight = maxHeight < 640.dp
-
-        if (compactHeight) {
+        val scrollState = rememberScrollState()
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .then(if (compactHeight) Modifier.verticalScroll(scrollState) else Modifier)
+                .padding(horizontal = 24.dp, vertical = 20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            // Keep the text field in the same composition when the keyboard changes maxHeight.
             Column(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 24.dp, vertical = 20.dp),
+                    .fillMaxWidth()
+                    .then(if (compactHeight) Modifier else Modifier.weight(1f)),
+                verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Spacer(Modifier.height(8.dp))
@@ -474,60 +481,21 @@ private fun HomeScreen(
                     onOpen = onOpen,
                     onInputTargetChanged = onInputTargetChanged,
                 )
-                Spacer(Modifier.height(32.dp))
-                HomeUtilities(
-                    directLinkState = directLinkState,
-                    onConfigureDirectLinks = onConfigureDirectLinks,
-                    onOpenSettings = onOpenSettings,
-                    onDirectLinkTargetChanged = onDirectLinkTargetChanged,
-                )
-                Spacer(Modifier.height(18.dp))
-                HomeFooter(
-                    onLearnWhy = { showSupportInfo = true },
-                    onOpenIdentityHome = onOpenIdentityHome,
-                    onOpenPrivacy = onOpenPrivacy,
-                )
-                Spacer(Modifier.height(8.dp))
             }
-        } else {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 24.dp, vertical = 20.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    Spacer(Modifier.height(8.dp))
-                    HomePrimaryContent(
-                        value = value,
-                        error = error,
-                        onValueChange = onValueChange,
-                        onPasteAndOpen = onPasteAndOpen,
-                        onOpen = onOpen,
-                        onInputTargetChanged = onInputTargetChanged,
-                    )
-                }
-
-                HomeUtilities(
-                    directLinkState = directLinkState,
-                    onConfigureDirectLinks = onConfigureDirectLinks,
-                    onOpenSettings = onOpenSettings,
-                    onDirectLinkTargetChanged = onDirectLinkTargetChanged,
-                )
-                Spacer(Modifier.height(18.dp))
-                HomeFooter(
-                    onLearnWhy = { showSupportInfo = true },
-                    onOpenIdentityHome = onOpenIdentityHome,
-                    onOpenPrivacy = onOpenPrivacy,
-                )
-                Spacer(Modifier.height(2.dp))
-            }
+            if (compactHeight) Spacer(Modifier.height(32.dp))
+            HomeUtilities(
+                directLinkState = directLinkState,
+                onConfigureDirectLinks = onConfigureDirectLinks,
+                onOpenSettings = onOpenSettings,
+                onDirectLinkTargetChanged = onDirectLinkTargetChanged,
+            )
+            Spacer(Modifier.height(18.dp))
+            HomeFooter(
+                onLearnWhy = { showSupportInfo = true },
+                onOpenIdentityHome = onOpenIdentityHome,
+                onOpenPrivacy = onOpenPrivacy,
+            )
+            Spacer(Modifier.height(if (compactHeight) 8.dp else 2.dp))
         }
     }
 
