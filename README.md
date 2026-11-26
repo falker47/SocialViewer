@@ -75,7 +75,7 @@ Third-party cookies are disabled in the embedded WebView, and provider site data
 
 The app does not bypass authentication, age restrictions, private accounts or other provider access controls.
 
-Read the full [Privacy Policy](https://falker47.github.io/Nexus-portfolio/socialviewer-privacy.html), available in English and Italian.
+Read the full [Privacy Policy](https://falker47.github.io/projects/social-viewer/privacy/), available in English and Italian.
 
 ## Development
 

@@ -130,7 +130,7 @@ private const val PREF_ONBOARDING_COMPLETE = "onboarding_complete"
 private const val PREF_X_EMBED_CONSENT_GRANTED = "x_embed_consent_granted"
 private const val SOURCE_CODE_URL = "https://github.com/falker47/SocialViewer"
 private const val IDENTITY_HOME_URL = "https://falker47.github.io/"
-private const val PRIVACY_POLICY_URL = "https://falker47.github.io/Nexus-portfolio/socialviewer-privacy.html"
+private const val PRIVACY_POLICY_URL = "https://falker47.github.io/projects/social-viewer/privacy/"
 private const val SUPPORT_PROJECT_URL = "https://www.paypal.com/paypalme/falker47"
 
 @OptIn(ExperimentalMaterial3Api::class)
