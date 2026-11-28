@@ -32,13 +32,15 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
@@ -113,12 +115,14 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.falker47.socialviewer.R
 import io.github.falker47.socialviewer.domain.SocialContent
 import io.github.falker47.socialviewer.provider.ProviderRegistry
 import kotlinx.coroutines.launch
+import kotlin.math.roundToInt
 import kotlin.math.sqrt
 
 private enum class AppScreen {
@@ -367,7 +371,7 @@ fun SocialViewerApp(
                             onOpenSupport = { openExternal(context, SUPPORT_PROJECT_URL) },
                             onInputTargetChanged = { inputTarget = it },
                             onDirectLinkTargetChanged = { directLinkTarget = it },
-                            modifier = Modifier.padding(padding),
+                            modifier = Modifier.padding(padding).consumeWindowInsets(padding).imePadding(),
                         )
 
                         is ViewerState.XConsent -> XConsentScreen(
@@ -452,13 +456,20 @@ private fun HomeScreen(
 
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
         val compactHeight = maxHeight < 640.dp
-
-        if (compactHeight) {
+        val scrollState = rememberScrollState()
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .then(if (compactHeight) Modifier.verticalScroll(scrollState) else Modifier)
+                .padding(horizontal = 24.dp, vertical = 20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            // Keep the text field in the same composition when the keyboard changes maxHeight.
             Column(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 24.dp, vertical = 20.dp),
+                    .fillMaxWidth()
+                    .then(if (compactHeight) Modifier else Modifier.weight(1f)),
+                verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Spacer(Modifier.height(8.dp))
@@ -470,60 +481,21 @@ private fun HomeScreen(
                     onOpen = onOpen,
                     onInputTargetChanged = onInputTargetChanged,
                 )
-                Spacer(Modifier.height(32.dp))
-                HomeUtilities(
-                    directLinkState = directLinkState,
-                    onConfigureDirectLinks = onConfigureDirectLinks,
-                    onOpenSettings = onOpenSettings,
-                    onDirectLinkTargetChanged = onDirectLinkTargetChanged,
-                )
-                Spacer(Modifier.height(18.dp))
-                HomeFooter(
-                    onLearnWhy = { showSupportInfo = true },
-                    onOpenIdentityHome = onOpenIdentityHome,
-                    onOpenPrivacy = onOpenPrivacy,
-                )
-                Spacer(Modifier.height(8.dp))
             }
-        } else {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 24.dp, vertical = 20.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    Spacer(Modifier.height(8.dp))
-                    HomePrimaryContent(
-                        value = value,
-                        error = error,
-                        onValueChange = onValueChange,
-                        onPasteAndOpen = onPasteAndOpen,
-                        onOpen = onOpen,
-                        onInputTargetChanged = onInputTargetChanged,
-                    )
-                }
-
-                HomeUtilities(
-                    directLinkState = directLinkState,
-                    onConfigureDirectLinks = onConfigureDirectLinks,
-                    onOpenSettings = onOpenSettings,
-                    onDirectLinkTargetChanged = onDirectLinkTargetChanged,
-                )
-                Spacer(Modifier.height(18.dp))
-                HomeFooter(
-                    onLearnWhy = { showSupportInfo = true },
-                    onOpenIdentityHome = onOpenIdentityHome,
-                    onOpenPrivacy = onOpenPrivacy,
-                )
-                Spacer(Modifier.height(2.dp))
-            }
+            if (compactHeight) Spacer(Modifier.height(32.dp))
+            HomeUtilities(
+                directLinkState = directLinkState,
+                onConfigureDirectLinks = onConfigureDirectLinks,
+                onOpenSettings = onOpenSettings,
+                onDirectLinkTargetChanged = onDirectLinkTargetChanged,
+            )
+            Spacer(Modifier.height(18.dp))
+            HomeFooter(
+                onLearnWhy = { showSupportInfo = true },
+                onOpenIdentityHome = onOpenIdentityHome,
+                onOpenPrivacy = onOpenPrivacy,
+            )
+            Spacer(Modifier.height(if (compactHeight) 8.dp else 2.dp))
         }
     }
 
@@ -1333,11 +1305,10 @@ private fun CoachMarkOverlay(
         val density = LocalDensity.current
         val containerHeightPx = with(density) { maxHeight.toPx() }
         val targetIsUpper = target.center.y < containerHeightPx / 2f
-        val calloutGap = 54.dp
-        val calloutGapPx = with(density) { calloutGap.toPx() }
-        val targetBottomDp = with(density) { target.bottom.toDp() }
-        val bottomDistanceToTargetTopDp =
-            with(density) { (containerHeightPx - target.top).toDp() }
+        val calloutGapPx = with(density) { 54.dp.toPx() }
+        val safeArea = WindowInsets.safeDrawing.asPaddingValues()
+        val margin = 20.dp
+        val safeTopPx = with(density) { safeArea.calculateTopPadding().roundToPx() + margin.roundToPx() }
 
         Canvas(
             modifier = Modifier
@@ -1380,61 +1351,58 @@ private fun CoachMarkOverlay(
                 ),
         )
 
-        Surface(
-            modifier = Modifier
-                .align(if (targetIsUpper) Alignment.TopCenter else Alignment.BottomCenter)
-                .padding(
-                    start = 20.dp,
-                    end = 20.dp,
-                    top = if (targetIsUpper) targetBottomDp + calloutGap else 20.dp,
-                    bottom = if (targetIsUpper) 20.dp else bottomDistanceToTargetTopDp + calloutGap,
-                )
-                .widthIn(max = 520.dp),
-            shape = RoundedCornerShape(20.dp),
-            tonalElevation = 8.dp,
-            shadowElevation = 8.dp,
+        Box(
+            modifier = Modifier.fillMaxSize().padding(safeArea).padding(margin),
+            contentAlignment = coachMarkAlignment(target, targetIsUpper, calloutGapPx, safeTopPx),
         ) {
-            Column(modifier = Modifier.padding(20.dp)) {
-                if (step == 1) {
-                    Text(
-                        stringResource(R.string.onboarding_open_link_title),
-                        style = MaterialTheme.typography.titleLarge,
-                    )
-                    Spacer(Modifier.height(8.dp))
-                    Text(
-                        stringResource(R.string.onboarding_open_link_body),
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                    Spacer(Modifier.height(18.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.End,
-                    ) {
-                        Button(onClick = onNext) {
-                            Text(stringResource(R.string.next))
+            Surface(
+                modifier = Modifier.widthIn(max = 520.dp),
+                shape = RoundedCornerShape(20.dp),
+                tonalElevation = 8.dp,
+                shadowElevation = 8.dp,
+            ) {
+                Column(modifier = Modifier.verticalScroll(rememberScrollState()).padding(20.dp)) {
+                    if (step == 1) {
+                        Text(
+                            stringResource(R.string.onboarding_open_link_title),
+                            style = MaterialTheme.typography.titleLarge,
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        Text(
+                            stringResource(R.string.onboarding_open_link_body),
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
+                        Spacer(Modifier.height(18.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.End,
+                        ) {
+                            Button(onClick = onNext) {
+                                Text(stringResource(R.string.next))
+                            }
                         }
-                    }
-                } else {
-                    Text(
-                        stringResource(R.string.onboarding_direct_title),
-                        style = MaterialTheme.typography.titleLarge,
-                    )
-                    Spacer(Modifier.height(8.dp))
-                    Text(
-                        stringResource(R.string.onboarding_direct_body),
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                    Spacer(Modifier.height(18.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        TextButton(onClick = onSkip) {
-                            Text(stringResource(R.string.not_now))
-                        }
-                        Spacer(Modifier.weight(1f))
-                        Button(onClick = onConfigure) {
-                            Text(stringResource(R.string.configure_direct_opening))
+                    } else {
+                        Text(
+                            stringResource(R.string.onboarding_direct_title),
+                            style = MaterialTheme.typography.titleLarge,
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        Text(
+                            stringResource(R.string.onboarding_direct_body),
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
+                        Spacer(Modifier.height(18.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            TextButton(onClick = onSkip) {
+                                Text(stringResource(R.string.not_now))
+                            }
+                            Spacer(Modifier.weight(1f))
+                            Button(onClick = onConfigure) {
+                                Text(stringResource(R.string.configure_direct_opening))
+                            }
                         }
                     }
                 }
@@ -1442,6 +1410,16 @@ private fun CoachMarkOverlay(
         }
     }
 }
+
+/** Place the measured card beside its root-space target, within the safe viewport. */
+internal fun coachMarkAlignment(target: Rect, below: Boolean, gapPx: Float, safeTopPx: Int) =
+    Alignment { card, viewport, _ ->
+        val preferred = if (below) target.bottom + gapPx else target.top - gapPx - card.height
+        IntOffset(
+            x = (viewport.width - card.width) / 2,
+            y = (preferred.roundToInt() - safeTopPx).coerceIn(0, viewport.height - card.height),
+        )
+    }
 
 @Composable
 private fun CoachMarkArrow(
